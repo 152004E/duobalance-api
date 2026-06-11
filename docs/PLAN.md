@@ -1,5 +1,7 @@
 # Plan — What's Left to Implement (Backend)
 
+> **Nota:** El despliegue en Supabase, Render o cualquier servicio en la nube ocurre ÚNICAMENTE cuando el proyecto alcance estado beta. Hasta entonces todo corre en localhost.
+
 ## Legend
 - ✓ Done
 - ❌ Not Started
@@ -56,5 +58,13 @@
 
 ## Phase 8: Polish
 - [❌] Push notifications
-- [❌] CI/CD pipeline
 - [❌] Performance optimization
+
+## Phase 9: Deployment — Beta
+> Todo el desarrollo previo corre en localhost. Solo al llegar a beta se despliega.
+- [❌] Crear proyecto Supabase (PostgreSQL + Storage plan gratis)
+- [❌] Configurar Prisma con conexión a Supabase PostgreSQL
+- [❌] Configurar Supabase Storage para comprobantes
+- [❌] Desplegar backend en Render (o Railway/Fly.io)
+- [❌] Configurar CI/CD (GitHub Actions)
+- [❌] Configurar dominio/URL pública
