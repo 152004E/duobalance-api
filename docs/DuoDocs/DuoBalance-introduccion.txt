@@ -1,0 +1,218 @@
+# DuoBalance
+
+## Descripción General
+
+DuoBalance es una plataforma diseñada para la gestión financiera compartida entre dos personas, permitiendo registrar gastos, almacenar comprobantes, calcular aportes según porcentajes personalizados y mantener un balance automático de deudas y pagos.
+
+La aplicación surge de una necesidad común en parejas que comparten gastos del hogar, arriendo, servicios, alimentación y otras obligaciones económicas, pero que actualmente gestionan estas cuentas mediante mensajes de WhatsApp, fotografías de recibos y cálculos manuales.
+
+DuoBalance centraliza toda esta información en una única plataforma, proporcionando transparencia, organización y control financiero.
+
+---
+
+# Problema
+
+Muchas parejas registran gastos mediante conversaciones informales, lo que genera:
+
+* Pérdida de información.
+* Dificultad para consultar gastos antiguos.
+* Cálculos manuales de deudas.
+* Errores en la distribución de pagos.
+* Falta de claridad sobre quién debe dinero a quién.
+* Ausencia de reportes e historial financiero.
+
+---
+
+# Solución
+
+DuoBalance permite registrar y gestionar gastos compartidos mediante un sistema automatizado que calcula la participación de cada integrante según reglas previamente definidas.
+
+La plataforma mantiene un balance actualizado en tiempo real y conserva el historial de gastos y comprobantes asociados.
+
+---
+
+# Objetivo General
+
+Desarrollar una plataforma digital que facilite la administración de gastos compartidos entre parejas mediante el registro de transacciones, cálculo automático de aportes y seguimiento de balances financieros.
+
+---
+
+# Objetivos Específicos
+
+* Registrar gastos compartidos entre dos personas.
+* Asociar comprobantes fotográficos a cada gasto.
+* Configurar porcentajes personalizados de participación.
+* Calcular automáticamente las deudas generadas.
+* Visualizar balances en tiempo real.
+* Consultar historial de movimientos.
+* Generar reportes financieros.
+* Reducir el uso de registros manuales en aplicaciones de mensajería.
+
+---
+
+# Funcionalidades Principales
+
+## Gestión de Usuarios
+
+* Registro de cuenta.
+* Inicio de sesión.
+* Recuperación de contraseña.
+* Perfil de usuario.
+
+## Gestión de Parejas
+
+* Crear pareja.
+* Invitar pareja mediante código o enlace.
+* Configurar porcentajes de aporte.
+
+## Gestión de Gastos
+
+* Registrar gasto.
+* Descripción.
+* Valor.
+* Fecha.
+* Categoría.
+* Persona que realizó el pago.
+* Adjuntar fotografía del comprobante.
+
+## Tipos de Distribución
+
+### Mitad y Mitad (50/50)
+
+El sistema divide automáticamente el gasto en partes iguales.
+
+### Porcentaje Personalizado
+
+Cada integrante aporta según un porcentaje configurado.
+
+Ejemplo:
+
+* Usuario A: 70%
+* Usuario B: 30%
+
+### Gasto Personal
+
+No genera deuda compartida.
+
+### Deuda Externa
+
+Permite registrar obligaciones con terceros.
+
+---
+
+# Balance Automático
+
+El sistema calcula:
+
+* Total pagado por cada integrante.
+* Total correspondiente a cada integrante.
+* Diferencia entre pagos y obligaciones.
+* Deuda actual entre los usuarios.
+
+Ejemplo:
+
+"María debe a Juan $85.000"
+
+---
+
+# Gestión de Comprobantes
+
+Cada gasto puede incluir:
+
+* Imagen del recibo.
+* Factura.
+* Captura de pago.
+
+Los comprobantes permanecen asociados al movimiento correspondiente.
+
+---
+
+# Reportes
+
+* Gastos mensuales.
+* Gastos por categoría.
+* Historial de pagos.
+* Evolución financiera.
+* Resumen de balances.
+
+---
+
+# Funcionalidades Futuras
+
+## Inteligencia Artificial
+
+Procesamiento automático de recibos mediante OCR e IA.
+
+Flujo:
+
+1. Tomar fotografía.
+2. Detectar información del recibo.
+3. Extraer valor total.
+4. Sugerir descripción.
+5. Crear gasto automáticamente.
+
+## Presupuestos
+
+* Presupuesto mensual.
+* Límites por categoría.
+
+## Metas de Ahorro
+
+* Objetivos compartidos.
+* Seguimiento del progreso.
+
+## Exportación
+
+* PDF.
+* Excel.
+* Reportes descargables.
+
+---
+
+# Público Objetivo
+
+* Parejas.
+* Matrimonios.
+* Novios que conviven.
+* Compañeros de apartamento.
+* Amigos que comparten gastos.
+* Pequeños grupos familiares.
+
+---
+
+# Tecnologías Propuestas
+
+Frontend:
+
+* React Native
+* Expo
+
+Backend:
+
+* NestJS
+
+Base de Datos:
+
+* PostgreSQL
+
+ORM:
+
+* Prisma
+
+Almacenamiento:
+
+* Supabase Storage
+
+Autenticación:
+
+* Supabase Auth o JWT
+
+Infraestructura Inicial:
+
+* Supabase (Plan Gratuito)
+
+---
+
+# Propuesta de Valor
+
+DuoBalance simplifica la gestión financiera compartida mediante cálculos automáticos, almacenamiento de comprobantes y balances en tiempo real, eliminando la necesidad de llevar cuentas manuales en conversaciones de mensajería y hojas de cálculo.
