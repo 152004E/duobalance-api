@@ -10,6 +10,16 @@ import { generateInviteCode } from '../common/utils/invite-code';
 export class CouplesService {
   constructor(private readonly prisma: PrismaService) {}
 
+  private readonly coupleInclude = {
+    users: {
+      select: {
+        id: true,
+        name: true,
+        email: true,
+      },
+    },
+  };
+
   async createCouple(userId: string) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
@@ -25,53 +35,21 @@ export class CouplesService {
       );
     }
 
-    const couple = await this.prisma.couple.create({
+    return this.prisma.couple.create({
       data: {
         inviteCode: generateInviteCode(),
         users: {
           connect: { id: userId },
         },
       },
-      include: {
-        users: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
-        },
-      },
+      include: this.coupleInclude,
     });
-
-    return couple;
   }
 
-  async getMyCouple(userId: string) {
-    const user = await this.prisma.user.findUnique({
-      where: { id: userId },
-      include: {
-        couple: {
-          include: {
-            users: {
-              select: {
-                id: true,
-                name: true,
-                email: true,
-              },
-            },
-          },
-        },
-      },
-    });
-
-    if (!user?.couple) {
-      throw new NotFoundException('User does not belong to a couple');
-    }
-
-    return user.couple;
-  }
-
-  async joinCouple(userId: string, inviteCode: string) {
+  async joinCouple(
+    userId: string,
+    inviteCode: string,
+  ) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
     });
@@ -88,11 +66,15 @@ export class CouplesService {
 
     const couple = await this.prisma.couple.findUnique({
       where: { inviteCode },
-      include: { users: true },
+      include: {
+        users: true,
+      },
     });
 
     if (!couple) {
-      throw new NotFoundException('Invalid invite code');
+      throw new NotFoundException(
+        'Invalid invite code',
+      );
     }
 
     if (couple.users.length >= 2) {
@@ -108,15 +90,78 @@ export class CouplesService {
 
     return this.prisma.couple.findUnique({
       where: { id: couple.id },
-      include: {
-        users: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
-        },
-      },
+      include: this.coupleInclude,
     });
   }
+
+  async getMyCouple(userId: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        coupleId: true,
+      },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    if (!user.coupleId) {
+      throw new BadRequestException(
+        'User does not belong to a couple',
+      );
+    }
+
+    return this.prisma.couple.findUnique({
+      where: { id: user.coupleId },
+      include: this.coupleInclude,
+    });
+  }
+  async leaveCouple(userId: string) {
+  const user = await this.prisma.user.findUnique({
+    where: { id: userId },
+  });
+
+  if (!user) {
+    throw new NotFoundException('User not found');
+  }
+
+  if (!user.coupleId) {
+    throw new BadRequestException(
+      'User does not belong to a couple',
+    );
+  }
+
+  await this.prisma.user.update({
+    where: { id: userId },
+    data: {
+      coupleId: null,
+    },
+  });
+
+  const couple = await this.prisma.couple.findUnique({
+    where: {
+      id: user.coupleId,
+    },
+    include: {
+      users: true,
+    },
+  });
+
+  if (couple && couple.users.length === 0) {
+    await this.prisma.couple.delete({
+      where: {
+        id: couple.id,
+      },
+    });
+
+    return {
+      message: 'Couple deleted',
+    };
+  }
+
+  return {
+    message: 'Left couple successfully',
+  };
+}
 }
