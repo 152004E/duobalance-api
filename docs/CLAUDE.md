@@ -12,6 +12,10 @@ The project is in early development — the API has a basic scaffold and a User 
 - Prisma schema has a single `User` model (id, name, email, password, createdAt)
 - Database migration already applied
 - Mobile app has no source files yet
+- PrismaService module (DI wrapper for PrismaClient) ✅
+- Global validation pipe (whitelist + forbidNonWhitelisted + transform) ✅
+- Global exception filter (consistent JSON error responses) ✅
+- Environment validation via Joi (@nestjs/config + joi) ✅
 
 ## Tech Decisions
 - **pnpm** over npm/yarn
@@ -65,5 +69,9 @@ npx prisma db push        # Push schema (dev)
 | `duobalance-api/src/app.module.ts` | Root module |
 | `duobalance-api/prisma/schema.prisma` | Database schema |
 | `duobalance-api/.env` | Environment variables |
+| `duobalance-api/src/config/env.config.ts` | Joi validation schema |
+| `duobalance-api/src/common/pipes/validation.pipe.ts` | Global validation pipe |
+| `duobalance-api/src/common/filters/http-exception.filter.ts` | Global exception filter |
+| `duobalance-api/src/prisma/prisma.service.ts` | PrismaClient DI wrapper |
 | `docs/ARCHITECTURE.md` | Full architecture docs |
 | `docs/PLAN.md` | Implementation plan |

@@ -13,10 +13,10 @@
 - [✓] Basic controller (GET /)
 - [✓] Unit + e2e test setup
 - [✓] ESLint + Prettier config
-- [❌] PrismaService module (wrap PrismaClient for DI)
-- [❌] Global validation pipe
-- [❌] Global exception filter
-- [❌] Environment validation (Joi/Zod for .env)
+- [✓] PrismaService module (wrap PrismaClient for DI)
+- [✓] Global validation pipe (whitelist + forbidNonWhitelisted + transform)
+- [✓] Global exception filter (consistent JSON error response)
+- [✓] Environment validation (Joi schema for PORT, DATABASE_URL, JWT_SECRET)
 
 ## Phase 2: Auth
 - [❌] Auth module (register, login, refresh)

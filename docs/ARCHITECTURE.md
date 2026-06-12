@@ -17,7 +17,18 @@ duobalance-api/
 │   ├── app.module.ts              Root module
 │   ├── app.controller.ts          GET / → "Hello World!"
 │   ├── app.controller.spec.ts     Unit test for controller
-│   └── app.service.ts             Business logic layer
+│   ├── app.service.ts             Business logic layer
+│   ├── config/
+│   │   └── env.config.ts          Environment validation (Joi schema)
+│   ├── common/
+│   │   ├── filters/
+│   │   │   └── http-exception.filter.ts   Global exception filter
+│   │   ├── guards/                        (empty)
+│   │   └── pipes/
+│   │       └── validation.pipe.ts         Global validation pipe
+│   └── prisma/
+│       ├── prisma.module.ts       Global module exporting PrismaService
+│       └── prisma.service.ts      PrismaClient wrapper (DI)
 │
 ├── prisma/
 │   ├── schema.prisma              Database schema (User model)
@@ -87,10 +98,15 @@ Client (multipart)
 
 ```
 AppModule
+├── ConfigModule         (@nestjs/config + Joi validation)
 ├── AppController        (GET /)
 ├── AppService           (business logic)
 └── PrismaModule         (PrismaService provider)
     └── PrismaService    (PrismaClient wrapper)
+
+Global (registered in main.ts)
+├── globalValidationPipe         (ValidationPipe with whitelist/forbidNonWhitelisted/transform)
+└── HttpExceptionFilter          (consistent JSON error response)
 ```
 
 ### Planned Module Expansion
@@ -141,5 +157,5 @@ model User {
 - **Dependency Injection**: NestJS DI containers
 - **Repository pattern**: via PrismaService
 - **Controller → Service → Prisma**: layered architecture
-- **DTO validation**: planned with `class-validator` + `class-transformer`
+- **DTO validation**: via global ValidationPipe (`class-validator` + `class-transformer`)
 - **Modular design**: one NestJS module per domain feature
