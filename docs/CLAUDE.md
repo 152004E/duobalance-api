@@ -12,10 +12,12 @@ The project is in early development — the API has a basic scaffold and a User 
 - Prisma schema has a single `User` model (id, name, email, password, createdAt)
 - Database migration already applied
 - Mobile app has no source files yet
-- PrismaService module (DI wrapper for PrismaClient) ✅
+- PrismaService module (DI wrapper for PrismaClient + PrismaPg adapter) ✅
 - Global validation pipe (whitelist + forbidNonWhitelisted + transform) ✅
 - Global exception filter (consistent JSON error responses) ✅
 - Environment validation via Joi (@nestjs/config + joi) ✅
+- Auth module: register + login with bcrypt + JWT ✅
+- JWT Passport strategy + JwtAuthGuard ✅
 
 ## Tech Decisions
 - **pnpm** over npm/yarn
@@ -26,12 +28,11 @@ The project is in early development — the API has a basic scaffold and a User 
 - **React Native + Expo** for mobile (chosen, not started)
 
 ## What to Build Next
-1. Auth module (register/login with JWT + bcrypt)
+1. Couple/group management (linking two users) ← next
 2. Expense CRUD module
 3. Balance calculation logic
-4. Couple/group management (linking two users)
-5. Receipt upload with OCR
-6. Payment tracking and settlement
+4. Receipt upload with OCR
+5. Payment tracking and settlement
 
 ## Coding Style
 - TypeScript strict, no `any`
@@ -73,5 +74,10 @@ npx prisma db push        # Push schema (dev)
 | `duobalance-api/src/common/pipes/validation.pipe.ts` | Global validation pipe |
 | `duobalance-api/src/common/filters/http-exception.filter.ts` | Global exception filter |
 | `duobalance-api/src/prisma/prisma.service.ts` | PrismaClient DI wrapper |
+| `duobalance-api/src/auth/auth.controller.ts` | Auth routes (register, login) |
+| `duobalance-api/src/auth/auth.service.ts` | Auth business logic |
+| `duobalance-api/src/auth/strategies/jwt.strategy.ts` | Passport JWT strategy |
+| `duobalance-api/src/auth/guards/jwt-auth.guard.ts` | JWT Auth Guard |
+| `duobalance-api/src/users/users.service.ts` | User queries |
 | `docs/ARCHITECTURE.md` | Full architecture docs |
 | `docs/PLAN.md` | Implementation plan |

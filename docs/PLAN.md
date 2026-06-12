@@ -19,10 +19,12 @@
 - [✓] Environment validation (Joi schema for PORT, DATABASE_URL, JWT_SECRET)
 
 ## Phase 2: Auth
-- [❌] Auth module (register, login, refresh)
-- [❌] JWT strategy + guard
-- [❌] bcrypt password hashing
+- [✓] Auth module (register, login)
+- [✓] JWT strategy + guard (Passport, Bearer token)
+- [✓] bcrypt password hashing
+- [✓] DTOs (register.dto, login.dto with class-validator)
 - [❌] Rate limiting on login
+- [❌] Refresh token endpoint
 - [❌] Tests for auth endpoints
 
 ## Phase 3: Couple Management

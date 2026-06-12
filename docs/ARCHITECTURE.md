@@ -18,6 +18,17 @@ duobalance-api/
 │   ├── app.controller.ts          GET / → "Hello World!"
 │   ├── app.controller.spec.ts     Unit test for controller
 │   ├── app.service.ts             Business logic layer
+│   ├── auth/
+│   │   ├── auth.module.ts         Auth module (register, login)
+│   │   ├── auth.controller.ts     POST /auth/register, /auth/login
+│   │   ├── auth.service.ts        bcrypt + JWT logic
+│   │   ├── dto/
+│   │   │   ├── register.dto.ts    Validated register DTO
+│   │   │   └── login.dto.ts       Validated login DTO
+│   │   ├── guards/
+│   │   │   └── jwt-auth.guard.ts  JWT Auth Guard (@UseGuards)
+│   │   └── strategies/
+│   │       └── jwt.strategy.ts    Passport JWT strategy
 │   ├── config/
 │   │   └── env.config.ts          Environment validation (Joi schema)
 │   ├── common/
@@ -26,9 +37,16 @@ duobalance-api/
 │   │   ├── guards/                        (empty)
 │   │   └── pipes/
 │   │       └── validation.pipe.ts         Global validation pipe
-│   └── prisma/
-│       ├── prisma.module.ts       Global module exporting PrismaService
-│       └── prisma.service.ts      PrismaClient wrapper (DI)
+│   ├── generated/                         Prisma Client (generated)
+│   │   ├── client.ts              Main PrismaClient import
+│   │   ├── browser.ts             Browser-safe exports
+│   │   └── ...
+│   ├── prisma/
+│   │   ├── prisma.module.ts       Global module exporting PrismaService
+│   │   └── prisma.service.ts      PrismaClient wrapper (DI + PrismaPg adapter)
+│   └── users/
+│       ├── users.module.ts        Users module (exported)
+│       └── users.service.ts       findByEmail, findById, create
 │
 ├── prisma/
 │   ├── schema.prisma              Database schema (User model)
@@ -66,17 +84,24 @@ Client (HTTP)
   └─ GET / → AppController.getHello() → AppService.getHello() → "Hello World!"
 ```
 
-### Phase 2 (Planned — Auth + CRUD)
+### Phase 2 (Current — Auth working)
 ```
 Client (HTTP)
-  ├─ POST /auth/register   → AuthController   → Prisma → users table
-  ├─ POST /auth/login      → AuthController   → JWT
-  ├─ GET  /expenses        → ExpensesModule   → Prisma → expenses table
-  ├─ POST /expenses        → ExpensesModule   → Prisma
-  └─ GET  /balances        → BalancesModule   → Prisma → aggregated
+  ├─ POST /auth/register   → AuthController   → AuthService   → bcrypt → Prisma → users table
+  ├─ POST /auth/login      → AuthController   → AuthService   → bcrypt → JWT token
+  └─ Protected routes      → JwtAuthGuard     → JwtStrategy   → validate payload
 ```
 
-### Phase 3 (Planned — Receipts + Payments)
+### Phase 3 (Planned — Couples + Expenses)
+```
+Client (HTTP)
+  ├─ POST /couples         → CouplesModule   → Prisma → couples table
+  ├─ GET  /expenses        → ExpensesModule  → Prisma → expenses table
+  ├─ POST /expenses        → ExpensesModule  → Prisma
+  └─ GET  /balances        → BalancesModule  → Prisma → aggregated
+```
+
+### Phase 4 (Planned — Receipts + Payments)
 ```
 Client (multipart)
   ├─ POST /receipts/upload → ReceiptsModule → OCR pipeline → S3/cloud
@@ -89,7 +114,9 @@ Client (multipart)
 | Method | Route | Controller | Status | Details |
 |--------|-------|-----------|--------|---------|
 | GET | `/` | AppController | ✓ Working | Returns "Hello World!" |
-| - | `/auth/*` | — | ❌ Missing | No auth module yet |
+| POST | `/auth/register` | AuthController | ✓ Working | Register with bcrypt |
+| POST | `/auth/login` | AuthController | ✓ Working | Returns JWT access_token |
+| - | `/auth/*` (protected) | — | 🔒 Guard ready | JwtAuthGuard available |
 | - | `/expenses/*` | — | ❌ Missing | No expenses module yet |
 | - | `/balances/*` | — | ❌ Missing | No balances module yet |
 | - | `/receipts/*` | — | ❌ Missing | No receipts module yet |
@@ -99,10 +126,17 @@ Client (multipart)
 ```
 AppModule
 ├── ConfigModule         (@nestjs/config + Joi validation)
+├── AuthModule
+│   ├── AuthController   (POST /auth/register, /auth/login)
+│   ├── AuthService      (bcrypt hash + JWT sign)
+│   ├── JwtStrategy      (Passport strategy — Bearer token validation)
+│   └── JwtAuthGuard     (@UseGuards decorator)
+├── UsersModule
+│   └── UsersService     (findByEmail, findById, create)
 ├── AppController        (GET /)
 ├── AppService           (business logic)
 └── PrismaModule         (PrismaService provider)
-    └── PrismaService    (PrismaClient wrapper)
+    └── PrismaService    (PrismaClient + PrismaPg adapter)
 
 Global (registered in main.ts)
 ├── globalValidationPipe         (ValidationPipe with whitelist/forbidNonWhitelisted/transform)
@@ -114,11 +148,12 @@ Global (registered in main.ts)
 ```
 AppModule
 ├── AuthModule
-│   ├── AuthController   (register, login, refresh)
-│   └── AuthService      (JWT, bcrypt)
+│   ├── AuthController   (register, login)
+│   ├── AuthService      (JWT, bcrypt)
+│   ├── JwtStrategy      (Passport strategy)
+│   └── JwtAuthGuard     (guard decorator)
 ├── UsersModule
-│   ├── UsersController  (CRUD)
-│   └── UsersService
+│   └── UsersService     (findByEmail, findById, create)
 ├── ExpensesModule
 │   ├── ExpensesController
 │   └── ExpensesService
@@ -158,4 +193,7 @@ model User {
 - **Repository pattern**: via PrismaService
 - **Controller → Service → Prisma**: layered architecture
 - **DTO validation**: via global ValidationPipe (`class-validator` + `class-transformer`)
+- **Auth**: JWT Bearer tokens via Passport strategy + Guard decorator
+- **Password hashing**: bcrypt with salt rounds = 10
+- **Prisma**: driver adapter pattern (PrismaPg adapter for PostgreSQL)
 - **Modular design**: one NestJS module per domain feature
