@@ -7,6 +7,7 @@ import { PrismaModule } from './prisma/prisma.module';
 import { envValidationSchema } from './config/env.config';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
+import { CouplesModule } from './couples/couples.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { UsersModule } from './users/users.module';
     PrismaModule,
     AuthModule,
     UsersModule,
+    CouplesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

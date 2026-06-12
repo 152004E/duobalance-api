@@ -384,7 +384,8 @@ type FieldRefInputType<Model, FieldType> = Model extends never ? never : FieldRe
 
 
 export const ModelName = {
-  User: 'User'
+  User: 'User',
+  Couple: 'Couple'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -400,7 +401,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user"
+    modelProps: "user" | "couple"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -478,6 +479,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    Couple: {
+      payload: Prisma.$CouplePayload<ExtArgs>
+      fields: Prisma.CoupleFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.CoupleFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CouplePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.CoupleFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CouplePayload>
+        }
+        findFirst: {
+          args: Prisma.CoupleFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CouplePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.CoupleFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CouplePayload>
+        }
+        findMany: {
+          args: Prisma.CoupleFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CouplePayload>[]
+        }
+        create: {
+          args: Prisma.CoupleCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CouplePayload>
+        }
+        createMany: {
+          args: Prisma.CoupleCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.CoupleCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CouplePayload>[]
+        }
+        delete: {
+          args: Prisma.CoupleDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CouplePayload>
+        }
+        update: {
+          args: Prisma.CoupleUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CouplePayload>
+        }
+        deleteMany: {
+          args: Prisma.CoupleDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.CoupleUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.CoupleUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CouplePayload>[]
+        }
+        upsert: {
+          args: Prisma.CoupleUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CouplePayload>
+        }
+        aggregate: {
+          args: Prisma.CoupleAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateCouple>
+        }
+        groupBy: {
+          args: Prisma.CoupleGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.CoupleGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.CoupleCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.CoupleCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -522,10 +597,20 @@ export const UserScalarFieldEnum = {
   name: 'name',
   email: 'email',
   password: 'password',
-  createdAt: 'createdAt'
+  createdAt: 'createdAt',
+  coupleId: 'coupleId'
 } as const
 
 export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
+
+
+export const CoupleScalarFieldEnum = {
+  id: 'id',
+  inviteCode: 'inviteCode',
+  createdAt: 'createdAt'
+} as const
+
+export type CoupleScalarFieldEnum = (typeof CoupleScalarFieldEnum)[keyof typeof CoupleScalarFieldEnum]
 
 
 export const SortOrder = {
@@ -542,6 +627,14 @@ export const QueryMode = {
 } as const
 
 export type QueryMode = (typeof QueryMode)[keyof typeof QueryMode]
+
+
+export const NullsOrder = {
+  first: 'first',
+  last: 'last'
+} as const
+
+export type NullsOrder = (typeof NullsOrder)[keyof typeof NullsOrder]
 
 
 
@@ -702,6 +795,7 @@ export type PrismaClientOptions = ({
 }
 export type GlobalOmitConfig = {
   user?: Prisma.UserOmit
+  couple?: Prisma.CoupleOmit
 }
 
 /* Types for Logging */

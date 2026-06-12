@@ -13,4 +13,15 @@ model User {
   email     String   @unique
   password  String
   createdAt DateTime @default(now())
+
+  coupleId  String?
+  couple    Couple?  @relation(fields: [coupleId], references: [id])
+}
+
+model Couple {
+  id         String   @id @default(uuid())
+  inviteCode String   @unique
+  createdAt  DateTime @default(now())
+
+  users      User[]
 }
