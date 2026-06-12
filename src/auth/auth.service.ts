@@ -34,16 +34,19 @@ export class AuthService {
         return result;
     }
 
-    async login(data: { email: string; password: string }) {
-        const user = await this.usersService.findByEmail(data.email);
-        if (!user) throw new UnauthorizedException('Invalid credentials');
+  async login(data: { email: string; password: string }) {
+    console.log('JWT_SECRET=', process.env.JWT_SECRET);
 
-        const isMatch = await bcrypt.compare(data.password, user.password);
-        if (!isMatch) throw new UnauthorizedException('Invalid credentials');
+    const user = await this.usersService.findByEmail(data.email);
+    if (!user) throw new UnauthorizedException('Invalid credentials');
 
-        const payload = { id: user.id, email: user.email };
-        return {
-            access_token: this.jwtService.sign(payload),
-        };
-    }
+    const isMatch = await bcrypt.compare(data.password, user.password);
+    if (!isMatch) throw new UnauthorizedException('Invalid credentials');
+
+    const payload = { id: user.id, email: user.email };
+
+    return {
+        access_token: this.jwtService.sign(payload),
+    };
+}
 }
