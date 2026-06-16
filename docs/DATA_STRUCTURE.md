@@ -10,22 +10,26 @@ model User {
   email     String   @unique
   password  String
   createdAt DateTime @default(now())
+
+  coupleId  String?
+  couple    Couple?  @relation(fields: [coupleId], references: [id])
+}
+```
+
+### Couple (current)
+```prisma
+model Couple {
+  id         String   @id @default(uuid())
+  inviteCode String   @unique
+  createdAt  DateTime @default(now())
+
+  users      User[]
 }
 ```
 
 ### Planned Models
 
 ```prisma
-model Couple {
-  id        String   @id @default(uuid())
-  code      String   @unique
-  user1Id   String
-  user1     User     @relation("User1")
-  user2Id   String?
-  user2     User?    @relation("User2")
-  createdAt DateTime @default(now())
-}
-
 model Expense {
   id          String   @id @default(uuid())
   amount      Float

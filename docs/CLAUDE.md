@@ -5,19 +5,16 @@ DuoBalance is a shared expense tracking app for couples. It consists of:
 - **duobalance-api**: NestJS backend (TypeScript, Prisma, PostgreSQL)
 - **DuoBalance-app**: React Native + Expo mobile client (scaffolding, not yet built)
 
-The project is in early development — the API has a basic scaffold and a User model, and the mobile app is a git stub.
+The project is in active development — the API has auth, couple management, and a PostgreSQL database.
 
 ## Current State
-- Backend has one `GET /` endpoint returning "Hello World!"
-- Prisma schema has a single `User` model (id, name, email, password, createdAt)
-- Database migration already applied
-- Mobile app has no source files yet
+- **Auth**: register + login with bcrypt + JWT, Passport strategy + guard ✅
+- **Couples**: create couple, join via invite code, view my couple, leave couple ✅
+- **Database**: User + Couple models with migration applied ✅
 - PrismaService module (DI wrapper for PrismaClient + PrismaPg adapter) ✅
 - Global validation pipe (whitelist + forbidNonWhitelisted + transform) ✅
 - Global exception filter (consistent JSON error responses) ✅
 - Environment validation via Joi (@nestjs/config + joi) ✅
-- Auth module: register + login with bcrypt + JWT ✅
-- JWT Passport strategy + JwtAuthGuard ✅
 
 ## Tech Decisions
 - **pnpm** over npm/yarn
@@ -28,11 +25,10 @@ The project is in early development — the API has a basic scaffold and a User 
 - **React Native + Expo** for mobile (chosen, not started)
 
 ## What to Build Next
-1. Couple/group management (linking two users) ← next
-2. Expense CRUD module
-3. Balance calculation logic
-4. Receipt upload with OCR
-5. Payment tracking and settlement
+1. Expense CRUD module ← next
+2. Balance calculation logic
+3. Receipt upload with OCR
+4. Payment tracking and settlement
 
 ## Coding Style
 - TypeScript strict, no `any`
@@ -79,5 +75,8 @@ npx prisma db push        # Push schema (dev)
 | `duobalance-api/src/auth/strategies/jwt.strategy.ts` | Passport JWT strategy |
 | `duobalance-api/src/auth/guards/jwt-auth.guard.ts` | JWT Auth Guard |
 | `duobalance-api/src/users/users.service.ts` | User queries |
+| `duobalance-api/src/couples/couples.controller.ts` | Couple routes (create, join, leave, me) |
+| `duobalance-api/src/couples/couples.service.ts` | Couple business logic |
+| `duobalance-api/src/common/utils/invite-code.ts` | Invite code generation |
 | `docs/ARCHITECTURE.md` | Full architecture docs |
 | `docs/PLAN.md` | Implementation plan |

@@ -28,11 +28,11 @@
 - [❌] Tests for auth endpoints
 
 ## Phase 3: Couple Management
-- [❌] Couple model + migration
-- [❌] Create couple endpoint
-- [❌] Join couple via invitation code
-- [❌] Get couple balance
-- [❌] Link/unlink from couple
+- [✓] Couple model + migration
+- [✓] Create couple endpoint
+- [✓] Join couple via invitation code
+- [✓] Get my couple
+- [✓] Leave couple
 
 ## Phase 4: Expenses
 - [❌] Expense model + migration

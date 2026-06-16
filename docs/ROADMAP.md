@@ -1,29 +1,29 @@
 # Roadmap — Backend Release Phases
 
-## Phase 0: Foundation (v0.1) — Current
+## Phase 0: Foundation (v0.1) — Done
 **Goal**: Working backend scaffold with database
 - [✓] NestJS + Prisma + PostgreSQL setup
 - [✓] User model migration
 - [✓] Basic health endpoint
 - [✓] Test infrastructure
-- [ ] PrismaService module
-- [ ] Global pipes + filters
+- [✓] PrismaService module
+- [✓] Global pipes + filters
 
 **Estimated**: Complete
 
 ---
 
-## Phase 1: Auth & Couples (v0.2)
+## Phase 1: Auth & Couples (v0.2) — Done
 **Goal**: Users can register, log in, and link as a couple
-- Auth (register, login, JWT)
-- Couple creation + invitation codes
-- Profile management
+- [✓] Auth (register, login, JWT, profile)
+- [✓] Couple creation + invitation codes
+- [✓] Join + leave couple
 
-**Estimated**: 2-3 weeks
+**Estimated**: Complete
 
 ---
 
-## Phase 2: Core Expense Tracking (v0.3)
+## Phase 2: Core Expense Tracking (v0.3) — Next
 **Goal**: Expense CRUD and split logic
 - Expense CRUD
 - Equal/percentage/custom splitting
@@ -91,9 +91,9 @@
 ## Timeline
 
 ```
-v0.1  ████████████░░░░░░░░░░░░░░░░░░  (Foundation — done)
-v0.2  ░░░░░░░░░░░░████░░░░░░░░░░░░░░  (Auth & Couples — next)
-v0.3  ░░░░░░░░░░░░░░░░████████░░░░░░  (Expenses)
+v0.1  ████████████████████████████████  (Foundation — done)
+v0.2  ████████████████████████████████  (Auth & Couples — done)
+v0.3  ░░░░░░░░░░░░░░░░░░░░████████░░░░░░  (Expenses — next)
 v0.4  ░░░░░░░░░░░░░░░░░░░░██████░░░░  (Balances)
 v0.5  ░░░░░░░░░░░░░░░░░░░░░░░░████░░  (Receipts)
 v0.6  ░░░░░░░░░░░░░░░░░░░░░░░░░░░░██  (Payments)

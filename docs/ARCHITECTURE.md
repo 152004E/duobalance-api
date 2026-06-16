@@ -20,7 +20,7 @@ duobalance-api/
 │   ├── app.service.ts             Business logic layer
 │   ├── auth/
 │   │   ├── auth.module.ts         Auth module (register, login)
-│   │   ├── auth.controller.ts     POST /auth/register, /auth/login
+│   │   ├── auth.controller.ts     POST /auth/register, /auth/login, GET /auth/profile
 │   │   ├── auth.service.ts        bcrypt + JWT logic
 │   │   ├── dto/
 │   │   │   ├── register.dto.ts    Validated register DTO
@@ -35,12 +35,32 @@ duobalance-api/
 │   │   ├── filters/
 │   │   │   └── http-exception.filter.ts   Global exception filter
 │   │   ├── guards/                        (empty)
-│   │   └── pipes/
-│   │       └── validation.pipe.ts         Global validation pipe
+│   │   ├── pipes/
+│   │   │   └── validation.pipe.ts         Global validation pipe
+│   │   └── utils/
+│   │       └── invite-code.ts             Invite code generator
+│   ├── couples/
+│   │   ├── couples.module.ts       Couples module
+│   │   ├── couples.controller.ts   POST /couples, POST /couples/join, GET /couples/me, DELETE /couples/leave
+│   │   ├── couples.service.ts      Create, join, get, leave couple logic
+│   │   └── dto/
+│   │       ├── create-couple.dto.ts
+│   │       └── join-couple.dto.ts  Validated invite code DTO
+│   ├── expenses/                          Expenses module (stub)
+│   │   ├── expenses.module.ts      Module registered in app.module
+│   │   ├── expenses.controller.ts  Controller — no endpoints yet
+│   │   ├── expenses.service.ts     Service — no logic yet
+│   │   ├── dto/                    Empty (no DTOs yet)
+│   │   ├── expenses.controller.spec.ts
+│   │   └── expenses.service.spec.ts
 │   ├── generated/                         Prisma Client (generated)
 │   │   ├── client.ts              Main PrismaClient import
 │   │   ├── browser.ts             Browser-safe exports
-│   │   └── ...
+│   │   ├── commonInputTypes.ts    Shared Prisma input types
+│   │   ├── enums.ts               Generated enums
+│   │   ├── internal/              Internal Prisma types
+│   │   ├── models.ts              Model definitions
+│   │   └── models/                Per-model type exports
 │   ├── prisma/
 │   │   ├── prisma.module.ts       Global module exporting PrismaService
 │   │   └── prisma.service.ts      PrismaClient wrapper (DI + PrismaPg adapter)
@@ -49,9 +69,10 @@ duobalance-api/
 │       └── users.service.ts       findByEmail, findById, create
 │
 ├── prisma/
-│   ├── schema.prisma              Database schema (User model)
+│   ├── schema.prisma              Database schema (User + Couple models)
 │   ├── migrations/                Prisma migrations
-│   │   └── 20260611204224_init/   Initial migration (User table)
+│   │   ├── 20260611204224_init/   Initial migration (User table)
+│   │   └── 20260612165726_add_couple_model/  Couple model + relation
 │   └── prisma.config.ts           Prisma configuration
 │
 ├── test/
@@ -78,30 +99,47 @@ Client (HTTP)  →  duobalance-api  →  PostgreSQL
                   Prisma ORM layer
 ```
 
-### Phase 1 (Current — API scaffold)
+### Phase 1 (Done — API scaffold)
 ```
 Client (HTTP)
   └─ GET / → AppController.getHello() → AppService.getHello() → "Hello World!"
 ```
 
-### Phase 2 (Current — Auth working)
+### Phase 2 (Done — Auth working)
 ```
 Client (HTTP)
   ├─ POST /auth/register   → AuthController   → AuthService   → bcrypt → Prisma → users table
   ├─ POST /auth/login      → AuthController   → AuthService   → bcrypt → JWT token
+  ├─ GET  /auth/profile    → AuthController   → JwtAuthGuard → JwtStrategy → user payload
   └─ Protected routes      → JwtAuthGuard     → JwtStrategy   → validate payload
 ```
 
-### Phase 3 (Planned — Couples + Expenses)
+### Phase 3 (Done — Couples working)
 ```
 Client (HTTP)
-  ├─ POST /couples         → CouplesModule   → Prisma → couples table
-  ├─ GET  /expenses        → ExpensesModule  → Prisma → expenses table
-  ├─ POST /expenses        → ExpensesModule  → Prisma
-  └─ GET  /balances        → BalancesModule  → Prisma → aggregated
+  ├─ POST /couples             → CouplesController → CouplesService → Prisma → couples table
+  ├─ POST /couples/join        → CouplesController → CouplesService → validate invite code
+  ├─ GET  /couples/me          → CouplesController → CouplesService → couple + members
+  └─ DELETE /couples/leave     → CouplesController → CouplesService → unlink + cleanup
 ```
 
-### Phase 4 (Planned — Receipts + Payments)
+### Phase 4 (Stub — Expenses module scaffolded, no endpoints)
+```
+Client (HTTP)
+  ├─ expenses.module.ts  ✓ registered in AppModule
+  ├─ expenses.controller.ts  ❌ empty — no routes yet
+  └─ expenses.service.ts     ❌ empty — no logic yet
+```
+
+### Phase 5 (Planned — Expenses + Balances)
+```
+Client (HTTP)
+  ├─ GET/POST /expenses   → ExpensesModule → Prisma → expenses table
+  ├─ GET  /balances       → BalancesModule → Prisma → aggregated
+  └─ GET  /dashboard      → DashboardModule → summaries
+```
+
+### Phase 6 (Planned — Receipts + Payments)
 ```
 Client (multipart)
   ├─ POST /receipts/upload → ReceiptsModule → OCR pipeline → S3/cloud
@@ -113,13 +151,18 @@ Client (multipart)
 
 | Method | Route | Controller | Status | Details |
 |--------|-------|-----------|--------|---------|
-| GET | `/` | AppController | ✓ Working | Returns "Hello World!" |
-| POST | `/auth/register` | AuthController | ✓ Working | Register with bcrypt |
-| POST | `/auth/login` | AuthController | ✓ Working | Returns JWT access_token |
-| - | `/auth/*` (protected) | — | 🔒 Guard ready | JwtAuthGuard available |
-| - | `/expenses/*` | — | ❌ Missing | No expenses module yet |
-| - | `/balances/*` | — | ❌ Missing | No balances module yet |
-| - | `/receipts/*` | — | ❌ Missing | No receipts module yet |
+| GET | `/` | AppController | ✓ | Returns "Hello World!" |
+| POST | `/auth/register` | AuthController | ✓ | Register with bcrypt |
+| POST | `/auth/login` | AuthController | ✓ | Returns JWT access_token |
+| GET | `/auth/profile` | AuthController | ✓ | Protected — returns user from JWT |
+| POST | `/couples` | CouplesController | ✓ | Create couple |
+| POST | `/couples/join` | CouplesController | ✓ | Join via invite code |
+| GET | `/couples/me` | CouplesController | ✓ | Get my couple + members |
+| DELETE | `/couples/leave` | CouplesController | ✓ | Leave couple |
+| - | `/expenses/*` | ExpensesController | 🟡 | Module scaffolded, no routes yet |
+| - | `/balances/*` | — | ❌ | Not implemented yet |
+| - | `/receipts/*` | — | ❌ | Not implemented yet |
+| - | `/payments/*` | — | ❌ | Not implemented yet |
 
 ## Component Architecture
 
@@ -127,12 +170,18 @@ Client (multipart)
 AppModule
 ├── ConfigModule         (@nestjs/config + Joi validation)
 ├── AuthModule
-│   ├── AuthController   (POST /auth/register, /auth/login)
+│   ├── AuthController   (POST /auth/register, /auth/login, GET /auth/profile)
 │   ├── AuthService      (bcrypt hash + JWT sign)
 │   ├── JwtStrategy      (Passport strategy — Bearer token validation)
 │   └── JwtAuthGuard     (@UseGuards decorator)
 ├── UsersModule
 │   └── UsersService     (findByEmail, findById, create)
+├── CouplesModule
+│   ├── CouplesController (POST /couples, POST /couples/join, GET /couples/me, DELETE /couples/leave)
+│   └── CouplesService   (create, join, get, leave couple logic)
+├── ExpensesModule                  ← Scaffolded (no endpoints yet)
+│   ├── ExpensesController (stub)
+│   └── ExpensesService    (stub)
 ├── AppController        (GET /)
 ├── AppService           (business logic)
 └── PrismaModule         (PrismaService provider)
@@ -148,13 +197,16 @@ Global (registered in main.ts)
 ```
 AppModule
 ├── AuthModule
-│   ├── AuthController   (register, login)
+│   ├── AuthController   (register, login, profile)
 │   ├── AuthService      (JWT, bcrypt)
 │   ├── JwtStrategy      (Passport strategy)
 │   └── JwtAuthGuard     (guard decorator)
 ├── UsersModule
 │   └── UsersService     (findByEmail, findById, create)
-├── ExpensesModule
+├── CouplesModule                  ✓ Implemented
+│   ├── CouplesController
+│   └── CouplesService
+├── ExpensesModule                 🟡 Scaffolded — needs implementation
 │   ├── ExpensesController
 │   └── ExpensesService
 ├── BalancesModule
@@ -177,6 +229,17 @@ model User {
   email     String   @unique
   password  String
   createdAt DateTime @default(now())
+
+  coupleId  String?
+  couple    Couple?  @relation(fields: [coupleId], references: [id])
+}
+
+model Couple {
+  id         String   @id @default(uuid())
+  inviteCode String   @unique
+  createdAt  DateTime @default(now())
+
+  users      User[]
 }
 ```
 
