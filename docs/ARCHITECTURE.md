@@ -56,6 +56,11 @@ duobalance-api/
 │   │   │   └── query-expense.dto.ts
 │   │   ├── expenses.controller.spec.ts
 │   │   └── expenses.service.spec.ts
+│   ├── balances/                          Balances module ✓
+│   │   ├── balances.module.ts      Module registered in app.module
+│   │   ├── balances.controller.ts  GET /balances (JWT)
+│   │   ├── balances.service.ts     Cálculo EQUAL + soft-delete filter
+│   │   └── balances.service.spec.ts
 │   ├── generated/                         Prisma Client (generated)
 │   │   ├── client.ts              Main PrismaClient import
 │   │   ├── browser.ts             Browser-safe exports
@@ -137,14 +142,21 @@ Client (HTTP)
 ```
 > **Nota:** Solo `Expense` tiene soft-delete (`deletedAt`). `User` y `Couple` no.
 
-### Phase 5 (Planned — Balances)
+### Phase 5 (Done — Balances EQUAL)
 ```
 Client (HTTP)
-  ├─ GET  /balances       → BalancesModule → Prisma → aggregated
-  └─ GET  /dashboard      → DashboardModule → summaries
+  └─ GET /balances → BalancesController → BalancesService → Prisma → expenses EQUAL aggregated
 ```
+> Solo soporta `splitType = EQUAL`. PERCENTAGE, CUSTOM y PERSONAL se ignoran.
 
-### Phase 6 (Planned — Receipts + Payments)
+### Phase 6 (Planned — Dashboard + Payments)
+
+```
+Client (HTTP)
+  ├─ GET  /dashboard      → DashboardModule → summaries
+  ├─ POST /receipts/upload → ReceiptsModule → OCR pipeline → S3/cloud
+  └─ GET  /payments       → PaymentsModule  → Prisma → payments table
+```
 ```
 Client (multipart)
   ├─ POST /receipts/upload → ReceiptsModule → OCR pipeline → S3/cloud
@@ -169,7 +181,8 @@ Client (multipart)
 | GET | `/expenses/:id` | ExpensesController | ✓ | Get one expense (JWT) |
 | PATCH | `/expenses/:id` | ExpensesController | ✓ | Update expense (PartialType, JWT) |
 | DELETE | `/expenses/:id` | ExpensesController | ✓ | Soft-delete expense (JWT, solo Expense) |
-| - | `/balances/*` | — | ❌ | Not implemented yet |
+| GET | `/balances` | BalancesController | ✓ | Balance EQUAL (JWT) |
+| - | `/dashboard` | — | ❌ | Not implemented yet |
 | - | `/receipts/*` | — | ❌ | Not implemented yet |
 | - | `/payments/*` | — | ❌ | Not implemented yet |
 
@@ -191,6 +204,9 @@ AppModule
 ├── ExpensesModule                  ← ✓ Implemented
 │   ├── ExpensesController (POST, GET, GET/:id, PATCH/:id, DELETE/:id)
 │   └── ExpensesService    (CRUD + soft-delete)
+├── BalancesModule                  ← ✓ Implemented
+│   ├── BalancesController (GET /balances)
+│   └── BalancesService    (balance EQUAL calculation)
 ├── AppController        (GET /)
 ├── AppService           (business logic)
 └── PrismaModule         (PrismaService provider)
@@ -218,8 +234,8 @@ AppModule
 ├── ExpensesModule                 ✓ Implemented
 │   ├── ExpensesController
 │   └── ExpensesService
-├── BalancesModule
-│   └── BalancesService  (aggregation logic)
+├── BalancesModule                  ✓ Implemented
+│   └── BalancesService  (balance EQUAL calculation)
 ├── ReceiptsModule
 │   ├── ReceiptsController
 │   └── ReceiptsService  (OCR + S3)

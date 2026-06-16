@@ -154,5 +154,137 @@ echo "Balance de Solo (sin pareja):"
 curl -s -X GET "$API/balances" \
   -H "Authorization: Bearer $TOKEN_SOLO"
 
+# ──────────────────────────────────────────────
+# EXTRACT USER & COUPLE IDS FOR PAYMENTS TESTS
+# ──────────────────────────────────────────────
+echo ""
+echo "=== 12. Extraer IDs para pruebas de pagos ==="
+JUAN_PROFILE=$(curl -s -X GET "$API/auth/profile" \
+  -H "Authorization: Bearer $TOKEN_JUAN")
+JUAN_ID=$(echo "$JUAN_PROFILE" | python3 -c "import sys,json; print(json.load(sys.stdin)['id'])")
+echo "Juan ID: $JUAN_ID"
+
+MARIA_PROFILE=$(curl -s -X GET "$API/auth/profile" \
+  -H "Authorization: Bearer $TOKEN_MARIA")
+MARIA_ID=$(echo "$MARIA_PROFILE" | python3 -c "import sys,json; print(json.load(sys.stdin)['id'])")
+echo "Maria ID: $MARIA_ID"
+
+COUPLE_ME=$(curl -s -X GET "$API/couples/me" \
+  -H "Authorization: Bearer $TOKEN_JUAN")
+COUPLE_ID=$(echo "$COUPLE_ME" | python3 -c "import sys,json; print(json.load(sys.stdin)['id'])")
+echo "Couple ID: $COUPLE_ID"
+
+# ──────────────────────────────────────────────
+# PAYMENTS MODULE TESTS
+# ──────────────────────────────────────────────
+echo ""
+echo "============================================"
+echo "          PAYMENTS MODULE TESTS"
+echo "============================================"
+
+echo ""
+echo '=== Caso 1: Pago válido (Juan → Maria $50000) ==='
+PAY_RESP=$(curl -s -X POST "$API/payments" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $TOKEN_JUAN" \
+  -d "{\"amount\":50000,\"toUserId\":\"$MARIA_ID\"}")
+echo "$PAY_RESP" | python3 -m json.tool 2>/dev/null || echo "$PAY_RESP"
+
+echo ""
+echo "=== Caso 2: Amount inválido (amount=0) ==="
+HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" -X POST "$API/payments" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $TOKEN_JUAN" \
+  -d "{\"amount\":0,\"toUserId\":\"$MARIA_ID\"}")
+echo "Esperado: 400 | Obtenido: $HTTP_CODE"
+
+echo ""
+echo "=== Caso 3: Pago a sí mismo ==="
+HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" -X POST "$API/payments" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $TOKEN_JUAN" \
+  -d "{\"amount\":100,\"toUserId\":\"$JUAN_ID\"}")
+echo "Esperado: 400 | Obtenido: $HTTP_CODE"
+
+echo ""
+echo "=== Caso 4: Usuario sin pareja intenta pagar ==="
+HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" -X POST "$API/payments" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $TOKEN_SOLO" \
+  -d "{\"amount\":100,\"toUserId\":\"00000000-0000-0000-0000-000000000000\"}")
+echo "Esperado: 400 | Obtenido: $HTTP_CODE"
+
+echo ""
+echo "=== Caso 5: Usuario externo (pedro@test.com no existe) ==="
+HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" -X POST "$API/payments" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $TOKEN_JUAN" \
+  -d "{\"amount\":100,\"toUserId\":\"00000000-0000-0000-0000-000000000000\"}")
+echo "Esperado: 404 | Obtenido: $HTTP_CODE"
+
+# ── Crear segunda pareja para tests de aislamiento ──
+echo ""
+echo "=== Setup: Pareja B (Pedro + Ana) ==="
+TOKEN_PEDRO=$(get_token "Pedro" "pedro@test.com" "123456")
+TOKEN_ANA=$(get_token "Ana" "ana@test.com" "123456")
+
+COUPLE_B=$(curl -s -X POST "$API/couples" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $TOKEN_PEDRO")
+INVITE_B=$(echo "$COUPLE_B" | sed -n 's/.*"inviteCode":"\([^"]*\)".*/\1/p')
+echo "Pedro creó pareja B. Invite: $INVITE_B"
+
+curl -s -X POST "$API/couples/join" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $TOKEN_ANA" \
+  -d "{\"inviteCode\":\"$INVITE_B\"}" > /dev/null
+echo "Ana se unió ✓"
+
+# Get Pedro ID for isolation tests
+PEDRO_PROFILE=$(curl -s -X GET "$API/auth/profile" \
+  -H "Authorization: Bearer $TOKEN_PEDRO")
+PEDRO_ID=$(echo "$PEDRO_PROFILE" | python3 -c "import sys,json; print(json.load(sys.stdin)['id'])")
+
+echo ""
+echo "=== Caso 6: Historial vacío (pareja nueva, sin pagos) ==="
+curl -s -X GET "$API/payments" \
+  -H "Authorization: Bearer $TOKEN_PEDRO"
+
+echo ""
+echo "=== Caso 7: Múltiples pagos + orden DESC ==="
+# Crear 3 pagos: Juan → Maria (distintos montos para identificar orden)
+curl -s -X POST "$API/payments" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $TOKEN_JUAN" \
+  -d "{\"amount\":1000,\"toUserId\":\"$MARIA_ID\"}" > /dev/null
+echo "Pago 1000 ✓"
+
+sleep 1
+
+curl -s -X POST "$API/payments" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $TOKEN_JUAN" \
+  -d "{\"amount\":2000,\"toUserId\":\"$MARIA_ID\"}" > /dev/null
+echo "Pago 2000 ✓"
+
+sleep 1
+
+curl -s -X POST "$API/payments" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $TOKEN_MARIA" \
+  -d "{\"amount\":3000,\"toUserId\":\"$JUAN_ID\"}" > /dev/null
+echo "Pago 3000 (Maria → Juan) ✓"
+
+echo ""
+echo "Historial completo (debe ir DESC por createdAt):"
+curl -s -X GET "$API/payments" \
+  -H "Authorization: Bearer $TOKEN_JUAN" | python3 -m json.tool
+
+echo ""
+echo "=== Caso 8: Aislamiento entre parejas ==="
+echo "Pedro NO debe ver pagos de Juan:"
+curl -s -X GET "$API/payments" \
+  -H "Authorization: Bearer $TOKEN_PEDRO"
+
 echo ""
 echo "=== ✅ Pruebas completadas ==="

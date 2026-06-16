@@ -130,6 +130,17 @@ class QueryExpenseDto {
   maxAmount?: number;
 }
 
+// Balance
+class BalanceResponse {
+  totalExpenses: number;
+  totalPaidByMe: number;
+  totalPaidByPartner: number;
+  myShare: number;
+  partnerShare: number;
+  balance: number;          // Math.abs(netBalance)
+  direction: 'OWED_TO_ME' | 'I_OWE' | 'SETTLED';
+}
+
 // Payment
 class CreatePaymentDto {
   amount: number;
@@ -178,12 +189,13 @@ interface ExpenseResponse {
 }
 
 interface BalanceResponse {
-  coupleId: string;
-  totalOwed: number;
-  totalDebt: number;
-  netBalance: number;
-  expenses: ExpenseResponse[];
-  payments: PaymentResponse[];
+  totalExpenses: number;
+  totalPaidByMe: number;
+  totalPaidByPartner: number;
+  myShare: number;
+  partnerShare: number;
+  balance: number;
+  direction: 'OWED_TO_ME' | 'I_OWE' | 'SETTLED';
 }
 
 interface PaymentResponse {

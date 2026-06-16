@@ -45,9 +45,12 @@
 > ⚠️ **Soft-delete:** Solo `Expense` usa `deletedAt`. `User` y `Couple` se eliminan realmente (no tienen soft-delete).
 
 ## Phase 5: Balances & Dashboard
-- [❌] Balance aggregation endpoint
+- [✓] Balance aggregation endpoint (EQUAL split, soft-delete filter)
 - [❌] Dashboard summary (totals, trends)
 - [❌] Settlement suggestions
+- [❌] PERCENTAGE / CUSTOM split support
+
+> ⚠️ Balance solo soporta `splitType = EQUAL` por ahora.
 
 ## Phase 6: Receipts
 - [❌] Receipt upload endpoint (multipart)

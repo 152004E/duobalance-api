@@ -192,6 +192,8 @@ export type UserWhereInput = {
   coupleId?: Prisma.StringNullableFilter<"User"> | string | null
   couple?: Prisma.XOR<Prisma.CoupleNullableScalarRelationFilter, Prisma.CoupleWhereInput> | null
   expenses?: Prisma.ExpenseListRelationFilter
+  paymentsSent?: Prisma.PaymentListRelationFilter
+  paymentsReceived?: Prisma.PaymentListRelationFilter
 }
 
 export type UserOrderByWithRelationInput = {
@@ -203,6 +205,8 @@ export type UserOrderByWithRelationInput = {
   coupleId?: Prisma.SortOrderInput | Prisma.SortOrder
   couple?: Prisma.CoupleOrderByWithRelationInput
   expenses?: Prisma.ExpenseOrderByRelationAggregateInput
+  paymentsSent?: Prisma.PaymentOrderByRelationAggregateInput
+  paymentsReceived?: Prisma.PaymentOrderByRelationAggregateInput
 }
 
 export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -217,6 +221,8 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   coupleId?: Prisma.StringNullableFilter<"User"> | string | null
   couple?: Prisma.XOR<Prisma.CoupleNullableScalarRelationFilter, Prisma.CoupleWhereInput> | null
   expenses?: Prisma.ExpenseListRelationFilter
+  paymentsSent?: Prisma.PaymentListRelationFilter
+  paymentsReceived?: Prisma.PaymentListRelationFilter
 }, "id" | "email">
 
 export type UserOrderByWithAggregationInput = {
@@ -251,6 +257,8 @@ export type UserCreateInput = {
   createdAt?: Date | string
   couple?: Prisma.CoupleCreateNestedOneWithoutUsersInput
   expenses?: Prisma.ExpenseCreateNestedManyWithoutPaidByInput
+  paymentsSent?: Prisma.PaymentCreateNestedManyWithoutFromUserInput
+  paymentsReceived?: Prisma.PaymentCreateNestedManyWithoutToUserInput
 }
 
 export type UserUncheckedCreateInput = {
@@ -261,6 +269,8 @@ export type UserUncheckedCreateInput = {
   createdAt?: Date | string
   coupleId?: string | null
   expenses?: Prisma.ExpenseUncheckedCreateNestedManyWithoutPaidByInput
+  paymentsSent?: Prisma.PaymentUncheckedCreateNestedManyWithoutFromUserInput
+  paymentsReceived?: Prisma.PaymentUncheckedCreateNestedManyWithoutToUserInput
 }
 
 export type UserUpdateInput = {
@@ -271,6 +281,8 @@ export type UserUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   couple?: Prisma.CoupleUpdateOneWithoutUsersNestedInput
   expenses?: Prisma.ExpenseUpdateManyWithoutPaidByNestedInput
+  paymentsSent?: Prisma.PaymentUpdateManyWithoutFromUserNestedInput
+  paymentsReceived?: Prisma.PaymentUpdateManyWithoutToUserNestedInput
 }
 
 export type UserUncheckedUpdateInput = {
@@ -281,6 +293,8 @@ export type UserUncheckedUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   coupleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   expenses?: Prisma.ExpenseUncheckedUpdateManyWithoutPaidByNestedInput
+  paymentsSent?: Prisma.PaymentUncheckedUpdateManyWithoutFromUserNestedInput
+  paymentsReceived?: Prisma.PaymentUncheckedUpdateManyWithoutToUserNestedInput
 }
 
 export type UserCreateManyInput = {
@@ -419,6 +433,34 @@ export type UserUpdateOneRequiredWithoutExpensesNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutExpensesInput, Prisma.UserUpdateWithoutExpensesInput>, Prisma.UserUncheckedUpdateWithoutExpensesInput>
 }
 
+export type UserCreateNestedOneWithoutPaymentsSentInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutPaymentsSentInput, Prisma.UserUncheckedCreateWithoutPaymentsSentInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutPaymentsSentInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserCreateNestedOneWithoutPaymentsReceivedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutPaymentsReceivedInput, Prisma.UserUncheckedCreateWithoutPaymentsReceivedInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutPaymentsReceivedInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutPaymentsSentNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutPaymentsSentInput, Prisma.UserUncheckedCreateWithoutPaymentsSentInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutPaymentsSentInput
+  upsert?: Prisma.UserUpsertWithoutPaymentsSentInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutPaymentsSentInput, Prisma.UserUpdateWithoutPaymentsSentInput>, Prisma.UserUncheckedUpdateWithoutPaymentsSentInput>
+}
+
+export type UserUpdateOneRequiredWithoutPaymentsReceivedNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutPaymentsReceivedInput, Prisma.UserUncheckedCreateWithoutPaymentsReceivedInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutPaymentsReceivedInput
+  upsert?: Prisma.UserUpsertWithoutPaymentsReceivedInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutPaymentsReceivedInput, Prisma.UserUpdateWithoutPaymentsReceivedInput>, Prisma.UserUncheckedUpdateWithoutPaymentsReceivedInput>
+}
+
 export type UserCreateWithoutCoupleInput = {
   id?: string
   name: string
@@ -426,6 +468,8 @@ export type UserCreateWithoutCoupleInput = {
   password: string
   createdAt?: Date | string
   expenses?: Prisma.ExpenseCreateNestedManyWithoutPaidByInput
+  paymentsSent?: Prisma.PaymentCreateNestedManyWithoutFromUserInput
+  paymentsReceived?: Prisma.PaymentCreateNestedManyWithoutToUserInput
 }
 
 export type UserUncheckedCreateWithoutCoupleInput = {
@@ -435,6 +479,8 @@ export type UserUncheckedCreateWithoutCoupleInput = {
   password: string
   createdAt?: Date | string
   expenses?: Prisma.ExpenseUncheckedCreateNestedManyWithoutPaidByInput
+  paymentsSent?: Prisma.PaymentUncheckedCreateNestedManyWithoutFromUserInput
+  paymentsReceived?: Prisma.PaymentUncheckedCreateNestedManyWithoutToUserInput
 }
 
 export type UserCreateOrConnectWithoutCoupleInput = {
@@ -482,6 +528,8 @@ export type UserCreateWithoutExpensesInput = {
   password: string
   createdAt?: Date | string
   couple?: Prisma.CoupleCreateNestedOneWithoutUsersInput
+  paymentsSent?: Prisma.PaymentCreateNestedManyWithoutFromUserInput
+  paymentsReceived?: Prisma.PaymentCreateNestedManyWithoutToUserInput
 }
 
 export type UserUncheckedCreateWithoutExpensesInput = {
@@ -491,6 +539,8 @@ export type UserUncheckedCreateWithoutExpensesInput = {
   password: string
   createdAt?: Date | string
   coupleId?: string | null
+  paymentsSent?: Prisma.PaymentUncheckedCreateNestedManyWithoutFromUserInput
+  paymentsReceived?: Prisma.PaymentUncheckedCreateNestedManyWithoutToUserInput
 }
 
 export type UserCreateOrConnectWithoutExpensesInput = {
@@ -516,6 +566,8 @@ export type UserUpdateWithoutExpensesInput = {
   password?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   couple?: Prisma.CoupleUpdateOneWithoutUsersNestedInput
+  paymentsSent?: Prisma.PaymentUpdateManyWithoutFromUserNestedInput
+  paymentsReceived?: Prisma.PaymentUpdateManyWithoutToUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutExpensesInput = {
@@ -525,6 +577,128 @@ export type UserUncheckedUpdateWithoutExpensesInput = {
   password?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   coupleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paymentsSent?: Prisma.PaymentUncheckedUpdateManyWithoutFromUserNestedInput
+  paymentsReceived?: Prisma.PaymentUncheckedUpdateManyWithoutToUserNestedInput
+}
+
+export type UserCreateWithoutPaymentsSentInput = {
+  id?: string
+  name: string
+  email: string
+  password: string
+  createdAt?: Date | string
+  couple?: Prisma.CoupleCreateNestedOneWithoutUsersInput
+  expenses?: Prisma.ExpenseCreateNestedManyWithoutPaidByInput
+  paymentsReceived?: Prisma.PaymentCreateNestedManyWithoutToUserInput
+}
+
+export type UserUncheckedCreateWithoutPaymentsSentInput = {
+  id?: string
+  name: string
+  email: string
+  password: string
+  createdAt?: Date | string
+  coupleId?: string | null
+  expenses?: Prisma.ExpenseUncheckedCreateNestedManyWithoutPaidByInput
+  paymentsReceived?: Prisma.PaymentUncheckedCreateNestedManyWithoutToUserInput
+}
+
+export type UserCreateOrConnectWithoutPaymentsSentInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutPaymentsSentInput, Prisma.UserUncheckedCreateWithoutPaymentsSentInput>
+}
+
+export type UserCreateWithoutPaymentsReceivedInput = {
+  id?: string
+  name: string
+  email: string
+  password: string
+  createdAt?: Date | string
+  couple?: Prisma.CoupleCreateNestedOneWithoutUsersInput
+  expenses?: Prisma.ExpenseCreateNestedManyWithoutPaidByInput
+  paymentsSent?: Prisma.PaymentCreateNestedManyWithoutFromUserInput
+}
+
+export type UserUncheckedCreateWithoutPaymentsReceivedInput = {
+  id?: string
+  name: string
+  email: string
+  password: string
+  createdAt?: Date | string
+  coupleId?: string | null
+  expenses?: Prisma.ExpenseUncheckedCreateNestedManyWithoutPaidByInput
+  paymentsSent?: Prisma.PaymentUncheckedCreateNestedManyWithoutFromUserInput
+}
+
+export type UserCreateOrConnectWithoutPaymentsReceivedInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutPaymentsReceivedInput, Prisma.UserUncheckedCreateWithoutPaymentsReceivedInput>
+}
+
+export type UserUpsertWithoutPaymentsSentInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutPaymentsSentInput, Prisma.UserUncheckedUpdateWithoutPaymentsSentInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutPaymentsSentInput, Prisma.UserUncheckedCreateWithoutPaymentsSentInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutPaymentsSentInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutPaymentsSentInput, Prisma.UserUncheckedUpdateWithoutPaymentsSentInput>
+}
+
+export type UserUpdateWithoutPaymentsSentInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  couple?: Prisma.CoupleUpdateOneWithoutUsersNestedInput
+  expenses?: Prisma.ExpenseUpdateManyWithoutPaidByNestedInput
+  paymentsReceived?: Prisma.PaymentUpdateManyWithoutToUserNestedInput
+}
+
+export type UserUncheckedUpdateWithoutPaymentsSentInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  coupleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  expenses?: Prisma.ExpenseUncheckedUpdateManyWithoutPaidByNestedInput
+  paymentsReceived?: Prisma.PaymentUncheckedUpdateManyWithoutToUserNestedInput
+}
+
+export type UserUpsertWithoutPaymentsReceivedInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutPaymentsReceivedInput, Prisma.UserUncheckedUpdateWithoutPaymentsReceivedInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutPaymentsReceivedInput, Prisma.UserUncheckedCreateWithoutPaymentsReceivedInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutPaymentsReceivedInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutPaymentsReceivedInput, Prisma.UserUncheckedUpdateWithoutPaymentsReceivedInput>
+}
+
+export type UserUpdateWithoutPaymentsReceivedInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  couple?: Prisma.CoupleUpdateOneWithoutUsersNestedInput
+  expenses?: Prisma.ExpenseUpdateManyWithoutPaidByNestedInput
+  paymentsSent?: Prisma.PaymentUpdateManyWithoutFromUserNestedInput
+}
+
+export type UserUncheckedUpdateWithoutPaymentsReceivedInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  coupleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  expenses?: Prisma.ExpenseUncheckedUpdateManyWithoutPaidByNestedInput
+  paymentsSent?: Prisma.PaymentUncheckedUpdateManyWithoutFromUserNestedInput
 }
 
 export type UserCreateManyCoupleInput = {
@@ -542,6 +716,8 @@ export type UserUpdateWithoutCoupleInput = {
   password?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   expenses?: Prisma.ExpenseUpdateManyWithoutPaidByNestedInput
+  paymentsSent?: Prisma.PaymentUpdateManyWithoutFromUserNestedInput
+  paymentsReceived?: Prisma.PaymentUpdateManyWithoutToUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutCoupleInput = {
@@ -551,6 +727,8 @@ export type UserUncheckedUpdateWithoutCoupleInput = {
   password?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   expenses?: Prisma.ExpenseUncheckedUpdateManyWithoutPaidByNestedInput
+  paymentsSent?: Prisma.PaymentUncheckedUpdateManyWithoutFromUserNestedInput
+  paymentsReceived?: Prisma.PaymentUncheckedUpdateManyWithoutToUserNestedInput
 }
 
 export type UserUncheckedUpdateManyWithoutCoupleInput = {
@@ -568,10 +746,14 @@ export type UserUncheckedUpdateManyWithoutCoupleInput = {
 
 export type UserCountOutputType = {
   expenses: number
+  paymentsSent: number
+  paymentsReceived: number
 }
 
 export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   expenses?: boolean | UserCountOutputTypeCountExpensesArgs
+  paymentsSent?: boolean | UserCountOutputTypeCountPaymentsSentArgs
+  paymentsReceived?: boolean | UserCountOutputTypeCountPaymentsReceivedArgs
 }
 
 /**
@@ -591,6 +773,20 @@ export type UserCountOutputTypeCountExpensesArgs<ExtArgs extends runtime.Types.E
   where?: Prisma.ExpenseWhereInput
 }
 
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountPaymentsSentArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.PaymentWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountPaymentsReceivedArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.PaymentWhereInput
+}
+
 
 export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -601,6 +797,8 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   coupleId?: boolean
   couple?: boolean | Prisma.User$coupleArgs<ExtArgs>
   expenses?: boolean | Prisma.User$expensesArgs<ExtArgs>
+  paymentsSent?: boolean | Prisma.User$paymentsSentArgs<ExtArgs>
+  paymentsReceived?: boolean | Prisma.User$paymentsReceivedArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
 
@@ -637,6 +835,8 @@ export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = run
 export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   couple?: boolean | Prisma.User$coupleArgs<ExtArgs>
   expenses?: boolean | Prisma.User$expensesArgs<ExtArgs>
+  paymentsSent?: boolean | Prisma.User$paymentsSentArgs<ExtArgs>
+  paymentsReceived?: boolean | Prisma.User$paymentsReceivedArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type UserIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -651,6 +851,8 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   objects: {
     couple: Prisma.$CouplePayload<ExtArgs> | null
     expenses: Prisma.$ExpensePayload<ExtArgs>[]
+    paymentsSent: Prisma.$PaymentPayload<ExtArgs>[]
+    paymentsReceived: Prisma.$PaymentPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1055,6 +1257,8 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   readonly [Symbol.toStringTag]: "PrismaPromise"
   couple<T extends Prisma.User$coupleArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$coupleArgs<ExtArgs>>): Prisma.Prisma__CoupleClient<runtime.Types.Result.GetResult<Prisma.$CouplePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   expenses<T extends Prisma.User$expensesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$expensesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ExpensePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  paymentsSent<T extends Prisma.User$paymentsSentArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$paymentsSentArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PaymentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  paymentsReceived<T extends Prisma.User$paymentsReceivedArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$paymentsReceivedArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PaymentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1531,6 +1735,54 @@ export type User$expensesArgs<ExtArgs extends runtime.Types.Extensions.InternalA
   take?: number
   skip?: number
   distinct?: Prisma.ExpenseScalarFieldEnum | Prisma.ExpenseScalarFieldEnum[]
+}
+
+/**
+ * User.paymentsSent
+ */
+export type User$paymentsSentArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Payment
+   */
+  select?: Prisma.PaymentSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Payment
+   */
+  omit?: Prisma.PaymentOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.PaymentInclude<ExtArgs> | null
+  where?: Prisma.PaymentWhereInput
+  orderBy?: Prisma.PaymentOrderByWithRelationInput | Prisma.PaymentOrderByWithRelationInput[]
+  cursor?: Prisma.PaymentWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.PaymentScalarFieldEnum | Prisma.PaymentScalarFieldEnum[]
+}
+
+/**
+ * User.paymentsReceived
+ */
+export type User$paymentsReceivedArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Payment
+   */
+  select?: Prisma.PaymentSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Payment
+   */
+  omit?: Prisma.PaymentOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.PaymentInclude<ExtArgs> | null
+  where?: Prisma.PaymentWhereInput
+  orderBy?: Prisma.PaymentOrderByWithRelationInput | Prisma.PaymentOrderByWithRelationInput[]
+  cursor?: Prisma.PaymentWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.PaymentScalarFieldEnum | Prisma.PaymentScalarFieldEnum[]
 }
 
 /**

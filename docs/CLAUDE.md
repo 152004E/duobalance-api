@@ -11,11 +11,13 @@ The project is in active development — the API has auth, couple management, an
 - **Auth**: register + login with bcrypt + JWT, Passport strategy + guard ✅
 - **Couples**: create couple, join via invite code, view my couple, leave couple ✅
 - **Expenses**: full CRUD con soft-delete (solo Expense), filtros por categoría/fecha/monto ✅
+- **Balances**: endpoint `GET /balances` con cálculo EQUAL, soft-delete filter ✅
 - **Database**: User + Couple + Expense models with migration applied ✅
 - PrismaService module (DI wrapper for PrismaClient + PrismaPg adapter) ✅
 - Global validation pipe (whitelist + forbidNonWhitelisted + transform) ✅
 - Global exception filter (consistent JSON error responses) ✅
 - Environment validation via Joi (@nestjs/config + joi) ✅
+- Test script: `scripts/test-balances.sh` (curl, idempotente)
 
 > ⚠️ **Soft-delete:** Solo `Expense` tiene `deletedAt`. `User` y `Couple` no.
 
@@ -28,7 +30,7 @@ The project is in active development — the API has auth, couple management, an
 - **React Native + Expo** for mobile (chosen, not started)
 
 ## What to Build Next
-1. Balance calculation logic ← next
+1. Dashboard summary & settlement suggestions ← next
 2. Receipt upload with OCR
 3. Payment tracking and settlement
 
@@ -85,5 +87,9 @@ npx prisma db push        # Push schema (dev)
 | `duobalance-api/src/expenses/dto/create-expense.dto.ts` | Create expense validation |
 | `duobalance-api/src/expenses/dto/update-expense.dto.ts` | Partial update via PartialType |
 | `duobalance-api/src/expenses/dto/query-expense.dto.ts` | Query filters (category, date, amount) |
+| `duobalance-api/src/balances/balances.controller.ts` | GET /balances endpoint |
+| `duobalance-api/src/balances/balances.service.ts` | Balance calculation logic (EQUAL) |
+| `duobalance-api/src/balances/balances.service.spec.ts` | Unit tests for balance |
+| `duobalance-api/scripts/test-balances.sh` | Integration test script (curl) |
 | `docs/ARCHITECTURE.md` | Full architecture docs |
 | `docs/PLAN.md` | Implementation plan |

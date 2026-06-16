@@ -10,6 +10,7 @@ import { UsersModule } from './users/users.module';
 import { CouplesModule } from './couples/couples.module';
 import { ExpensesModule } from './expenses/expenses.module';
 import { BalancesModule } from './balances/balances.module';
+import { PaymentsModule } from './payments/payments.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { BalancesModule } from './balances/balances.module';
     CouplesModule,
     ExpensesModule,
     BalancesModule,
+    PaymentsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
