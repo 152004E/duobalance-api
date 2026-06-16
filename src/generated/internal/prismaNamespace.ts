@@ -696,6 +696,7 @@ export const ExpenseScalarFieldEnum = {
   splitType: 'splitType',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
+  deletedAt: 'deletedAt',
   paidById: 'paidById',
   coupleId: 'coupleId'
 } as const

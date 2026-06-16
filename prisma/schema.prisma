@@ -55,6 +55,7 @@ model Expense {
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  deletedAt   DateTime?
 
   paidById    String
   paidBy      User @relation(fields: [paidById], references: [id])
