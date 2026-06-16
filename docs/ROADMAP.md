@@ -28,7 +28,7 @@
 - [✓] Expense CRUD (create, list with filters, get one, update via PartialType, soft-delete)
 - [✓] Category + date + amount range filtering
 - [✓] Soft-delete (`deletedAt` en Expense únicamente)
-- [❌] Equal/percentage/custom splitting (pendiente)
+- [✓] Split types: EQUAL + PERCENTAGE (con ExpenseSplit model)
 - [❌] Tests for expense logic (pendiente)
 
 > ⚠️ **Soft-delete:** Solo `Expense` usa `deletedAt`. `User` y `Couple` se eliminan realmente (no tienen soft-delete).

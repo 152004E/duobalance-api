@@ -37,6 +37,16 @@ describe('SettlementsService', () => {
 
   describe('calculate', () => {
     const userId = 'user-1';
+    const partnerId = 'partner-1';
+
+    const baseUser = { id: userId, coupleId: 'couple-1' };
+    const baseCouple = {
+      id: 'couple-1',
+      users: [
+        { id: userId, name: 'Juan' },
+        { id: partnerId, name: 'Maria' },
+      ],
+    };
 
     it('should throw NotFoundException when user does not exist', async () => {
       mockPrisma.user.findUnique.mockResolvedValue(null);
@@ -61,17 +71,8 @@ describe('SettlementsService', () => {
     });
 
     it('should return all zeros and SETTLED when no expenses or payments', async () => {
-      mockPrisma.user.findUnique.mockResolvedValue({
-        id: userId,
-        coupleId: 'couple-1',
-      });
-      mockPrisma.couple.findUnique.mockResolvedValue({
-        id: 'couple-1',
-        users: [
-          { id: userId, name: 'Juan' },
-          { id: 'partner-1', name: 'Maria' },
-        ],
-      });
+      mockPrisma.user.findUnique.mockResolvedValue(baseUser);
+      mockPrisma.couple.findUnique.mockResolvedValue(baseCouple);
       mockPrisma.expense.findMany.mockResolvedValue([]);
       mockPrisma.payment.findMany.mockResolvedValue([]);
 
@@ -92,27 +93,18 @@ describe('SettlementsService', () => {
       });
     });
 
-    it('should calculate correct settlement with balance and partial payment', async () => {
-      mockPrisma.user.findUnique.mockResolvedValue({
-        id: userId,
-        coupleId: 'couple-1',
-      });
-      mockPrisma.couple.findUnique.mockResolvedValue({
-        id: 'couple-1',
-        users: [
-          { id: userId, name: 'Juan' },
-          { id: 'partner-1', name: 'Maria' },
-        ],
-      });
+    it('should calculate EQUAL settlement with balance and partial payment', async () => {
+      mockPrisma.user.findUnique.mockResolvedValue(baseUser);
+      mockPrisma.couple.findUnique.mockResolvedValue(baseCouple);
       mockPrisma.expense.findMany.mockResolvedValue([
-        { paidById: userId, amount: 200 },
-        { paidById: 'partner-1', amount: 100 },
+        { paidById: userId, amount: 200, splitType: 'EQUAL', splits: [] },
+        { paidById: partnerId, amount: 100, splitType: 'EQUAL', splits: [] },
       ]);
       mockPrisma.payment.findMany.mockResolvedValue([
         {
           id: 'pay-1',
           amount: 30,
-          fromUserId: 'partner-1',
+          fromUserId: partnerId,
           toUserId: userId,
           coupleId: 'couple-1',
         },
@@ -135,27 +127,18 @@ describe('SettlementsService', () => {
       });
     });
 
-    it('should return SETTLED when payment exactly matches balance', async () => {
-      mockPrisma.user.findUnique.mockResolvedValue({
-        id: userId,
-        coupleId: 'couple-1',
-      });
-      mockPrisma.couple.findUnique.mockResolvedValue({
-        id: 'couple-1',
-        users: [
-          { id: userId, name: 'Juan' },
-          { id: 'partner-1', name: 'Maria' },
-        ],
-      });
+    it('should return SETTLED when payment exactly matches balance (EQUAL)', async () => {
+      mockPrisma.user.findUnique.mockResolvedValue(baseUser);
+      mockPrisma.couple.findUnique.mockResolvedValue(baseCouple);
       mockPrisma.expense.findMany.mockResolvedValue([
-        { paidById: userId, amount: 200 },
-        { paidById: 'partner-1', amount: 100 },
+        { paidById: userId, amount: 200, splitType: 'EQUAL', splits: [] },
+        { paidById: partnerId, amount: 100, splitType: 'EQUAL', splits: [] },
       ]);
       mockPrisma.payment.findMany.mockResolvedValue([
         {
           id: 'pay-1',
           amount: 50,
-          fromUserId: 'partner-1',
+          fromUserId: partnerId,
           toUserId: userId,
           coupleId: 'couple-1',
         },
@@ -168,26 +151,17 @@ describe('SettlementsService', () => {
     });
 
     it('should return I_OWE when payment exceeds balance', async () => {
-      mockPrisma.user.findUnique.mockResolvedValue({
-        id: userId,
-        coupleId: 'couple-1',
-      });
-      mockPrisma.couple.findUnique.mockResolvedValue({
-        id: 'couple-1',
-        users: [
-          { id: userId, name: 'Juan' },
-          { id: 'partner-1', name: 'Maria' },
-        ],
-      });
+      mockPrisma.user.findUnique.mockResolvedValue(baseUser);
+      mockPrisma.couple.findUnique.mockResolvedValue(baseCouple);
       mockPrisma.expense.findMany.mockResolvedValue([
-        { paidById: userId, amount: 200 },
-        { paidById: 'partner-1', amount: 100 },
+        { paidById: userId, amount: 200, splitType: 'EQUAL', splits: [] },
+        { paidById: partnerId, amount: 100, splitType: 'EQUAL', splits: [] },
       ]);
       mockPrisma.payment.findMany.mockResolvedValue([
         {
           id: 'pay-1',
           amount: 70,
-          fromUserId: 'partner-1',
+          fromUserId: partnerId,
           toUserId: userId,
           coupleId: 'couple-1',
         },
@@ -197,6 +171,41 @@ describe('SettlementsService', () => {
 
       expect(result.netSettlement).toBe(20);
       expect(result.settlementDirection).toBe('I_OWE');
+    });
+
+    it('should handle PERCENTAGE splits in settlement', async () => {
+      mockPrisma.user.findUnique.mockResolvedValue(baseUser);
+      mockPrisma.couple.findUnique.mockResolvedValue(baseCouple);
+      mockPrisma.expense.findMany.mockResolvedValue([
+        {
+          paidById: userId,
+          amount: 100,
+          splitType: 'PERCENTAGE',
+          splits: [
+            { userId: userId, percentage: 70 },
+            { userId: partnerId, percentage: 30 },
+          ],
+        },
+      ]);
+      mockPrisma.payment.findMany.mockResolvedValue([
+        {
+          id: 'pay-1',
+          amount: 10,
+          fromUserId: partnerId,
+          toUserId: userId,
+          coupleId: 'couple-1',
+        },
+      ]);
+
+      const result = await service.calculate(userId);
+
+      // User paid 100, should pay 70 → balanceAmount=30 OWED_TO_ME
+      // Partner paid 10 → netSettlement = 30 - 10 = 20
+      expect(result.balanceAmount).toBe(30);
+      expect(result.balanceDirection).toBe('OWED_TO_ME');
+      expect(result.paymentsReceived).toBe(10);
+      expect(result.netSettlement).toBe(20);
+      expect(result.settlementDirection).toBe('OWED_TO_ME');
     });
   });
 });

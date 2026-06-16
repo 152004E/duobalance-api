@@ -39,16 +39,16 @@
 - [✓] Expense CRUD endpoints (POST, GET, GET/:id, PATCH/:id, DELETE/:id)
 - [✓] Soft-delete (solo Expense — `deletedAt`)
 - [✓] Category filtering + date range + amount range (QueryExpenseDto)
-- [❌] Split calculation logic (equal/percentage/custom)
+- [✓] Split calculation logic (EQUAL + PERCENTAGE)
 - [❌] Tests for expense logic
 
 > ⚠️ **Soft-delete:** Solo `Expense` usa `deletedAt`. `User` y `Couple` se eliminan realmente (no tienen soft-delete).
 
 ## Phase 5: Balances & Dashboard
-- [✓] Balance aggregation endpoint (EQUAL split, soft-delete filter)
+- [✓] Balance aggregation endpoint (EQUAL + PERCENTAGE split, soft-delete filter)
 - [❌] Dashboard summary (totals, trends)
 - [❌] Settlement suggestions
-- [❌] PERCENTAGE / CUSTOM split support
+- [❌] CUSTOM split support
 
 > ⚠️ Balance solo soporta `splitType = EQUAL` por ahora.
 

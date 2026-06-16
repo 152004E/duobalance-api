@@ -4,6 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { calculateExpenseShare } from '../common/utils/expense-share';
 
 @Injectable()
 export class BalancesService {
@@ -30,12 +31,15 @@ export class BalancesService {
       where: {
         coupleId: user.coupleId,
         deletedAt: null,
-        splitType: 'EQUAL',
+        splitType: { in: ['EQUAL', 'PERCENTAGE'] },
       },
+      include: { splits: true },
     });
 
     let totalPaidByMe = 0;
     let totalPaidByPartner = 0;
+    let myShare = 0;
+    let partnerShare = 0;
 
     for (const expense of expenses) {
       const amount = Number(expense.amount);
@@ -45,11 +49,20 @@ export class BalancesService {
       } else {
         totalPaidByPartner += amount;
       }
+
+      const userShare = calculateExpenseShare(
+        expense,
+        userId,
+        expense.splits,
+      );
+      const partnerShareForExpense = amount - userShare;
+
+      myShare += userShare;
+      partnerShare += partnerShareForExpense;
     }
 
     const totalExpenses = totalPaidByMe + totalPaidByPartner;
-    const share = totalExpenses / 2;
-    const netBalance = totalPaidByMe - share;
+    const netBalance = totalPaidByMe - myShare;
 
     let direction: 'OWED_TO_ME' | 'I_OWE' | 'SETTLED';
 
@@ -65,8 +78,8 @@ export class BalancesService {
       totalExpenses,
       totalPaidByMe,
       totalPaidByPartner,
-      myShare: share,
-      partnerShare: share,
+      myShare,
+      partnerShare,
       balance: Math.abs(netBalance),
       direction,
     };

@@ -158,7 +158,7 @@ Client (HTTP)
 Client (HTTP)
   └─ GET /balances → BalancesController → BalancesService → Prisma → expenses EQUAL aggregated
 ```
-> Solo soporta `splitType = EQUAL`. PERCENTAGE, CUSTOM y PERSONAL se ignoran.
+> Solo soporta `splitType = EQUAL` y `PERCENTAGE`. PERSONAL se ignora. CUSTOM removido.
 
 ### Phase 6 (Implemented — Payments)
 ```
@@ -309,10 +309,27 @@ model Expense {
   paidBy      User             @relation(fields: [paidById], references: [id])
   coupleId    String
   couple      Couple           @relation(fields: [coupleId], references: [id])
+
+  splits      ExpenseSplit[]
 }
 ```
 
 > **Soft-delete:** Solo `Expense` usa `deletedAt`. `User` y `Couple` se eliminan realmente (no tienen soft-delete).
+
+```prisma
+model ExpenseSplit {
+  id          String   @id @default(uuid())
+  percentage  Decimal  @db.Decimal(5,2)
+  createdAt   DateTime @default(now())
+
+  expenseId   String
+  expense     Expense  @relation(fields: [expenseId], references: [id])
+
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+
+  @@unique([expenseId, userId])
+}
 
 ```prisma
 model Payment {

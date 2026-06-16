@@ -10,11 +10,12 @@ The project is in active development — the API has auth, couple management, an
 ## Current State
 - **Auth**: register + login with bcrypt + JWT, Passport strategy + guard ✅
 - **Couples**: create couple, join via invite code, view my couple, leave couple ✅
-- **Expenses**: full CRUD con soft-delete (solo Expense), filtros por categoría/fecha/monto ✅
-- **Balances**: endpoint `GET /balances` con cálculo EQUAL, soft-delete filter ✅
+- **Expenses**: full CRUD con soft-delete (solo Expense), filtros por categoría/fecha/monto, EQUAL + PERCENTAGE split ✅
+- **Balances**: endpoint `GET /balances` con cálculo EQUAL + PERCENTAGE, soft-delete filter ✅
 - **Payments**: `POST /payments` y `GET /payments` (historial DESC, aislado por pareja) ✅
 - **Settlements**: `GET /settlements` (neto entre balances + pagos, JWT) ✅
-- **Database**: User + Couple + Expense + Payment models with migration applied ✅
+- **Split Types**: EQUAL + PERCENTAGE con ExpenseSplit model ✅
+- **Database**: User + Couple + Expense + ExpenseSplit + Payment models with migration applied ✅
 - PrismaService module (DI wrapper for PrismaClient + PrismaPg adapter) ✅
 - Global validation pipe (whitelist + forbidNonWhitelisted + transform) ✅
 - Global exception filter (consistent JSON error responses) ✅

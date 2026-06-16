@@ -51,6 +51,24 @@ model Expense {
 
 > **Soft-delete:** Solo `Expense` usa `deletedAt`. `User` y `Couple` se eliminan realmente (no tienen soft-delete).
 
+### ExpenseSplit (implemented ✓)
+
+```prisma
+model ExpenseSplit {
+  id          String   @id @default(uuid())
+  percentage  Decimal  @db.Decimal(5,2)
+  createdAt   DateTime @default(now())
+
+  expenseId   String
+  expense     Expense  @relation(fields: [expenseId], references: [id])
+
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+
+  @@unique([expenseId, userId])
+}
+```
+
 ### Payment (implemented ✓)
 
 ```prisma
@@ -81,7 +99,6 @@ enum ExpenseCategory {
 enum SplitType {
   EQUAL
   PERCENTAGE
-  CUSTOM
   PERSONAL
 }
 ```
@@ -115,6 +132,23 @@ class CreateExpenseDto {
 
   @IsEnum(SplitType)
   splitType: SplitType;
+
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => CreateExpenseSplitDto)
+  splits?: CreateExpenseSplitDto[];
+}
+
+class CreateExpenseSplitDto {
+  @IsString()
+  @IsUUID()
+  userId: string;
+
+  @IsNumber()
+  @Min(1)
+  @Max(100)
+  percentage: number;
 }
 
 // Expense — Update (all optional via PartialType)

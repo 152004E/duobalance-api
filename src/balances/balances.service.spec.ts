@@ -32,6 +32,15 @@ describe('BalancesService', () => {
   describe('calculate', () => {
     const userId = 'user-1';
 
+    const findManyMatcher = {
+      where: expect.objectContaining({
+        coupleId: 'couple-1',
+        deletedAt: null,
+        splitType: { in: ['EQUAL', 'PERCENTAGE'] },
+      }),
+      include: { splits: true },
+    };
+
     it('should throw NotFoundException when user does not exist', async () => {
       mockPrisma.user.findUnique.mockResolvedValue(null);
 
@@ -74,25 +83,21 @@ describe('BalancesService', () => {
       });
     });
 
-    it('should calculate correct balance when user paid more', async () => {
+    it('should calculate correct EQUAL balance when user paid more', async () => {
       mockPrisma.user.findUnique.mockResolvedValue({
         id: userId,
         coupleId: 'couple-1',
       });
       mockPrisma.expense.findMany.mockResolvedValue([
-        { paidById: userId, amount: 200 },
-        { paidById: 'partner-1', amount: 100 },
+        { paidById: userId, amount: 200, splitType: 'EQUAL', splits: [] },
+        { paidById: 'partner-1', amount: 100, splitType: 'EQUAL', splits: [] },
       ]);
 
       const result = await service.calculate(userId);
 
-      expect(mockPrisma.expense.findMany).toHaveBeenCalledWith({
-        where: {
-          coupleId: 'couple-1',
-          deletedAt: null,
-          splitType: 'EQUAL',
-        },
-      });
+      expect(mockPrisma.expense.findMany).toHaveBeenCalledWith(
+        findManyMatcher,
+      );
       expect(result).toEqual({
         totalExpenses: 300,
         totalPaidByMe: 200,
@@ -104,14 +109,14 @@ describe('BalancesService', () => {
       });
     });
 
-    it('should calculate correct balance when user paid less', async () => {
+    it('should calculate correct EQUAL balance when user paid less', async () => {
       mockPrisma.user.findUnique.mockResolvedValue({
         id: userId,
         coupleId: 'couple-1',
       });
       mockPrisma.expense.findMany.mockResolvedValue([
-        { paidById: userId, amount: 100 },
-        { paidById: 'partner-1', amount: 200 },
+        { paidById: userId, amount: 100, splitType: 'EQUAL', splits: [] },
+        { paidById: 'partner-1', amount: 200, splitType: 'EQUAL', splits: [] },
       ]);
 
       const result = await service.calculate(userId);
@@ -127,14 +132,14 @@ describe('BalancesService', () => {
       });
     });
 
-    it('should return SETTLED when both paid equally', async () => {
+    it('should return SETTLED when both paid equally EQUAL', async () => {
       mockPrisma.user.findUnique.mockResolvedValue({
         id: userId,
         coupleId: 'couple-1',
       });
       mockPrisma.expense.findMany.mockResolvedValue([
-        { paidById: userId, amount: 150 },
-        { paidById: 'partner-1', amount: 150 },
+        { paidById: userId, amount: 150, splitType: 'EQUAL', splits: [] },
+        { paidById: 'partner-1', amount: 150, splitType: 'EQUAL', splits: [] },
       ]);
 
       const result = await service.calculate(userId);
@@ -150,25 +155,68 @@ describe('BalancesService', () => {
       });
     });
 
-    it('should only consider EQUAL splitType expenses', async () => {
+    it('should calculate PERCENTAGE balance correctly', async () => {
       mockPrisma.user.findUnique.mockResolvedValue({
         id: userId,
         coupleId: 'couple-1',
       });
       mockPrisma.expense.findMany.mockResolvedValue([
-        { paidById: userId, amount: 200 },
+        {
+          paidById: userId,
+          amount: 100,
+          splitType: 'PERCENTAGE',
+          splits: [
+            { userId: userId, percentage: 70 },
+            { userId: 'partner-1', percentage: 30 },
+          ],
+        },
       ]);
 
       const result = await service.calculate(userId);
 
-      expect(mockPrisma.expense.findMany).toHaveBeenCalledWith(
-        expect.objectContaining({
-          where: expect.objectContaining({
-            splitType: 'EQUAL',
-          }),
-        }),
-      );
-      expect(result.totalExpenses).toBe(200);
+      expect(result.totalExpenses).toBe(100);
+      expect(result.totalPaidByMe).toBe(100);
+      expect(result.totalPaidByPartner).toBe(0);
+      expect(result.myShare).toBe(70);
+      expect(result.partnerShare).toBe(30);
+      expect(result.balance).toBe(30);
+      expect(result.direction).toBe('OWED_TO_ME');
+    });
+
+    it('should handle mixed EQUAL + PERCENTAGE expenses', async () => {
+      mockPrisma.user.findUnique.mockResolvedValue({
+        id: userId,
+        coupleId: 'couple-1',
+      });
+      mockPrisma.expense.findMany.mockResolvedValue([
+        { paidById: userId, amount: 100, splitType: 'EQUAL', splits: [] },
+        {
+          paidById: 'partner-1',
+          amount: 200,
+          splitType: 'PERCENTAGE',
+          splits: [
+            { userId: userId, percentage: 70 },
+            { userId: 'partner-1', percentage: 30 },
+          ],
+        },
+      ]);
+
+      const result = await service.calculate(userId);
+
+      // EQUAL 100: each share = 50
+      // PERCENTAGE 200 (70/30): user share = 140, partner share = 60
+      // myShare = 50 + 140 = 190
+      // partnerShare = 50 + 60 = 110
+      // totalExpenses = 300
+      // totalPaidByMe = 100, totalPaidByPartner = 200
+      // signedBalance = 100 - 190 = -90 (I_OWE)
+      expect(result.totalExpenses).toBe(300);
+      expect(result.totalPaidByMe).toBe(100);
+      expect(result.totalPaidByPartner).toBe(200);
+      expect(result.myShare).toBe(190);
+      expect(result.partnerShare).toBe(110);
+      expect(result.balance).toBe(90);
+      expect(result.direction).toBe('I_OWE');
     });
 
     it('should only consider non-deleted expenses', async () => {
@@ -177,7 +225,7 @@ describe('BalancesService', () => {
         coupleId: 'couple-1',
       });
       mockPrisma.expense.findMany.mockResolvedValue([
-        { paidById: userId, amount: 200 },
+        { paidById: userId, amount: 200, splitType: 'EQUAL', splits: [] },
       ]);
 
       const result = await service.calculate(userId);

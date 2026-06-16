@@ -379,6 +379,120 @@ echo "HTTP $HTTP_CODE  (esperado: 400)"
 [ "$HTTP_CODE" = "400" ] && echo "✅ PASS" || { echo "❌ FAIL"; exit 1; }
 
 # ═════════════════════════════════════════════════════
+# PERCENTAGE SPLIT TESTS (usa pareja C: Carlos + Laura)
+# ═════════════════════════════════════════════════════
+
+echo ""
+echo "============================================"
+echo "          PERCENTAGE SPLIT TESTS"
+echo "============================================"
+
+echo ""
+echo "=== Setup: Pareja C (Carlos + Laura) ==="
+TOKEN_CARLOS=$(setup_user "Carlos")
+TOKEN_LAURA=$(setup_user "Laura")
+
+INVITE_C=$(curl -s -X POST "$API/couples" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $TOKEN_CARLOS" | jq -r '.inviteCode')
+echo "Carlos creo pareja C. Invite: $INVITE_C"
+
+curl -s -X POST "$API/couples/join" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $TOKEN_LAURA" \
+  -d "{\"inviteCode\":\"$INVITE_C\"}" > /dev/null
+echo "Laura joined ✓"
+
+CARLOS_ID=$(get_id "$TOKEN_CARLOS")
+LAURA_ID=$(get_id "$TOKEN_LAURA")
+echo "Carlos ID: $CARLOS_ID"
+echo "Laura ID:  $LAURA_ID"
+
+echo ""
+echo "=== Test 20: PERCENTAGE 70/30 (Laura paga 100) ==="
+HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" -X POST "$API/expenses" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $TOKEN_LAURA" \
+  -d "{\"description\":\"Compra\",\"amount\":100,\"category\":\"FOOD\",\"splitType\":\"PERCENTAGE\",\"splits\":[{\"userId\":\"$CARLOS_ID\",\"percentage\":70},{\"userId\":\"$LAURA_ID\",\"percentage\":30}]}")
+echo "HTTP $HTTP_CODE (esperado: 201)"
+[ "$HTTP_CODE" = "201" ] || { echo "❌ FAIL"; exit 1; }
+
+echo ""
+echo "Balance de Carlos (esperado: debe 70 a Laura):"
+BALANCE=$(curl -s -X GET "$API/balances" -H "Authorization: Bearer $TOKEN_CARLOS")
+echo "$BALANCE" | pretty
+
+TE=$(jq -r '.totalExpenses' <<< "$BALANCE")
+TPM=$(jq -r '.totalPaidByMe' <<< "$BALANCE")
+TPP=$(jq -r '.totalPaidByPartner' <<< "$BALANCE")
+SH=$(jq -r '.myShare' <<< "$BALANCE")
+BAL=$(jq -r '.balance' <<< "$BALANCE")
+DIR=$(jq -r '.direction' <<< "$BALANCE")
+
+echo "totalExpenses=$TE totalPaidByMe=$TPM totalPaidByPartner=$TPP myShare=$SH balance=$BAL direction=$DIR"
+[ "$TE" = "100" ] && [ "$TPM" = "0" ] && [ "$TPP" = "100" ] && [ "$SH" = "70" ] && [ "$BAL" = "70" ] && [ "$DIR" = "I_OWE" ] \
+  && echo "✅ PASS" || { echo "❌ FAIL"; exit 1; }
+
+echo ""
+echo "=== Test 21: PERCENTAGE inverso (Carlos paga 200 con 60/40) ==="
+HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" -X POST "$API/expenses" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $TOKEN_CARLOS" \
+  -d "{\"description\":\"Cena\",\"amount\":200,\"category\":\"FOOD\",\"splitType\":\"PERCENTAGE\",\"splits\":[{\"userId\":\"$CARLOS_ID\",\"percentage\":60},{\"userId\":\"$LAURA_ID\",\"percentage\":40}]}")
+echo "HTTP $HTTP_CODE (esperado: 201)"
+[ "$HTTP_CODE" = "201" ] || { echo "❌ FAIL"; exit 1; }
+
+echo ""
+echo "Balance de Laura (esperado: debe 10 a Carlos):"
+BALANCE=$(curl -s -X GET "$API/balances" -H "Authorization: Bearer $TOKEN_LAURA")
+echo "$BALANCE" | pretty
+
+TE=$(jq -r '.totalExpenses' <<< "$BALANCE")
+SH=$(jq -r '.myShare' <<< "$BALANCE")
+
+# Gasto 1: 100 PERCENTAGE 70/30 → Laura paid 100, share=30
+# Gasto 2: 200 PERCENTAGE 60/40 → Carlos paid 200, Laura share=80
+# Laura: totalPaidByMe=100, totalExpenses=300, myShare=110
+# signedBalance = 100 - 110 = -10 (I_OWE), balance=10
+[ "$TE" = "300" ] && [ "$SH" = "110" ] \
+  && echo "✅ PASS" || { echo "❌ FAIL"; exit 1; }
+
+echo ""
+echo "=== Test 22: Split PERCENTAGE invalido (suma 90) ==="
+HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" -X POST "$API/expenses" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $TOKEN_CARLOS" \
+  -d "{\"description\":\"Invalido\",\"amount\":50,\"category\":\"FOOD\",\"splitType\":\"PERCENTAGE\",\"splits\":[{\"userId\":\"$CARLOS_ID\",\"percentage\":60},{\"userId\":\"$LAURA_ID\",\"percentage\":30}]}")
+echo "HTTP $HTTP_CODE (esperado: 400 — suma 90 != 100)"
+[ "$HTTP_CODE" = "400" ] && echo "✅ PASS" || { echo "❌ FAIL"; exit 1; }
+
+echo ""
+echo "=== Test 22b: Split PERCENTAGE invalido (suma 110) ==="
+HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" -X POST "$API/expenses" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $TOKEN_CARLOS" \
+  -d "{\"description\":\"Invalido2\",\"amount\":50,\"category\":\"FOOD\",\"splitType\":\"PERCENTAGE\",\"splits\":[{\"userId\":\"$CARLOS_ID\",\"percentage\":70},{\"userId\":\"$LAURA_ID\",\"percentage\":40}]}")
+echo "HTTP $HTTP_CODE (esperado: 400 — suma 110 != 100)"
+[ "$HTTP_CODE" = "400" ] && echo "✅ PASS" || { echo "❌ FAIL"; exit 1; }
+
+echo ""
+echo "=== Test 23: Settlement con PERCENTAGE ==="
+echo "Esperado: Laura debe 10 a Carlos (netSettlement=10, I_OWE)"
+SETTLE=$(curl -s -X GET "$API/settlements" -H "Authorization: Bearer $TOKEN_LAURA")
+echo "$SETTLE" | pretty
+
+NS=$(jq -r '.netSettlement' <<< "$SETTLE")
+SD=$(jq -r '.settlementDirection' <<< "$SETTLE")
+
+echo "netSettlement=$NS settlementDirection=$SD"
+# From Laura: paid 100 (exp1), Carlos paid 200 (exp2)
+# Laura share: 30 + 80 = 110
+# signedBalance = 100 - 110 = -10
+# No payments → netSettlement=10, I_OWE
+[ "$NS" = "10" ] && [ "$SD" = "I_OWE" ] \
+  && echo "✅ PASS" || { echo "❌ FAIL"; exit 1; }
+
+# ═════════════════════════════════════════════════════
 echo ""
 echo "============================================"
 echo "  ✅ TODOS LOS TESTS PASARON (run ${TS})"

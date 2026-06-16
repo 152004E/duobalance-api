@@ -11,5 +11,6 @@
 export type * from './models/User'
 export type * from './models/Couple'
 export type * from './models/Expense'
+export type * from './models/ExpenseSplit'
 export type * from './models/Payment'
 export type * from './commonInputTypes'

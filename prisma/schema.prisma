@@ -19,7 +19,6 @@ enum ExpenseCategory {
 enum SplitType {
   EQUAL
   PERCENTAGE
-  CUSTOM
   PERSONAL
 }
 
@@ -34,6 +33,7 @@ model User {
   couple    Couple?  @relation(fields: [coupleId], references: [id])
 
   expenses          Expense[]
+  expenseSplits     ExpenseSplit[]
   paymentsSent      Payment[] @relation("SentPayments")
   paymentsReceived  Payment[] @relation("ReceivedPayments")
 }
@@ -65,6 +65,22 @@ model Expense {
 
   coupleId    String
   couple      Couple @relation(fields: [coupleId], references: [id])
+
+  splits      ExpenseSplit[]
+}
+
+model ExpenseSplit {
+  id          String  @id @default(uuid())
+  percentage  Decimal @db.Decimal(5,2)
+  createdAt   DateTime @default(now())
+
+  expenseId   String
+  expense     Expense @relation(fields: [expenseId], references: [id])
+
+  userId      String
+  user        User    @relation(fields: [userId], references: [id])
+
+  @@unique([expenseId, userId])
 }
 
 model Payment {

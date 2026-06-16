@@ -54,6 +54,7 @@ export const ModelName = {
   User: 'User',
   Couple: 'Couple',
   Expense: 'Expense',
+  ExpenseSplit: 'ExpenseSplit',
   Payment: 'Payment'
 } as const
 
@@ -108,6 +109,17 @@ export const ExpenseScalarFieldEnum = {
 } as const
 
 export type ExpenseScalarFieldEnum = (typeof ExpenseScalarFieldEnum)[keyof typeof ExpenseScalarFieldEnum]
+
+
+export const ExpenseSplitScalarFieldEnum = {
+  id: 'id',
+  percentage: 'percentage',
+  createdAt: 'createdAt',
+  expenseId: 'expenseId',
+  userId: 'userId'
+} as const
+
+export type ExpenseSplitScalarFieldEnum = (typeof ExpenseSplitScalarFieldEnum)[keyof typeof ExpenseSplitScalarFieldEnum]
 
 
 export const PaymentScalarFieldEnum = {

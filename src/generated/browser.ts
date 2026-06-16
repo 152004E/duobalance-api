@@ -33,6 +33,11 @@ export type Couple = Prisma.CoupleModel
  */
 export type Expense = Prisma.ExpenseModel
 /**
+ * Model ExpenseSplit
+ * 
+ */
+export type ExpenseSplit = Prisma.ExpenseSplitModel
+/**
  * Model Payment
  * 
  */
