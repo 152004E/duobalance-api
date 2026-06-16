@@ -167,6 +167,7 @@ export type CoupleWhereInput = {
   inviteCode?: Prisma.StringFilter<"Couple"> | string
   createdAt?: Prisma.DateTimeFilter<"Couple"> | Date | string
   users?: Prisma.UserListRelationFilter
+  expenses?: Prisma.ExpenseListRelationFilter
 }
 
 export type CoupleOrderByWithRelationInput = {
@@ -174,6 +175,7 @@ export type CoupleOrderByWithRelationInput = {
   inviteCode?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   users?: Prisma.UserOrderByRelationAggregateInput
+  expenses?: Prisma.ExpenseOrderByRelationAggregateInput
 }
 
 export type CoupleWhereUniqueInput = Prisma.AtLeast<{
@@ -184,6 +186,7 @@ export type CoupleWhereUniqueInput = Prisma.AtLeast<{
   NOT?: Prisma.CoupleWhereInput | Prisma.CoupleWhereInput[]
   createdAt?: Prisma.DateTimeFilter<"Couple"> | Date | string
   users?: Prisma.UserListRelationFilter
+  expenses?: Prisma.ExpenseListRelationFilter
 }, "id" | "inviteCode">
 
 export type CoupleOrderByWithAggregationInput = {
@@ -209,6 +212,7 @@ export type CoupleCreateInput = {
   inviteCode: string
   createdAt?: Date | string
   users?: Prisma.UserCreateNestedManyWithoutCoupleInput
+  expenses?: Prisma.ExpenseCreateNestedManyWithoutCoupleInput
 }
 
 export type CoupleUncheckedCreateInput = {
@@ -216,6 +220,7 @@ export type CoupleUncheckedCreateInput = {
   inviteCode: string
   createdAt?: Date | string
   users?: Prisma.UserUncheckedCreateNestedManyWithoutCoupleInput
+  expenses?: Prisma.ExpenseUncheckedCreateNestedManyWithoutCoupleInput
 }
 
 export type CoupleUpdateInput = {
@@ -223,6 +228,7 @@ export type CoupleUpdateInput = {
   inviteCode?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   users?: Prisma.UserUpdateManyWithoutCoupleNestedInput
+  expenses?: Prisma.ExpenseUpdateManyWithoutCoupleNestedInput
 }
 
 export type CoupleUncheckedUpdateInput = {
@@ -230,6 +236,7 @@ export type CoupleUncheckedUpdateInput = {
   inviteCode?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   users?: Prisma.UserUncheckedUpdateManyWithoutCoupleNestedInput
+  expenses?: Prisma.ExpenseUncheckedUpdateManyWithoutCoupleNestedInput
 }
 
 export type CoupleCreateManyInput = {
@@ -273,6 +280,11 @@ export type CoupleMinOrderByAggregateInput = {
   createdAt?: Prisma.SortOrder
 }
 
+export type CoupleScalarRelationFilter = {
+  is?: Prisma.CoupleWhereInput
+  isNot?: Prisma.CoupleWhereInput
+}
+
 export type CoupleCreateNestedOneWithoutUsersInput = {
   create?: Prisma.XOR<Prisma.CoupleCreateWithoutUsersInput, Prisma.CoupleUncheckedCreateWithoutUsersInput>
   connectOrCreate?: Prisma.CoupleCreateOrConnectWithoutUsersInput
@@ -289,16 +301,32 @@ export type CoupleUpdateOneWithoutUsersNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.CoupleUpdateToOneWithWhereWithoutUsersInput, Prisma.CoupleUpdateWithoutUsersInput>, Prisma.CoupleUncheckedUpdateWithoutUsersInput>
 }
 
+export type CoupleCreateNestedOneWithoutExpensesInput = {
+  create?: Prisma.XOR<Prisma.CoupleCreateWithoutExpensesInput, Prisma.CoupleUncheckedCreateWithoutExpensesInput>
+  connectOrCreate?: Prisma.CoupleCreateOrConnectWithoutExpensesInput
+  connect?: Prisma.CoupleWhereUniqueInput
+}
+
+export type CoupleUpdateOneRequiredWithoutExpensesNestedInput = {
+  create?: Prisma.XOR<Prisma.CoupleCreateWithoutExpensesInput, Prisma.CoupleUncheckedCreateWithoutExpensesInput>
+  connectOrCreate?: Prisma.CoupleCreateOrConnectWithoutExpensesInput
+  upsert?: Prisma.CoupleUpsertWithoutExpensesInput
+  connect?: Prisma.CoupleWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.CoupleUpdateToOneWithWhereWithoutExpensesInput, Prisma.CoupleUpdateWithoutExpensesInput>, Prisma.CoupleUncheckedUpdateWithoutExpensesInput>
+}
+
 export type CoupleCreateWithoutUsersInput = {
   id?: string
   inviteCode: string
   createdAt?: Date | string
+  expenses?: Prisma.ExpenseCreateNestedManyWithoutCoupleInput
 }
 
 export type CoupleUncheckedCreateWithoutUsersInput = {
   id?: string
   inviteCode: string
   createdAt?: Date | string
+  expenses?: Prisma.ExpenseUncheckedCreateNestedManyWithoutCoupleInput
 }
 
 export type CoupleCreateOrConnectWithoutUsersInput = {
@@ -321,12 +349,58 @@ export type CoupleUpdateWithoutUsersInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   inviteCode?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  expenses?: Prisma.ExpenseUpdateManyWithoutCoupleNestedInput
 }
 
 export type CoupleUncheckedUpdateWithoutUsersInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   inviteCode?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  expenses?: Prisma.ExpenseUncheckedUpdateManyWithoutCoupleNestedInput
+}
+
+export type CoupleCreateWithoutExpensesInput = {
+  id?: string
+  inviteCode: string
+  createdAt?: Date | string
+  users?: Prisma.UserCreateNestedManyWithoutCoupleInput
+}
+
+export type CoupleUncheckedCreateWithoutExpensesInput = {
+  id?: string
+  inviteCode: string
+  createdAt?: Date | string
+  users?: Prisma.UserUncheckedCreateNestedManyWithoutCoupleInput
+}
+
+export type CoupleCreateOrConnectWithoutExpensesInput = {
+  where: Prisma.CoupleWhereUniqueInput
+  create: Prisma.XOR<Prisma.CoupleCreateWithoutExpensesInput, Prisma.CoupleUncheckedCreateWithoutExpensesInput>
+}
+
+export type CoupleUpsertWithoutExpensesInput = {
+  update: Prisma.XOR<Prisma.CoupleUpdateWithoutExpensesInput, Prisma.CoupleUncheckedUpdateWithoutExpensesInput>
+  create: Prisma.XOR<Prisma.CoupleCreateWithoutExpensesInput, Prisma.CoupleUncheckedCreateWithoutExpensesInput>
+  where?: Prisma.CoupleWhereInput
+}
+
+export type CoupleUpdateToOneWithWhereWithoutExpensesInput = {
+  where?: Prisma.CoupleWhereInput
+  data: Prisma.XOR<Prisma.CoupleUpdateWithoutExpensesInput, Prisma.CoupleUncheckedUpdateWithoutExpensesInput>
+}
+
+export type CoupleUpdateWithoutExpensesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  inviteCode?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  users?: Prisma.UserUpdateManyWithoutCoupleNestedInput
+}
+
+export type CoupleUncheckedUpdateWithoutExpensesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  inviteCode?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  users?: Prisma.UserUncheckedUpdateManyWithoutCoupleNestedInput
 }
 
 
@@ -336,10 +410,12 @@ export type CoupleUncheckedUpdateWithoutUsersInput = {
 
 export type CoupleCountOutputType = {
   users: number
+  expenses: number
 }
 
 export type CoupleCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   users?: boolean | CoupleCountOutputTypeCountUsersArgs
+  expenses?: boolean | CoupleCountOutputTypeCountExpensesArgs
 }
 
 /**
@@ -359,12 +435,20 @@ export type CoupleCountOutputTypeCountUsersArgs<ExtArgs extends runtime.Types.Ex
   where?: Prisma.UserWhereInput
 }
 
+/**
+ * CoupleCountOutputType without action
+ */
+export type CoupleCountOutputTypeCountExpensesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ExpenseWhereInput
+}
+
 
 export type CoupleSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   inviteCode?: boolean
   createdAt?: boolean
   users?: boolean | Prisma.Couple$usersArgs<ExtArgs>
+  expenses?: boolean | Prisma.Couple$expensesArgs<ExtArgs>
   _count?: boolean | Prisma.CoupleCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["couple"]>
 
@@ -389,6 +473,7 @@ export type CoupleSelectScalar = {
 export type CoupleOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "inviteCode" | "createdAt", ExtArgs["result"]["couple"]>
 export type CoupleInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   users?: boolean | Prisma.Couple$usersArgs<ExtArgs>
+  expenses?: boolean | Prisma.Couple$expensesArgs<ExtArgs>
   _count?: boolean | Prisma.CoupleCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type CoupleIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -398,6 +483,7 @@ export type $CouplePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
   name: "Couple"
   objects: {
     users: Prisma.$UserPayload<ExtArgs>[]
+    expenses: Prisma.$ExpensePayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -798,6 +884,7 @@ readonly fields: CoupleFieldRefs;
 export interface Prisma__CoupleClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   users<T extends Prisma.Couple$usersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Couple$usersArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  expenses<T extends Prisma.Couple$expensesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Couple$expensesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ExpensePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1244,6 +1331,30 @@ export type Couple$usersArgs<ExtArgs extends runtime.Types.Extensions.InternalAr
   take?: number
   skip?: number
   distinct?: Prisma.UserScalarFieldEnum | Prisma.UserScalarFieldEnum[]
+}
+
+/**
+ * Couple.expenses
+ */
+export type Couple$expensesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Expense
+   */
+  select?: Prisma.ExpenseSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Expense
+   */
+  omit?: Prisma.ExpenseOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ExpenseInclude<ExtArgs> | null
+  where?: Prisma.ExpenseWhereInput
+  orderBy?: Prisma.ExpenseOrderByWithRelationInput | Prisma.ExpenseOrderByWithRelationInput[]
+  cursor?: Prisma.ExpenseWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ExpenseScalarFieldEnum | Prisma.ExpenseScalarFieldEnum[]
 }
 
 /**

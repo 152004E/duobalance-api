@@ -8,6 +8,7 @@ import { envValidationSchema } from './config/env.config';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { CouplesModule } from './couples/couples.module';
+import { ExpensesModule } from './expenses/expenses.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { CouplesModule } from './couples/couples.module';
     AuthModule,
     UsersModule,
     CouplesModule,
+    ExpensesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

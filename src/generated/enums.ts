@@ -9,7 +9,23 @@
 * 🟢 You can import this file directly.
 */
 
+export const ExpenseCategory = {
+  FOOD: 'FOOD',
+  TRANSPORT: 'TRANSPORT',
+  RENT: 'RENT',
+  SERVICES: 'SERVICES',
+  ENTERTAINMENT: 'ENTERTAINMENT',
+  OTHER: 'OTHER'
+} as const
+
+export type ExpenseCategory = (typeof ExpenseCategory)[keyof typeof ExpenseCategory]
 
 
-// This file is empty because there are no enums in the schema.
-export {}
+export const SplitType = {
+  EQUAL: 'EQUAL',
+  PERCENTAGE: 'PERCENTAGE',
+  CUSTOM: 'CUSTOM',
+  PERSONAL: 'PERSONAL'
+} as const
+
+export type SplitType = (typeof SplitType)[keyof typeof SplitType]
