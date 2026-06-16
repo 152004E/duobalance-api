@@ -42,3 +42,8 @@ export type ExpenseSplit = Prisma.ExpenseSplitModel
  * 
  */
 export type Payment = Prisma.PaymentModel
+/**
+ * Model RefreshToken
+ * 
+ */
+export type RefreshToken = Prisma.RefreshTokenModel

@@ -20,6 +20,7 @@ enum SplitType {
   EQUAL
   PERCENTAGE
   PERSONAL
+  CUSTOM
 }
 
 model User {
@@ -36,6 +37,7 @@ model User {
   expenseSplits     ExpenseSplit[]
   paymentsSent      Payment[] @relation("SentPayments")
   paymentsReceived  Payment[] @relation("ReceivedPayments")
+  refreshTokens     RefreshToken[]
 }
 
 model Couple {
@@ -99,4 +101,14 @@ model Payment {
   @@index([coupleId])
   @@index([fromUserId])
   @@index([toUserId])
+}
+
+model RefreshToken {
+  id         String   @id @default(uuid())
+  tokenHash  String   @unique
+  userId     String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

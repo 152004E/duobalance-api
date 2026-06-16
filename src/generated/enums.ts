@@ -24,7 +24,8 @@ export type ExpenseCategory = (typeof ExpenseCategory)[keyof typeof ExpenseCateg
 export const SplitType = {
   EQUAL: 'EQUAL',
   PERCENTAGE: 'PERCENTAGE',
-  PERSONAL: 'PERSONAL'
+  PERSONAL: 'PERSONAL',
+  CUSTOM: 'CUSTOM'
 } as const
 
 export type SplitType = (typeof SplitType)[keyof typeof SplitType]
