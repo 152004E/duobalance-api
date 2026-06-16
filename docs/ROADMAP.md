@@ -23,18 +23,21 @@
 
 ---
 
-## Phase 2: Core Expense Tracking (v0.3) — Next
+## Phase 2: Core Expense Tracking (v0.3) — Done
 **Goal**: Expense CRUD and split logic
-- Expense CRUD
-- Equal/percentage/custom splitting
-- Category management
-- Expense list with filters + pagination
+- [✓] Expense CRUD (create, list with filters, get one, update via PartialType, soft-delete)
+- [✓] Category + date + amount range filtering
+- [✓] Soft-delete (`deletedAt` en Expense únicamente)
+- [❌] Equal/percentage/custom splitting (pendiente)
+- [❌] Tests for expense logic (pendiente)
 
-**Estimated**: 3-4 weeks
+> ⚠️ **Soft-delete:** Solo `Expense` usa `deletedAt`. `User` y `Couple` se eliminan realmente (no tienen soft-delete).
+
+**Estimated**: Complete (CRUD), splitting & tests pending
 
 ---
 
-## Phase 3: Balances & Dashboard (v0.4)
+## Phase 3: Balances & Dashboard (v0.4) — Next
 **Goal**: Balance aggregation and insights
 - Balance aggregation engine
 - Dashboard with summaries
@@ -93,10 +96,10 @@
 ```
 v0.1  ████████████████████████████████  (Foundation — done)
 v0.2  ████████████████████████████████  (Auth & Couples — done)
-v0.3  ░░░░░░░░░░░░░░░░░░░░████████░░░░░░  (Expenses — next)
-v0.4  ░░░░░░░░░░░░░░░░░░░░██████░░░░  (Balances)
-v0.5  ░░░░░░░░░░░░░░░░░░░░░░░░████░░  (Receipts)
-v0.6  ░░░░░░░░░░░░░░░░░░░░░░░░░░░░██  (Payments)
+v0.3  ████████████████████████████░░░░  (Expenses CRUD — done, splitting pending)
+v0.4  ░░░░░░░░░░░░░░░░░░░░░░░░░░████░░  (Balances)
+v0.5  ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░██  (Receipts)
+v0.6  ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░██  (Payments)
 v1.0  ████████████████████████████████  (Production)
 ```
 

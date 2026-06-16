@@ -6,6 +6,7 @@ import {
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateExpenseDto } from './dto/create-expense.dto';
 import { UpdateExpenseDto } from './dto/update-expense.dto';
+import { QueryExpenseDto } from './dto/query-expense.dto';
 
 @Injectable()
 export class ExpensesService {
@@ -43,7 +44,10 @@ export class ExpensesService {
       },
     });
   }
-  async findAll(userId: string) {
+  async findAll(
+    userId: string,
+    query?: QueryExpenseDto,
+  ) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
     });
@@ -61,6 +65,27 @@ export class ExpensesService {
     return this.prisma.expense.findMany({
       where: {
         coupleId: user.coupleId,
+        deletedAt: null,
+        ...(query?.category && { category: query.category }),
+        ...(query?.splitType && { splitType: query.splitType }),
+        ...(query?.startDate || query?.endDate || query?.minAmount != null || query?.maxAmount != null
+          ? {
+              AND: [
+                ...(query?.startDate
+                  ? [{ createdAt: { gte: new Date(query.startDate) } }]
+                  : []),
+                ...(query?.endDate
+                  ? [{ createdAt: { lte: new Date(query.endDate) } }]
+                  : []),
+                ...(query?.minAmount != null
+                  ? [{ amount: { gte: query.minAmount } }]
+                  : []),
+                ...(query?.maxAmount != null
+                  ? [{ amount: { lte: query.maxAmount } }]
+                  : []),
+              ],
+            }
+          : {}),
       },
       orderBy: {
         createdAt: 'desc',
@@ -89,6 +114,7 @@ export class ExpensesService {
       where: {
         id: expenseId,
         coupleId: user.coupleId,
+        deletedAt: null,
       },
     });
 
@@ -115,6 +141,7 @@ export class ExpensesService {
       where: {
         id: expenseId,
         coupleId: user.coupleId,
+        deletedAt: null,
       },
     });
 
@@ -127,6 +154,39 @@ export class ExpensesService {
         id: expenseId,
       },
       data: dto,
+    });
+  }
+  async remove(
+    userId: string,
+    expenseId: string,
+  ) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user || !user.coupleId) {
+      throw new BadRequestException();
+    }
+
+    const expense = await this.prisma.expense.findFirst({
+      where: {
+        id: expenseId,
+        coupleId: user.coupleId,
+        deletedAt: null,
+      },
+    });
+
+    if (!expense) {
+      throw new NotFoundException('Expense not found');
+    }
+
+    return this.prisma.expense.update({
+      where: {
+        id: expenseId,
+      },
+      data: {
+        deletedAt: new Date(),
+      },
     });
   }
 }

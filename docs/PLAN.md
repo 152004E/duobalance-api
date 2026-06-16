@@ -35,11 +35,14 @@
 - [✓] Leave couple
 
 ## Phase 4: Expenses
-- [❌] Expense model + migration
-- [❌] Expense CRUD endpoints
+- [✓] Expense model + migration
+- [✓] Expense CRUD endpoints (POST, GET, GET/:id, PATCH/:id, DELETE/:id)
+- [✓] Soft-delete (solo Expense — `deletedAt`)
+- [✓] Category filtering + date range + amount range (QueryExpenseDto)
 - [❌] Split calculation logic (equal/percentage/custom)
-- [❌] Category filtering + pagination
 - [❌] Tests for expense logic
+
+> ⚠️ **Soft-delete:** Solo `Expense` usa `deletedAt`. `User` y `Couple` se eliminan realmente (no tienen soft-delete).
 
 ## Phase 5: Balances & Dashboard
 - [❌] Balance aggregation endpoint

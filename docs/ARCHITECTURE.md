@@ -46,11 +46,14 @@ duobalance-api/
 │   │   └── dto/
 │   │       ├── create-couple.dto.ts
 │   │       └── join-couple.dto.ts  Validated invite code DTO
-│   ├── expenses/                          Expenses module (stub)
+│   ├── expenses/                          Expenses module ✓
 │   │   ├── expenses.module.ts      Module registered in app.module
-│   │   ├── expenses.controller.ts  Controller — no endpoints yet
-│   │   ├── expenses.service.ts     Service — no logic yet
-│   │   ├── dto/                    Empty (no DTOs yet)
+│   │   ├── expenses.controller.ts  CRUD (POST, GET, GET/:id, PATCH/:id, DELETE/:id)
+│   │   ├── expenses.service.ts     Full CRUD + soft-delete (solo Expense)
+│   │   ├── dto/                    create, update (PartialType), query (filtros)
+│   │   │   ├── create-expense.dto.ts
+│   │   │   ├── update-expense.dto.ts
+│   │   │   └── query-expense.dto.ts
 │   │   ├── expenses.controller.spec.ts
 │   │   └── expenses.service.spec.ts
 │   ├── generated/                         Prisma Client (generated)
@@ -63,13 +66,13 @@ duobalance-api/
 │   │   └── models/                Per-model type exports
 │   ├── prisma/
 │   │   ├── prisma.module.ts       Global module exporting PrismaService
-│   │   └── prisma.service.ts      PrismaClient wrapper (DI + PrismaPg adapter)
+│   │   └── prisma.service.ts      PrismaClient wrapper (PrismaPg adapter)
 │   └── users/
 │       ├── users.module.ts        Users module (exported)
 │       └── users.service.ts       findByEmail, findById, create
 │
 ├── prisma/
-│   ├── schema.prisma              Database schema (User + Couple models)
+│   ├── schema.prisma              Database schema (User + Couple + Expense models)
 │   ├── migrations/                Prisma migrations
 │   │   ├── 20260611204224_init/   Initial migration (User table)
 │   │   └── 20260612165726_add_couple_model/  Couple model + relation
@@ -123,18 +126,20 @@ Client (HTTP)
   └─ DELETE /couples/leave     → CouplesController → CouplesService → unlink + cleanup
 ```
 
-### Phase 4 (Stub — Expenses module scaffolded, no endpoints)
+### Phase 4 (Done — Expenses CRUD)
 ```
 Client (HTTP)
-  ├─ expenses.module.ts  ✓ registered in AppModule
-  ├─ expenses.controller.ts  ❌ empty — no routes yet
-  └─ expenses.service.ts     ❌ empty — no logic yet
+  ├─ POST   /expenses         → ExpensesController → ExpensesService → Prisma → expenses table
+  ├─ GET    /expenses         → ExpensesController → ExpensesService → Prisma → list (filtros opcionales)
+  ├─ GET    /expenses/:id     → ExpensesController → ExpensesService → Prisma → one expense
+  ├─ PATCH  /expenses/:id     → ExpensesController → ExpensesService → Prisma → update (PartialType)
+  └─ DELETE /expenses/:id     → ExpensesController → ExpensesService → Prisma → soft-delete (deletedAt)
 ```
+> **Nota:** Solo `Expense` tiene soft-delete (`deletedAt`). `User` y `Couple` no.
 
-### Phase 5 (Planned — Expenses + Balances)
+### Phase 5 (Planned — Balances)
 ```
 Client (HTTP)
-  ├─ GET/POST /expenses   → ExpensesModule → Prisma → expenses table
   ├─ GET  /balances       → BalancesModule → Prisma → aggregated
   └─ GET  /dashboard      → DashboardModule → summaries
 ```
@@ -159,7 +164,11 @@ Client (multipart)
 | POST | `/couples/join` | CouplesController | ✓ | Join via invite code |
 | GET | `/couples/me` | CouplesController | ✓ | Get my couple + members |
 | DELETE | `/couples/leave` | CouplesController | ✓ | Leave couple |
-| - | `/expenses/*` | ExpensesController | 🟡 | Module scaffolded, no routes yet |
+| POST | `/expenses` | ExpensesController | ✓ | Create expense (JWT) |
+| GET | `/expenses` | ExpensesController | ✓ | List expenses with filters (JWT) |
+| GET | `/expenses/:id` | ExpensesController | ✓ | Get one expense (JWT) |
+| PATCH | `/expenses/:id` | ExpensesController | ✓ | Update expense (PartialType, JWT) |
+| DELETE | `/expenses/:id` | ExpensesController | ✓ | Soft-delete expense (JWT, solo Expense) |
 | - | `/balances/*` | — | ❌ | Not implemented yet |
 | - | `/receipts/*` | — | ❌ | Not implemented yet |
 | - | `/payments/*` | — | ❌ | Not implemented yet |
@@ -179,9 +188,9 @@ AppModule
 ├── CouplesModule
 │   ├── CouplesController (POST /couples, POST /couples/join, GET /couples/me, DELETE /couples/leave)
 │   └── CouplesService   (create, join, get, leave couple logic)
-├── ExpensesModule                  ← Scaffolded (no endpoints yet)
-│   ├── ExpensesController (stub)
-│   └── ExpensesService    (stub)
+├── ExpensesModule                  ← ✓ Implemented
+│   ├── ExpensesController (POST, GET, GET/:id, PATCH/:id, DELETE/:id)
+│   └── ExpensesService    (CRUD + soft-delete)
 ├── AppController        (GET /)
 ├── AppService           (business logic)
 └── PrismaModule         (PrismaService provider)
@@ -206,7 +215,7 @@ AppModule
 ├── CouplesModule                  ✓ Implemented
 │   ├── CouplesController
 │   └── CouplesService
-├── ExpensesModule                 🟡 Scaffolded — needs implementation
+├── ExpensesModule                 ✓ Implemented
 │   ├── ExpensesController
 │   └── ExpensesService
 ├── BalancesModule
@@ -232,6 +241,8 @@ model User {
 
   coupleId  String?
   couple    Couple?  @relation(fields: [coupleId], references: [id])
+
+  expenses  Expense[]
 }
 
 model Couple {
@@ -240,8 +251,27 @@ model Couple {
   createdAt  DateTime @default(now())
 
   users      User[]
+  expenses   Expense[]
+}
+
+model Expense {
+  id          String           @id @default(uuid())
+  description String
+  amount      Decimal          @db.Decimal(12,2)
+  category    ExpenseCategory
+  splitType   SplitType
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  deletedAt   DateTime?
+
+  paidById    String
+  paidBy      User             @relation(fields: [paidById], references: [id])
+  coupleId    String
+  couple      Couple           @relation(fields: [coupleId], references: [id])
 }
 ```
+
+> **Soft-delete:** Solo `Expense` usa `deletedAt`. `User` y `Couple` se eliminan realmente (no tienen soft-delete).
 
 ## Styling & Conventions
 - **TypeScript strict** with decorators (`experimentalDecorators`)

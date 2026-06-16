@@ -10,11 +10,14 @@ The project is in active development — the API has auth, couple management, an
 ## Current State
 - **Auth**: register + login with bcrypt + JWT, Passport strategy + guard ✅
 - **Couples**: create couple, join via invite code, view my couple, leave couple ✅
-- **Database**: User + Couple models with migration applied ✅
+- **Expenses**: full CRUD con soft-delete (solo Expense), filtros por categoría/fecha/monto ✅
+- **Database**: User + Couple + Expense models with migration applied ✅
 - PrismaService module (DI wrapper for PrismaClient + PrismaPg adapter) ✅
 - Global validation pipe (whitelist + forbidNonWhitelisted + transform) ✅
 - Global exception filter (consistent JSON error responses) ✅
 - Environment validation via Joi (@nestjs/config + joi) ✅
+
+> ⚠️ **Soft-delete:** Solo `Expense` tiene `deletedAt`. `User` y `Couple` no.
 
 ## Tech Decisions
 - **pnpm** over npm/yarn
@@ -25,10 +28,9 @@ The project is in active development — the API has auth, couple management, an
 - **React Native + Expo** for mobile (chosen, not started)
 
 ## What to Build Next
-1. Expense CRUD module ← next
-2. Balance calculation logic
-3. Receipt upload with OCR
-4. Payment tracking and settlement
+1. Balance calculation logic ← next
+2. Receipt upload with OCR
+3. Payment tracking and settlement
 
 ## Coding Style
 - TypeScript strict, no `any`
@@ -78,5 +80,10 @@ npx prisma db push        # Push schema (dev)
 | `duobalance-api/src/couples/couples.controller.ts` | Couple routes (create, join, leave, me) |
 | `duobalance-api/src/couples/couples.service.ts` | Couple business logic |
 | `duobalance-api/src/common/utils/invite-code.ts` | Invite code generation |
+| `duobalance-api/src/expenses/expenses.controller.ts` | Expense CRUD routes |
+| `duobalance-api/src/expenses/expenses.service.ts` | Expense business logic + soft-delete |
+| `duobalance-api/src/expenses/dto/create-expense.dto.ts` | Create expense validation |
+| `duobalance-api/src/expenses/dto/update-expense.dto.ts` | Partial update via PartialType |
+| `duobalance-api/src/expenses/dto/query-expense.dto.ts` | Query filters (category, date, amount) |
 | `docs/ARCHITECTURE.md` | Full architecture docs |
 | `docs/PLAN.md` | Implementation plan |

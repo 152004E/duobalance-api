@@ -13,6 +13,8 @@ model User {
 
   coupleId  String?
   couple    Couple?  @relation(fields: [coupleId], references: [id])
+
+  expenses  Expense[]
 }
 ```
 
@@ -24,28 +26,37 @@ model Couple {
   createdAt  DateTime @default(now())
 
   users      User[]
+  expenses   Expense[]
 }
 ```
+
+### Expense (implemented ✓)
+```prisma
+model Expense {
+  id          String           @id @default(uuid())
+  description String
+  amount      Decimal          @db.Decimal(12,2)
+  category    ExpenseCategory
+  splitType   SplitType
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  deletedAt   DateTime?
+
+  paidById    String
+  paidBy      User             @relation(fields: [paidById], references: [id])
+  coupleId    String
+  couple      Couple           @relation(fields: [coupleId], references: [id])
+}
+```
+
+> **Soft-delete:** Solo `Expense` usa `deletedAt`. `User` y `Couple` se eliminan realmente (no tienen soft-delete).
 
 ### Planned Models
 
 ```prisma
-model Expense {
-  id          String   @id @default(uuid())
-  amount      Float
-  description String
-  category    ExpenseCategory
-  paidById    String
-  paidBy      User     @relation("PaidBy")
-  splitType   SplitType
-  createdAt   DateTime @default(now())
-  coupleId    String
-  couple      Couple   @relation("Expenses")
-}
-
 model Payment {
   id          String   @id @default(uuid())
-  amount      Float
+  amount      Decimal  @db.Decimal(12,2)
   fromId      String
   from        User     @relation("Payer")
   toId        String
@@ -54,15 +65,16 @@ model Payment {
   couple      Couple   @relation("Payments")
   settledAt   DateTime @default(now())
 }
+```
 
+### Enums
+```prisma
 enum ExpenseCategory {
   FOOD
   TRANSPORT
-  HOUSING
-  UTILITIES
+  RENT
+  SERVICES
   ENTERTAINMENT
-  SHOPPING
-  HEALTH
   OTHER
 }
 
@@ -70,6 +82,7 @@ enum SplitType {
   EQUAL
   PERCENTAGE
   CUSTOM
+  PERSONAL
 }
 ```
 
@@ -88,13 +101,33 @@ class LoginDto {
   password: string;
 }
 
-// Expense
+// Expense — Create
 class CreateExpenseDto {
-  amount: number;
+  @IsString()
   description: string;
+
+  @IsNumber()
+  @IsPositive()
+  amount: number;
+
+  @IsEnum(ExpenseCategory)
   category: ExpenseCategory;
+
+  @IsEnum(SplitType)
   splitType: SplitType;
-  customSplits?: Record<string, number>;
+}
+
+// Expense — Update (all optional via PartialType)
+class UpdateExpenseDto extends PartialType(CreateExpenseDto) {}
+
+// Expense — Query filters (all optional)
+class QueryExpenseDto {
+  category?: ExpenseCategory;
+  splitType?: SplitType;
+  startDate?: string;     // ISO date string
+  endDate?: string;       // ISO date string
+  minAmount?: number;
+  maxAmount?: number;
 }
 
 // Payment
@@ -134,12 +167,14 @@ interface AuthResponse {
 
 interface ExpenseResponse {
   id: string;
-  amount: number;
   description: string;
+  amount: number;
   category: ExpenseCategory;
-  paidBy: { id: string; name: string; email: string };
   splitType: SplitType;
+  paidBy: { id: string; name: string; email: string };
   createdAt: Date;
+  updatedAt: Date;
+  deletedAt: Date | null;
 }
 
 interface BalanceResponse {
