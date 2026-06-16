@@ -13,7 +13,7 @@ The project is in active development — the API has auth, couple management, an
 - **Expenses**: full CRUD con soft-delete (solo Expense), filtros por categoría/fecha/monto, EQUAL + PERCENTAGE split ✅
 - **Balances**: endpoint `GET /balances` con cálculo EQUAL + PERCENTAGE, soft-delete filter ✅
 - **Payments**: `POST /payments` y `GET /payments` (historial DESC, aislado por pareja) ✅
-- **Settlements**: `GET /settlements` (neto entre balances + pagos, JWT) ✅
+- **Dashboard**: `GET /dashboard` con resumen financiero (gastos, pagos, categorías, comparativa mensual) ✅
 - **Split Types**: EQUAL + PERCENTAGE con ExpenseSplit model ✅
 - **Database**: User + Couple + Expense + ExpenseSplit + Payment models with migration applied ✅
 - PrismaService module (DI wrapper for PrismaClient + PrismaPg adapter) ✅
@@ -33,9 +33,9 @@ The project is in active development — the API has auth, couple management, an
 - **React Native + Expo** for mobile (chosen, not started)
 
 ## What to Build Next
-1. Receipt upload with OCR ← next
-2. Dashboard summary & trends
-3. PERCENTAGE / CUSTOM split support
+1. Settlement suggestions (reconcile payments vs balance automatically) ← next
+2. CUSTOM split support
+3. Receipt upload with OCR
 
 ## Coding Style
 - TypeScript strict, no `any`
@@ -99,7 +99,9 @@ npx prisma db push        # Push schema (dev)
 | `duobalance-api/src/payments/dto/create-payment.dto.ts` | Create payment validation |
 | `duobalance-api/src/settlements/settlements.controller.ts` | Settlement routes (GET) |
 | `duobalance-api/src/settlements/settlements.service.ts` | Settlement business logic |
-| `duobalance-api/src/settlements/settlements.service.spec.ts` | Unit tests for settlement |
+| `duobalance-api/src/dashboard/dashboard.controller.ts` | Dashboard routes (GET) |
+| `duobalance-api/src/dashboard/dashboard.service.ts` | Dashboard aggregation logic |
+| `duobalance-api/src/dashboard/dashboard.service.spec.ts` | Unit tests for dashboard |
 | `duobalance-api/scripts/test-balances.sh` | Integration test script (curl, jq, idempotente) |
 | `docs/ARCHITECTURE.md` | Full architecture docs |
 | `docs/PLAN.md` | Implementation plan |

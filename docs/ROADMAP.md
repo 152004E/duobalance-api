@@ -37,16 +37,16 @@
 
 ---
 
-## Phase 3: Balances & Dashboard (v0.4) — Partial
+## Phase 3: Balances & Dashboard (v0.4) — Done
 **Goal**: Balance aggregation and insights
-- [✓] Balance aggregation engine (EQUAL split, soft-delete filter)
-- [❌] Dashboard with summaries
+- [✓] Balance aggregation engine (EQUAL + PERCENTAGE split, soft-delete filter)
+- [✓] Dashboard with summaries
 - [❌] Settlement suggestions
-- [❌] PERCENTAGE / CUSTOM split support
+- [❌] CUSTOM split support
 
-> Balance endpoint `GET /balances` implementado. Solo EQUAL.
+> Dashboard endpoint `GET /dashboard` implementado. Balances soportan EQUAL + PERCENTAGE.
 
-**Estimated**: Balance done, dashboard pending
+**Estimated**: Complete
 
 ---
 
@@ -101,8 +101,8 @@
 ```
 v0.1  ████████████████████████████████  (Foundation — done)
 v0.2  ████████████████████████████████  (Auth & Couples — done)
-v0.3  ████████████████████████████░░░░  (Expenses CRUD — done, splitting pending)
-v0.4  ████████████████████░░░░░░░░░░░░  (Balances EQUAL — done, dashboard pending)
+v0.3  ██████████████████████████████████  (Expenses CRUD + EQUAL/PERCENTAGE — done)
+v0.4  ██████████████████████████████████  (Balances + Dashboard — done)
 v0.5  ██████████████████████████████████  (Payments + Settlement — done)
 v0.6  ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░██  (Receipts)
 v1.0  ████████████████████████████████  (Production)

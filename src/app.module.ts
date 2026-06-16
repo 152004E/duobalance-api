@@ -12,6 +12,7 @@ import { ExpensesModule } from './expenses/expenses.module';
 import { BalancesModule } from './balances/balances.module';
 import { PaymentsModule } from './payments/payments.module';
 import { SettlementsModule } from './settlements/settlements.module';
+import { DashboardModule } from './dashboard/dashboard.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { SettlementsModule } from './settlements/settlements.module';
     BalancesModule,
     PaymentsModule,
     SettlementsModule,
+    DashboardModule,
   ],
   controllers: [AppController],
   providers: [AppService],

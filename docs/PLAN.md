@@ -46,7 +46,7 @@
 
 ## Phase 5: Balances & Dashboard
 - [✓] Balance aggregation endpoint (EQUAL + PERCENTAGE split, soft-delete filter)
-- [❌] Dashboard summary (totals, trends)
+- [✓] Dashboard summary (totals, categories, trends)
 - [❌] Settlement suggestions
 - [❌] CUSTOM split support
 

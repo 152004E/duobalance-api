@@ -493,6 +493,118 @@ echo "netSettlement=$NS settlementDirection=$SD"
   && echo "✅ PASS" || { echo "❌ FAIL"; exit 1; }
 
 # ═════════════════════════════════════════════════════
+# DASHBOARD MODULE TESTS (usa pareja D: Diego + Sofia)
+# ═════════════════════════════════════════════════════
+
+echo ""
+echo "============================================"
+echo "          DASHBOARD MODULE TESTS"
+echo "============================================"
+
+echo ""
+echo "=== Setup: Pareja D (Diego + Sofia) ==="
+TOKEN_DIEGO=$(setup_user "Diego")
+TOKEN_SOFIA=$(setup_user "Sofia")
+
+INVITE_D=$(curl -s -X POST "$API/couples" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $TOKEN_DIEGO" | jq -r '.inviteCode')
+echo "Diego creo pareja D. Invite: $INVITE_D"
+
+curl -s -X POST "$API/couples/join" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $TOKEN_SOFIA" \
+  -d "{\"inviteCode\":\"$INVITE_D\"}" > /dev/null
+echo "Sofia joined ✓"
+
+DIEGO_ID=$(get_id "$TOKEN_DIEGO")
+SOFIA_ID=$(get_id "$TOKEN_SOFIA")
+echo "Diego ID: $DIEGO_ID"
+echo "Sofia ID: $SOFIA_ID"
+
+echo ""
+echo "=== Test 25: Dashboard vacio (sin gastos ni pagos) ==="
+DASH=$(curl -s -X GET "$API/dashboard" -H "Authorization: Bearer $TOKEN_DIEGO")
+echo "$DASH" | pretty
+
+ME=$(jq -r '.monthExpenses' <<< "$DASH")
+EC=$(jq -r '.expenseCount' <<< "$DASH")
+MP=$(jq -r '.monthPayments' <<< "$DASH")
+TC=$(jq -r '.topCategory' <<< "$DASH")
+EBC=$(jq -r '.expensesByCategory | length' <<< "$DASH")
+LE=$(jq -r '.lastExpense' <<< "$DASH")
+PC=$(jq -r '.monthlyComparison.percentageChange' <<< "$DASH")
+
+echo "monthExpenses=$ME expenseCount=$EC monthPayments=$MP topCategory=$TC expensesByCategory=$EBC lastExpense=$LE percentageChange=$PC"
+[ "$ME" = "0" ] && [ "$EC" = "0" ] && [ "$MP" = "0" ] && [ "$TC" = "null" ] && [ "$EBC" = "0" ] && [ "$LE" = "null" ] && [ "$PC" = "null" ] \
+  && echo "✅ PASS" || { echo "❌ FAIL"; exit 1; }
+
+echo ""
+echo "=== Test 26: Dashboard con gastos ==="
+curl -s -X POST "$API/expenses" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $TOKEN_DIEGO" \
+  -d '{"description":"Supermercado","amount":200,"category":"FOOD","splitType":"EQUAL"}' > /dev/null
+
+curl -s -X POST "$API/expenses" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $TOKEN_SOFIA" \
+  -d '{"description":"Uber","amount":100,"category":"TRANSPORT","splitType":"EQUAL"}' > /dev/null
+
+curl -s -X POST "$API/expenses" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $TOKEN_DIEGO" \
+  -d '{"description":"Cine","amount":50,"category":"ENTERTAINMENT","splitType":"EQUAL"}' > /dev/null
+
+DASH=$(curl -s -X GET "$API/dashboard" -H "Authorization: Bearer $TOKEN_DIEGO")
+echo "$DASH" | pretty
+
+ME=$(jq -r '.monthExpenses' <<< "$DASH")
+EC=$(jq -r '.expenseCount' <<< "$DASH")
+TC=$(jq -r '.topCategory.name // ""' <<< "$DASH")
+TA=$(jq -r '.topCategory.amount // 0' <<< "$DASH")
+
+echo "monthExpenses=$ME expenseCount=$EC topCategory=$TC/$TA"
+[ "$ME" = "350" ] && [ "$EC" = "3" ] && [ "$TC" = "FOOD" ] && [ "$TA" = "200" ] \
+  && echo "✅ PASS" || { echo "❌ FAIL"; exit 1; }
+
+echo ""
+echo "=== Test 27: Dashboard con pagos ==="
+curl -s -X POST "$API/payments" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $TOKEN_DIEGO" \
+  -d "{\"amount\":50000,\"toUserId\":\"$SOFIA_ID\"}" > /dev/null
+echo "Pago 50000 creado ✓"
+
+DASH=$(curl -s -X GET "$API/dashboard" -H "Authorization: Bearer $TOKEN_DIEGO")
+MP=$(jq -r '.monthPayments' <<< "$DASH")
+echo "monthPayments=$MP (esperado: 50000)"
+[ "$MP" = "50000" ] && echo "✅ PASS" || { echo "❌ FAIL"; exit 1; }
+
+echo ""
+echo "=== Test 28: Dashboard categorias (top debe ser FOOD=200) ==="
+EBC=$(jq -r '.expensesByCategory | length' <<< "$DASH")
+C1=$(jq -r '.expensesByCategory[0].category' <<< "$DASH")
+A1=$(jq -r '.expensesByCategory[0].amount' <<< "$DASH")
+
+echo "categories=$EBC top=$C1/$A1"
+[ "$EBC" = "3" ] && [ "$C1" = "FOOD" ] && [ "$A1" = "200" ] \
+  && echo "✅ PASS" || { echo "❌ FAIL"; exit 1; }
+
+echo ""
+echo "=== Test 29: Dashboard comparacion mensual (previous=0) ==="
+PC=$(jq -r '.monthlyComparison.percentageChange' <<< "$DASH")
+echo "percentageChange=$PC (esperado: null — mes anterior sin datos)"
+[ "$PC" = "null" ] && echo "✅ PASS" || { echo "❌ FAIL"; exit 1; }
+
+echo ""
+echo "=== Test 30: Usuario sin pareja (400) ==="
+HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" -X GET "$API/dashboard" \
+  -H "Authorization: Bearer $TOKEN_SOLO")
+echo "HTTP $HTTP_CODE  (esperado: 400)"
+[ "$HTTP_CODE" = "400" ] && echo "✅ PASS" || { echo "❌ FAIL"; exit 1; }
+
+# ═════════════════════════════════════════════════════
 echo ""
 echo "============================================"
 echo "  ✅ TODOS LOS TESTS PASARON (run ${TS})"
