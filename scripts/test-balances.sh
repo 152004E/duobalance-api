@@ -1,263 +1,268 @@
 #!/usr/bin/env bash
+# DuoBalance — Integration Test Script
+# Idempotent: cada ejecución crea usuarios únicos (timestamp).
+# No depende de datos de ejecuciones anteriores.
 set -euo pipefail
 
-API="http://localhost:3000"
+API="${API_URL:-http://localhost:3000}"
+TS=$(date +%s)
 
-get_token() {
-  local name=$1 email=$2 pass=$3
+# ── Helpers ──────────────────────────────────────────
 
-  # Try login first
-  local resp token
+lower() { echo "$1" | tr '[:upper:]' '[:lower:]'; }
+
+setup_user() {
+  local name=$1
+  local email="$(lower "$name")-${TS}@test.com"
+
+  curl -s -X POST "$API/auth/register" \
+    -H "Content-Type: application/json" \
+    -d "{\"name\":\"$name\",\"email\":\"$email\",\"password\":\"123456\"}" > /dev/null
+
+  local resp
   resp=$(curl -s -X POST "$API/auth/login" \
     -H "Content-Type: application/json" \
-    -d "{\"email\":\"$email\",\"password\":\"$pass\"}")
+    -d "{\"email\":\"$email\",\"password\":\"123456\"}")
 
-  token=$(echo "$resp" | sed -n 's/.*"access_token":"\([^"]*\)".*/\1/p')
-  if [ -n "$token" ]; then
-    echo "$token"
-    return
-  fi
-
-  # Login failed → register
-  resp=$(curl -s -X POST "$API/auth/register" \
-    -H "Content-Type: application/json" \
-    -d "{\"name\":\"$name\",\"email\":\"$email\",\"password\":\"$pass\"}")
-
-  # register returns user data, not token, so login again
-  resp=$(curl -s -X POST "$API/auth/login" \
-    -H "Content-Type: application/json" \
-    -d "{\"email\":\"$email\",\"password\":\"$pass\"}")
-
-  token=$(echo "$resp" | sed -n 's/.*"access_token":"\([^"]*\)".*/\1/p')
-
-  if [ -z "$token" ]; then
-    echo "ERROR: No se pudo obtener token para $email" >&2
-    echo "respuesta: $resp" >&2
-    exit 1
-  fi
-
-  echo "$token"
+  jq -r '.access_token' <<< "$resp"
 }
 
-echo "=== 1. Token Juan ==="
-TOKEN_JUAN=$(get_token "Juan" "juan@test.com" "123456")
-echo "OK: ${TOKEN_JUAN:0:20}..."
+get_id() {
+  local resp
+  resp=$(curl -s -X GET "$API/auth/profile" -H "Authorization: Bearer $1")
+  jq -r '.id' <<< "$resp"
+}
+
+pretty() {
+  # pretty-print JSON response
+  python3 -m json.tool 2>/dev/null || cat
+}
+
+# ── Setup: usuarios + pareja ─────────────────────────
+
+echo "=== Setup: Crear usuarios (run ${TS}) ==="
+TOKEN_JUAN=$(setup_user "Juan")
+TOKEN_MARIA=$(setup_user "Maria")
+TOKEN_SOLO=$(setup_user "Solo")
+echo "Juan  token: ${TOKEN_JUAN:0:20}..."
+echo "Maria token: ${TOKEN_MARIA:0:20}..."
+echo "Solo  token: ${TOKEN_SOLO:0:20}..."
 
 echo ""
-echo "=== 2. Token Maria ==="
-TOKEN_MARIA=$(get_token "Maria" "maria@test.com" "123456")
-echo "OK: ${TOKEN_MARIA:0:20}..."
+echo "=== Setup: Crear pareja ==="
+INVITE_CODE=$(curl -s -X POST "$API/couples" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $TOKEN_JUAN" | jq -r '.inviteCode')
+echo "Couple creada. Invite: $INVITE_CODE"
+
+curl -s -X POST "$API/couples/join" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $TOKEN_MARIA" \
+  -d "{\"inviteCode\":\"$INVITE_CODE\"}" > /dev/null
+echo "Maria joined ✓"
 
 echo ""
-echo "=== 3. Asegurar pareja ==="
-COUPLE=$(curl -s -X GET "$API/couples/me" \
-  -H "Authorization: Bearer $TOKEN_JUAN")
+echo "=== Setup: IDs ==="
+JUAN_ID=$(get_id "$TOKEN_JUAN")
+MARIA_ID=$(get_id "$TOKEN_MARIA")
+COUPLE_ID=$(curl -s -X GET "$API/couples/me" \
+  -H "Authorization: Bearer $TOKEN_JUAN" | jq -r '.id')
+echo "Juan ID:   $JUAN_ID"
+echo "Maria ID:  $MARIA_ID"
+echo "Couple ID: $COUPLE_ID"
 
-INVITE_CODE=$(echo "$COUPLE" | sed -n 's/.*"inviteCode":"\([^"]*\)".*/\1/p')
-
-if [ -z "$INVITE_CODE" ]; then
-  echo "Juan no tiene pareja. Creando..."
-  COUPLE=$(curl -s -X POST "$API/couples" \
-    -H "Content-Type: application/json" \
-    -H "Authorization: Bearer $TOKEN_JUAN")
-  INVITE_CODE=$(echo "$COUPLE" | sed -n 's/.*"inviteCode":"\([^"]*\)".*/\1/p')
-  echo "Creada. Invite code: $INVITE_CODE"
-else
-  echo "Juan ya tiene pareja. Invite code: $INVITE_CODE"
-fi
-
-# Check if Maria is in the couple
-MARIA_COUPLE=$(curl -s -X GET "$API/couples/me" \
-  -H "Authorization: Bearer $TOKEN_MARIA" 2>&1 || true)
-
-MARIA_COUPLE_ID=$(echo "$MARIA_COUPLE" | sed -n 's/.*"id":"\([^"]*\)".*/\1/p')
-
-if [ -z "$MARIA_COUPLE_ID" ]; then
-  echo "Maria no está en la pareja. Uniendo..."
-  JOIN_RESP=$(curl -s -X POST "$API/couples/join" \
-    -H "Content-Type: application/json" \
-    -H "Authorization: Bearer $TOKEN_MARIA" \
-    -d "{\"inviteCode\":\"$INVITE_CODE\"}")
-  echo "Maria joined ✓"
-else
-  echo "Maria ya está en la pareja ✓"
-fi
-
-# Clean old expenses to have predictable test data
-echo ""
-echo "=== 4. Limpiar expenses viejos ==="
-EXP_LIST=$(curl -s -X GET "$API/expenses" -H "Authorization: Bearer $TOKEN_JUAN")
-echo "$EXP_LIST" | sed -n 's/.*"id":"\([^"]*\)".*/\1/p' | while read -r eid; do
-  [ -n "$eid" ] && curl -s -X DELETE "$API/expenses/$eid" \
-    -H "Authorization: Bearer $TOKEN_JUAN" > /dev/null
-done
-echo "OK"
+# ═════════════════════════════════════════════════════
+# BALANCE TESTS
+# ═════════════════════════════════════════════════════
 
 echo ""
-echo "=== 5. Juan paga 200 (EQUAL) ==="
-RESP=$(curl -s -o /dev/null -w "%{http_code}" -X POST "$API/expenses" \
+echo "============================================"
+echo "          BALANCE MODULE TESTS"
+echo "============================================"
+
+echo ""
+echo "=== Test 1: Juan paga 200 (EQUAL) ==="
+HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" -X POST "$API/expenses" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $TOKEN_JUAN" \
   -d '{"description":"Cena","amount":200,"category":"FOOD","splitType":"EQUAL"}')
-echo "HTTP $RESP"
+echo "HTTP $HTTP_CODE  (esperado: 201)"
+[ "$HTTP_CODE" = "201" ] || { echo "❌ FAIL"; exit 1; }
 
 echo ""
-echo "=== 6. Maria paga 100 (EQUAL) ==="
-RESP=$(curl -s -o /dev/null -w "%{http_code}" -X POST "$API/expenses" \
+echo "=== Test 2: Maria paga 100 (EQUAL) ==="
+HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" -X POST "$API/expenses" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $TOKEN_MARIA" \
   -d '{"description":"Desayuno","amount":100,"category":"FOOD","splitType":"EQUAL"}')
-echo "HTTP $RESP"
+echo "HTTP $HTTP_CODE  (esperado: 201)"
+[ "$HTTP_CODE" = "201" ] || { echo "❌ FAIL"; exit 1; }
 
 echo ""
-echo "=== 7. Balance de Juan ==="
+echo "=== Test 3: Balance Juan ==="
 echo "Esperado: totalExpenses=300, totalPaidByMe=200, balance=50, direction=OWED_TO_ME"
-curl -s -X GET "$API/balances" \
-  -H "Authorization: Bearer $TOKEN_JUAN" | python3 -m json.tool
+BALANCE=$(curl -s -X GET "$API/balances" -H "Authorization: Bearer $TOKEN_JUAN")
+echo "$BALANCE" | pretty
+
+TE=$(jq -r '.totalExpenses' <<< "$BALANCE")
+TPM=$(jq -r '.totalPaidByMe' <<< "$BALANCE")
+BAL=$(jq -r '.balance' <<< "$BALANCE")
+DIR=$(jq -r '.direction' <<< "$BALANCE")
+
+[ "$TE" = "300" ] && [ "$TPM" = "200" ] && [ "$BAL" = "50" ] && [ "$DIR" = "OWED_TO_ME" ] \
+  && echo "✅ PASS" || { echo "❌ FAIL"; exit 1; }
 
 echo ""
-echo "=== 8. Balance de Maria ==="
+echo "=== Test 4: Balance Maria ==="
 echo "Esperado: totalExpenses=300, totalPaidByMe=100, balance=50, direction=I_OWE"
-curl -s -X GET "$API/balances" \
-  -H "Authorization: Bearer $TOKEN_MARIA" | python3 -m json.tool
+BALANCE=$(curl -s -X GET "$API/balances" -H "Authorization: Bearer $TOKEN_MARIA")
+echo "$BALANCE" | pretty
+
+TE=$(jq -r '.totalExpenses' <<< "$BALANCE")
+TPM=$(jq -r '.totalPaidByMe' <<< "$BALANCE")
+BAL=$(jq -r '.balance' <<< "$BALANCE")
+DIR=$(jq -r '.direction' <<< "$BALANCE")
+
+[ "$TE" = "300" ] && [ "$TPM" = "100" ] && [ "$BAL" = "50" ] && [ "$DIR" = "I_OWE" ] \
+  && echo "✅ PASS" || { echo "❌ FAIL"; exit 1; }
 
 echo ""
-echo "=== 9. Gastos PERSONAL se ignoran ==="
+echo "=== Test 5: Gasto PERSONAL se ignora ==="
 curl -s -X POST "$API/expenses" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $TOKEN_JUAN" \
-  -d '{"description":"Regalo personal","amount":500,"category":"OTHER","splitType":"PERSONAL"}' > /dev/null
+  -d '{"description":"Regalo","amount":500,"category":"OTHER","splitType":"PERSONAL"}' > /dev/null
 echo "Creado PERSONAL 500 ✓"
-echo "Balance debe seguir igual:"
-curl -s -X GET "$API/balances" \
-  -H "Authorization: Bearer $TOKEN_JUAN" | python3 -m json.tool
+
+BALANCE=$(curl -s -X GET "$API/balances" -H "Authorization: Bearer $TOKEN_JUAN")
+TE=$(jq -r '.totalExpenses' <<< "$BALANCE")
+echo "totalExpenses: $TE (esperado: 300 — PERSONAL no cuenta)"
+[ "$TE" = "300" ] && echo "✅ PASS" || { echo "❌ FAIL"; exit 1; }
 
 echo ""
-echo "=== 10. Soft-delete elimina del balance ==="
+echo "=== Test 6: Soft-delete cambia el balance ==="
+# Obtener ID del primer expense EQUAL (no PERSONAL)
 EXP_LIST=$(curl -s -X GET "$API/expenses" -H "Authorization: Bearer $TOKEN_JUAN")
-FIRST_ID=$(echo "$EXP_LIST" | sed -n 's/.*"id":"\([^"]*\)".*/\1/p' | head -1)
-if [ -n "$FIRST_ID" ]; then
-  echo "Eliminando $FIRST_ID ..."
-  curl -s -X DELETE "$API/expenses/$FIRST_ID" \
-    -H "Authorization: Bearer $TOKEN_JUAN" > /dev/null
-  echo "Balance post soft-delete:"
-  curl -s -X GET "$API/balances" \
-    -H "Authorization: Bearer $TOKEN_JUAN" | python3 -m json.tool
-else
-  echo "No hay expenses"
-fi
+FIRST_ID=$(jq -r 'map(select(.splitType == "EQUAL")) | .[0].id' <<< "$EXP_LIST")
+echo "Eliminando expense EQUAL: $FIRST_ID ..."
+
+HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" -X DELETE "$API/expenses/$FIRST_ID" \
+  -H "Authorization: Bearer $TOKEN_JUAN")
+echo "HTTP $HTTP_CODE (esperado: 200)"
+
+BALANCE=$(curl -s -X GET "$API/balances" -H "Authorization: Bearer $TOKEN_JUAN")
+echo "Balance post soft-delete:"
+echo "$BALANCE" | pretty
+
+TE=$(jq -r '.totalExpenses' <<< "$BALANCE")
+DIR=$(jq -r '.direction' <<< "$BALANCE")
+# Despues de borrar el EQUAL de Maria (100), solo queda el de Juan (200)
+# totalExpenses=200, direction=OWED_TO_ME (Maria debe 100 a Juan)
+[ "$TE" = "200" ] && [ "$DIR" = "OWED_TO_ME" ] \
+  && echo "✅ PASS" || { echo "❌ FAIL"; exit 1; }
 
 echo ""
-echo "=== 11. Usuario sin pareja (debe fallar 400) ==="
-TOKEN_SOLO=$(get_token "Solo" "solo@test.com" "123456")
-echo "Balance de Solo (sin pareja):"
-curl -s -X GET "$API/balances" \
-  -H "Authorization: Bearer $TOKEN_SOLO"
+echo "=== Test 7: Usuario sin pareja (400) ==="
+HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" -X GET "$API/balances" \
+  -H "Authorization: Bearer $TOKEN_SOLO")
+echo "HTTP $HTTP_CODE  (esperado: 400)"
+[ "$HTTP_CODE" = "400" ] && echo "✅ PASS" || { echo "❌ FAIL"; exit 1; }
 
-# ──────────────────────────────────────────────
-# EXTRACT USER & COUPLE IDS FOR PAYMENTS TESTS
-# ──────────────────────────────────────────────
-echo ""
-echo "=== 12. Extraer IDs para pruebas de pagos ==="
-JUAN_PROFILE=$(curl -s -X GET "$API/auth/profile" \
-  -H "Authorization: Bearer $TOKEN_JUAN")
-JUAN_ID=$(echo "$JUAN_PROFILE" | python3 -c "import sys,json; print(json.load(sys.stdin)['id'])")
-echo "Juan ID: $JUAN_ID"
+# ═════════════════════════════════════════════════════
+# PAYMENT TESTS  (usa la misma pareja Juan+Maria)
+# ═════════════════════════════════════════════════════
 
-MARIA_PROFILE=$(curl -s -X GET "$API/auth/profile" \
-  -H "Authorization: Bearer $TOKEN_MARIA")
-MARIA_ID=$(echo "$MARIA_PROFILE" | python3 -c "import sys,json; print(json.load(sys.stdin)['id'])")
-echo "Maria ID: $MARIA_ID"
-
-COUPLE_ME=$(curl -s -X GET "$API/couples/me" \
-  -H "Authorization: Bearer $TOKEN_JUAN")
-COUPLE_ID=$(echo "$COUPLE_ME" | python3 -c "import sys,json; print(json.load(sys.stdin)['id'])")
-echo "Couple ID: $COUPLE_ID"
-
-# ──────────────────────────────────────────────
-# PAYMENTS MODULE TESTS
-# ──────────────────────────────────────────────
 echo ""
 echo "============================================"
-echo "          PAYMENTS MODULE TESTS"
+echo "          PAYMENT MODULE TESTS"
 echo "============================================"
 
 echo ""
-echo '=== Caso 1: Pago válido (Juan → Maria $50000) ==='
+echo '=== Test 8: Pago valido (Juan → Maria $50000) ==='
 PAY_RESP=$(curl -s -X POST "$API/payments" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $TOKEN_JUAN" \
   -d "{\"amount\":50000,\"toUserId\":\"$MARIA_ID\"}")
-echo "$PAY_RESP" | python3 -m json.tool 2>/dev/null || echo "$PAY_RESP"
+echo "$PAY_RESP" | pretty
+PAY_ID=$(jq -r '.id' <<< "$PAY_RESP")
+[ -n "$PAY_ID" ] && [ "$PAY_ID" != "null" ] \
+  && echo "✅ PASS" || { echo "❌ FAIL"; exit 1; }
 
 echo ""
-echo "=== Caso 2: Amount inválido (amount=0) ==="
+echo "=== Test 9: Amount invalido (amount=0) ==="
 HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" -X POST "$API/payments" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $TOKEN_JUAN" \
   -d "{\"amount\":0,\"toUserId\":\"$MARIA_ID\"}")
-echo "Esperado: 400 | Obtenido: $HTTP_CODE"
+echo "HTTP $HTTP_CODE  (esperado: 400)"
+[ "$HTTP_CODE" = "400" ] && echo "✅ PASS" || { echo "❌ FAIL"; exit 1; }
 
 echo ""
-echo "=== Caso 3: Pago a sí mismo ==="
+echo "=== Test 10: Pago a si mismo ==="
 HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" -X POST "$API/payments" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $TOKEN_JUAN" \
   -d "{\"amount\":100,\"toUserId\":\"$JUAN_ID\"}")
-echo "Esperado: 400 | Obtenido: $HTTP_CODE"
+echo "HTTP $HTTP_CODE  (esperado: 400)"
+[ "$HTTP_CODE" = "400" ] && echo "✅ PASS" || { echo "❌ FAIL"; exit 1; }
 
 echo ""
-echo "=== Caso 4: Usuario sin pareja intenta pagar ==="
+echo "=== Test 11: Usuario sin pareja intenta pagar ==="
 HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" -X POST "$API/payments" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $TOKEN_SOLO" \
   -d "{\"amount\":100,\"toUserId\":\"00000000-0000-0000-0000-000000000000\"}")
-echo "Esperado: 400 | Obtenido: $HTTP_CODE"
+echo "HTTP $HTTP_CODE  (esperado: 400)"
+[ "$HTTP_CODE" = "400" ] && echo "✅ PASS" || { echo "❌ FAIL"; exit 1; }
 
 echo ""
-echo "=== Caso 5: Usuario externo (pedro@test.com no existe) ==="
+echo "=== Test 12: Usuario destino no existe ==="
 HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" -X POST "$API/payments" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $TOKEN_JUAN" \
   -d "{\"amount\":100,\"toUserId\":\"00000000-0000-0000-0000-000000000000\"}")
-echo "Esperado: 404 | Obtenido: $HTTP_CODE"
+echo "HTTP $HTTP_CODE  (esperado: 404)"
+[ "$HTTP_CODE" = "404" ] && echo "✅ PASS" || { echo "❌ FAIL"; exit 1; }
 
-# ── Crear segunda pareja para tests de aislamiento ──
+# ── Setup: segunda pareja (Pedro + Ana) ──
 echo ""
 echo "=== Setup: Pareja B (Pedro + Ana) ==="
-TOKEN_PEDRO=$(get_token "Pedro" "pedro@test.com" "123456")
-TOKEN_ANA=$(get_token "Ana" "ana@test.com" "123456")
+TOKEN_PEDRO=$(setup_user "Pedro")
+TOKEN_ANA=$(setup_user "Ana")
 
-COUPLE_B=$(curl -s -X POST "$API/couples" \
+INVITE_B=$(curl -s -X POST "$API/couples" \
   -H "Content-Type: application/json" \
-  -H "Authorization: Bearer $TOKEN_PEDRO")
-INVITE_B=$(echo "$COUPLE_B" | sed -n 's/.*"inviteCode":"\([^"]*\)".*/\1/p')
-echo "Pedro creó pareja B. Invite: $INVITE_B"
+  -H "Authorization: Bearer $TOKEN_PEDRO" | jq -r '.inviteCode')
+echo "Pedro creo pareja B. Invite: $INVITE_B"
 
 curl -s -X POST "$API/couples/join" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $TOKEN_ANA" \
   -d "{\"inviteCode\":\"$INVITE_B\"}" > /dev/null
-echo "Ana se unió ✓"
-
-# Get Pedro ID for isolation tests
-PEDRO_PROFILE=$(curl -s -X GET "$API/auth/profile" \
-  -H "Authorization: Bearer $TOKEN_PEDRO")
-PEDRO_ID=$(echo "$PEDRO_PROFILE" | python3 -c "import sys,json; print(json.load(sys.stdin)['id'])")
+echo "Ana joined ✓"
 
 echo ""
-echo "=== Caso 6: Historial vacío (pareja nueva, sin pagos) ==="
-curl -s -X GET "$API/payments" \
-  -H "Authorization: Bearer $TOKEN_PEDRO"
+echo "=== Setup: IDs Pareja B ==="
+PEDRO_ID=$(get_id "$TOKEN_PEDRO")
+ANA_ID=$(get_id "$TOKEN_ANA")
+echo "Pedro ID: $PEDRO_ID"
+echo "Ana ID:   $ANA_ID"
 
 echo ""
-echo "=== Caso 7: Múltiples pagos + orden DESC ==="
-# Crear 3 pagos: Juan → Maria (distintos montos para identificar orden)
+echo "=== Test 13: Historial vacio (pareja B, sin pagos) ==="
+HIST=$(curl -s -X GET "$API/payments" -H "Authorization: Bearer $TOKEN_PEDRO")
+LEN=$(jq 'length' <<< "$HIST")
+echo "Payments: $LEN (esperado: 0)"
+[ "$LEN" = "0" ] && echo "✅ PASS" || { echo "❌ FAIL"; exit 1; }
+
+echo ""
+echo "=== Test 14: Multiples pagos + orden DESC ==="
+# Crear 3 pagos en secuencia con sleeps para timestamps distintos
 curl -s -X POST "$API/payments" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $TOKEN_JUAN" \
   -d "{\"amount\":1000,\"toUserId\":\"$MARIA_ID\"}" > /dev/null
-echo "Pago 1000 ✓"
+echo "Pago 1: 1000 (Juan → Maria)"
 
 sleep 1
 
@@ -265,7 +270,7 @@ curl -s -X POST "$API/payments" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $TOKEN_JUAN" \
   -d "{\"amount\":2000,\"toUserId\":\"$MARIA_ID\"}" > /dev/null
-echo "Pago 2000 ✓"
+echo "Pago 2: 2000 (Juan → Maria)"
 
 sleep 1
 
@@ -273,18 +278,108 @@ curl -s -X POST "$API/payments" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $TOKEN_MARIA" \
   -d "{\"amount\":3000,\"toUserId\":\"$JUAN_ID\"}" > /dev/null
-echo "Pago 3000 (Maria → Juan) ✓"
+echo "Pago 3: 3000 (Maria → Juan)"
 
-echo ""
+HIST=$(curl -s -X GET "$API/payments" -H "Authorization: Bearer $TOKEN_JUAN")
 echo "Historial completo (debe ir DESC por createdAt):"
-curl -s -X GET "$API/payments" \
-  -H "Authorization: Bearer $TOKEN_JUAN" | python3 -m json.tool
+echo "$HIST" | pretty
+
+# Verificar orden: primer elemento debe ser el mas reciente (3000)
+FIRST_AMOUNT=$(jq -r '.[0].amount' <<< "$HIST")
+echo "Primer amount: $FIRST_AMOUNT (esperado: 3000)"
+[ "$FIRST_AMOUNT" = "3000" ] && echo "✅ PASS" || { echo "❌ FAIL"; exit 1; }
 
 echo ""
-echo "=== Caso 8: Aislamiento entre parejas ==="
+echo "=== Test 15: Aislamiento entre parejas ==="
 echo "Pedro NO debe ver pagos de Juan:"
-curl -s -X GET "$API/payments" \
-  -H "Authorization: Bearer $TOKEN_PEDRO"
+HIST_B=$(curl -s -X GET "$API/payments" -H "Authorization: Bearer $TOKEN_PEDRO")
+LEN_B=$(jq 'length' <<< "$HIST_B")
+echo "Payments que ve Pedro: $LEN_B (esperado: 0)"
+[ "$LEN_B" = "0" ] && echo "✅ PASS" || { echo "❌ FAIL"; exit 1; }
+
+# ═════════════════════════════════════════════════════
+# SETTLEMENT TESTS  (usa pareja B: Pedro + Ana)
+# ═════════════════════════════════════════════════════
 
 echo ""
-echo "=== ✅ Pruebas completadas ==="
+echo "============================================"
+echo "          SETTLEMENT MODULE TESTS"
+echo "============================================"
+
+echo ""
+echo "=== Setup: Ana paga 300 EQUAL (para settlements) ==="
+HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" -X POST "$API/expenses" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $TOKEN_ANA" \
+  -d '{"description":"Super","amount":300,"category":"FOOD","splitType":"EQUAL"}')
+echo "HTTP $HTTP_CODE (esperado: 201)"
+[ "$HTTP_CODE" = "201" ] || { echo "❌ FAIL"; exit 1; }
+
+echo ""
+echo "=== Test 16: Settlement sin pagos ==="
+echo "Esperado: balanceAmount=150, balanceDirection=I_OWE, netSettlement=150, settlementDirection=I_OWE"
+SETTLE=$(curl -s -X GET "$API/settlements" -H "Authorization: Bearer $TOKEN_PEDRO")
+echo "$SETTLE" | pretty
+
+BA=$(jq -r '.balanceAmount' <<< "$SETTLE")
+BD=$(jq -r '.balanceDirection' <<< "$SETTLE")
+PMD=$(jq -r '.paymentsMade' <<< "$SETTLE")
+PR=$(jq -r '.paymentsReceived' <<< "$SETTLE")
+NS=$(jq -r '.netSettlement' <<< "$SETTLE")
+SD=$(jq -r '.settlementDirection' <<< "$SETTLE")
+
+echo "balanceAmount=$BA balanceDirection=$BD paymentsMade=$PMD paymentsReceived=$PR netSettlement=$NS settlementDirection=$SD"
+[ "$BA" = "150" ] && [ "$BD" = "I_OWE" ] && [ "$PMD" = "0" ] && [ "$PR" = "0" ] && [ "$NS" = "150" ] && [ "$SD" = "I_OWE" ] \
+  && echo "✅ PASS" || { echo "❌ FAIL"; exit 1; }
+
+echo ""
+echo '=== Test 17: Settlement despues de pago parcial (Pedro → Ana $50) ==='
+curl -s -X POST "$API/payments" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $TOKEN_PEDRO" \
+  -d "{\"amount\":50,\"toUserId\":\"$ANA_ID\"}" > /dev/null
+echo "Pago creado ✓"
+
+echo "Esperado: paymentsMade=50, netSettlement=100, settlementDirection=I_OWE"
+SETTLE=$(curl -s -X GET "$API/settlements" -H "Authorization: Bearer $TOKEN_PEDRO")
+echo "$SETTLE" | pretty
+
+PMD=$(jq -r '.paymentsMade' <<< "$SETTLE")
+NS=$(jq -r '.netSettlement' <<< "$SETTLE")
+SD=$(jq -r '.settlementDirection' <<< "$SETTLE")
+
+echo "paymentsMade=$PMD netSettlement=$NS settlementDirection=$SD"
+[ "$PMD" = "50" ] && [ "$NS" = "100" ] && [ "$SD" = "I_OWE" ] \
+  && echo "✅ PASS" || { echo "❌ FAIL"; exit 1; }
+
+echo ""
+echo '=== Test 18: Settlement despues de pago exacto (Pedro → Ana $100) ==='
+curl -s -X POST "$API/payments" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $TOKEN_PEDRO" \
+  -d "{\"amount\":100,\"toUserId\":\"$ANA_ID\"}" > /dev/null
+echo "Pago creado ✓"
+
+echo "Esperado: netSettlement=0, settlementDirection=SETTLED"
+SETTLE=$(curl -s -X GET "$API/settlements" -H "Authorization: Bearer $TOKEN_PEDRO")
+echo "$SETTLE" | pretty
+
+NS=$(jq -r '.netSettlement' <<< "$SETTLE")
+SD=$(jq -r '.settlementDirection' <<< "$SETTLE")
+
+echo "netSettlement=$NS settlementDirection=$SD"
+[ "$NS" = "0" ] && [ "$SD" = "SETTLED" ] \
+  && echo "✅ PASS" || { echo "❌ FAIL"; exit 1; }
+
+echo ""
+echo "=== Test 19: Usuario sin pareja (400) ==="
+HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" -X GET "$API/settlements" \
+  -H "Authorization: Bearer $TOKEN_SOLO")
+echo "HTTP $HTTP_CODE  (esperado: 400)"
+[ "$HTTP_CODE" = "400" ] && echo "✅ PASS" || { echo "❌ FAIL"; exit 1; }
+
+# ═════════════════════════════════════════════════════
+echo ""
+echo "============================================"
+echo "  ✅ TODOS LOS TESTS PASARON (run ${TS})"
+echo "============================================"

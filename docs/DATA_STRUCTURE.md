@@ -51,7 +51,7 @@ model Expense {
 
 > **Soft-delete:** Solo `Expense` usa `deletedAt`. `User` y `Couple` se eliminan realmente (no tienen soft-delete).
 
-### Planned Models
+### Payment (implemented ✓)
 
 ```prisma
 model Payment {
@@ -63,7 +63,7 @@ model Payment {
   to          User     @relation("Payee")
   coupleId    String
   couple      Couple   @relation("Payments")
-  settledAt   DateTime @default(now())
+  createdAt   DateTime @default(now())
 }
 ```
 
@@ -141,9 +141,14 @@ class BalanceResponse {
   direction: 'OWED_TO_ME' | 'I_OWE' | 'SETTLED';
 }
 
-// Payment
+// Payment — Create
 class CreatePaymentDto {
+  @IsNumber()
+  @IsPositive()
   amount: number;
+
+  @IsString()
+  @IsUUID()
   toUserId: string;
 }
 ```
@@ -201,9 +206,27 @@ interface BalanceResponse {
 interface PaymentResponse {
   id: string;
   amount: number;
-  from: { id: string; name: string };
-  to: { id: string; name: string };
-  settledAt: Date;
+  createdAt: Date;
+  fromUserId: string;
+  toUserId: string;
+  coupleId: string;
+  fromUser?: { id: string; name: string };
+  toUser?: { id: string; name: string };
+}
+
+// Settlement
+interface SettlementResponse {
+  totalExpenses: number;
+  totalPaidByMe: number;
+  totalPaidByPartner: number;
+  myShare: number;
+  partnerShare: number;
+  balanceAmount: number;
+  balanceDirection: 'OWED_TO_ME' | 'I_OWE' | 'SETTLED';
+  paymentsMade: number;
+  paymentsReceived: number;
+  netSettlement: number;
+  settlementDirection: 'OWED_TO_ME' | 'I_OWE' | 'SETTLED';
 }
 
 interface ReceiptUploadResponse {

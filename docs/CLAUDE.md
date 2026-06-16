@@ -12,12 +12,14 @@ The project is in active development — the API has auth, couple management, an
 - **Couples**: create couple, join via invite code, view my couple, leave couple ✅
 - **Expenses**: full CRUD con soft-delete (solo Expense), filtros por categoría/fecha/monto ✅
 - **Balances**: endpoint `GET /balances` con cálculo EQUAL, soft-delete filter ✅
-- **Database**: User + Couple + Expense models with migration applied ✅
+- **Payments**: `POST /payments` y `GET /payments` (historial DESC, aislado por pareja) ✅
+- **Settlements**: `GET /settlements` (neto entre balances + pagos, JWT) ✅
+- **Database**: User + Couple + Expense + Payment models with migration applied ✅
 - PrismaService module (DI wrapper for PrismaClient + PrismaPg adapter) ✅
 - Global validation pipe (whitelist + forbidNonWhitelisted + transform) ✅
 - Global exception filter (consistent JSON error responses) ✅
 - Environment validation via Joi (@nestjs/config + joi) ✅
-- Test script: `scripts/test-balances.sh` (curl, idempotente)
+- Test script: `scripts/test-balances.sh` (curl, idempotente, usuarios únicos por timestamp, jq)
 
 > ⚠️ **Soft-delete:** Solo `Expense` tiene `deletedAt`. `User` y `Couple` no.
 
@@ -30,9 +32,9 @@ The project is in active development — the API has auth, couple management, an
 - **React Native + Expo** for mobile (chosen, not started)
 
 ## What to Build Next
-1. Dashboard summary & settlement suggestions ← next
-2. Receipt upload with OCR
-3. Payment tracking and settlement
+1. Receipt upload with OCR ← next
+2. Dashboard summary & trends
+3. PERCENTAGE / CUSTOM split support
 
 ## Coding Style
 - TypeScript strict, no `any`
@@ -90,6 +92,13 @@ npx prisma db push        # Push schema (dev)
 | `duobalance-api/src/balances/balances.controller.ts` | GET /balances endpoint |
 | `duobalance-api/src/balances/balances.service.ts` | Balance calculation logic (EQUAL) |
 | `duobalance-api/src/balances/balances.service.spec.ts` | Unit tests for balance |
-| `duobalance-api/scripts/test-balances.sh` | Integration test script (curl) |
+| `duobalance-api/src/balances/balances.service.spec.ts` | Unit tests for balance |
+| `duobalance-api/src/payments/payments.controller.ts` | Payment routes (POST, GET) |
+| `duobalance-api/src/payments/payments.service.ts` | Payment business logic |
+| `duobalance-api/src/payments/dto/create-payment.dto.ts` | Create payment validation |
+| `duobalance-api/src/settlements/settlements.controller.ts` | Settlement routes (GET) |
+| `duobalance-api/src/settlements/settlements.service.ts` | Settlement business logic |
+| `duobalance-api/src/settlements/settlements.service.spec.ts` | Unit tests for settlement |
+| `duobalance-api/scripts/test-balances.sh` | Integration test script (curl, jq, idempotente) |
 | `docs/ARCHITECTURE.md` | Full architecture docs |
 | `docs/PLAN.md` | Implementation plan |

@@ -58,11 +58,11 @@
 - [❌] OCR pipeline (extract amount, merchant, items)
 - [❌] Auto-fill expense from receipt
 
-## Phase 7: Payments
-- [❌] Payment model + migration
-- [❌] Record payment endpoint
-- [❌] Payment history
-- [❌] Settlement calculation (who owes whom)
+## Phase 7: Payments & Settlements
+- [✓] Payment model + migration
+- [✓] Record payment endpoint
+- [✓] Payment history
+- [✓] Settlement calculation endpoint
 
 ## Phase 8: Polish
 - [❌] Push notifications

@@ -61,6 +61,17 @@ duobalance-api/
 │   │   ├── balances.controller.ts  GET /balances (JWT)
 │   │   ├── balances.service.ts     Cálculo EQUAL + soft-delete filter
 │   │   └── balances.service.spec.ts
+│   ├── settlements/                        Settlements module ✓
+│   │   ├── settlements.module.ts    Module registered in app.module
+│   │   ├── settlements.controller.ts  GET /settlements (JWT)
+│   │   ├── settlements.service.ts   Cálculo neto (balance + payments)
+│   │   └── settlements.service.spec.ts
+│   ├── payments/                           Payments module ✓
+│   │   ├── payments.module.ts      Module registered in app.module
+│   │   ├── payments.controller.ts  POST /payments, GET /payments (JWT)
+│   │   ├── payments.service.ts     Create payment + payment history
+│   │   └── dto/
+│   │       └── create-payment.dto.ts  Validated payment DTO
 │   ├── generated/                         Prisma Client (generated)
 │   │   ├── client.ts              Main PrismaClient import
 │   │   ├── browser.ts             Browser-safe exports
@@ -149,18 +160,26 @@ Client (HTTP)
 ```
 > Solo soporta `splitType = EQUAL`. PERCENTAGE, CUSTOM y PERSONAL se ignoran.
 
-### Phase 6 (Planned — Dashboard + Payments)
+### Phase 6 (Implemented — Payments)
+```
+Client (HTTP)
+  ├─ POST /payments → PaymentsController → PaymentsService → Prisma → payments table
+  └─ GET  /payments → PaymentsController → PaymentsService → Prisma → payments history (DESC)
+```
+> Payments aislados por pareja. No hay DELETE endpoint.
+
+### Phase 7 (Implemented — Settlements)
+```
+Client (HTTP)
+  └─ GET /settlements → SettlementsController → SettlementsService → net settlement calculation
+```
+> Reutiliza lógica de balance inline + payments. No depende de BalancesService.
+
+### Phase 8 (Planned — Receipts + Dashboard)
 
 ```
 Client (HTTP)
-  ├─ GET  /dashboard      → DashboardModule → summaries
   ├─ POST /receipts/upload → ReceiptsModule → OCR pipeline → S3/cloud
-  └─ GET  /payments       → PaymentsModule  → Prisma → payments table
-```
-```
-Client (multipart)
-  ├─ POST /receipts/upload → ReceiptsModule → OCR pipeline → S3/cloud
-  ├─ GET  /payments       → PaymentsModule  → Prisma → payments table
   └─ GET  /dashboard      → DashboardModule → aggregated queries
 ```
 
@@ -182,9 +201,11 @@ Client (multipart)
 | PATCH | `/expenses/:id` | ExpensesController | ✓ | Update expense (PartialType, JWT) |
 | DELETE | `/expenses/:id` | ExpensesController | ✓ | Soft-delete expense (JWT, solo Expense) |
 | GET | `/balances` | BalancesController | ✓ | Balance EQUAL (JWT) |
+| POST | `/payments` | PaymentsController | ✓ | Create payment (JWT) |
+| GET | `/payments` | PaymentsController | ✓ | Payment history (JWT, DESC by createdAt) |
+| GET | `/settlements` | SettlementsController | ✓ | Net settlement calculation (JWT) |
 | - | `/dashboard` | — | ❌ | Not implemented yet |
 | - | `/receipts/*` | — | ❌ | Not implemented yet |
-| - | `/payments/*` | — | ❌ | Not implemented yet |
 
 ## Component Architecture
 
@@ -236,11 +257,15 @@ AppModule
 │   └── ExpensesService
 ├── BalancesModule                  ✓ Implemented
 │   └── BalancesService  (balance EQUAL calculation)
+├── PaymentsModule                   ✓ Implemented
+│   ├── PaymentsController (POST /payments, GET /payments)
+│   └── PaymentsService    (create payment, payment history)
+├── SettlementsModule                ✓ Implemented
+│   ├── SettlementsController (GET /settlements)
+│   └── SettlementsService   (net settlement calculation)
 ├── ReceiptsModule
 │   ├── ReceiptsController
 │   └── ReceiptsService  (OCR + S3)
-├── PaymentsModule
-│   └── PaymentsService
 └── PrismaModule
     └── PrismaService
 ```
@@ -288,6 +313,20 @@ model Expense {
 ```
 
 > **Soft-delete:** Solo `Expense` usa `deletedAt`. `User` y `Couple` se eliminan realmente (no tienen soft-delete).
+
+```prisma
+model Payment {
+  id          String   @id @default(uuid())
+  amount      Decimal  @db.Decimal(12,2)
+  fromId      String
+  from        User     @relation("Payer")
+  toId        String
+  to          User     @relation("Payee")
+  coupleId    String
+  couple      Couple   @relation("Payments")
+  createdAt   DateTime @default(now())
+}
+```
 
 ## Styling & Conventions
 - **TypeScript strict** with decorators (`experimentalDecorators`)

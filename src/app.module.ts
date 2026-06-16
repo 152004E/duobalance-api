@@ -11,6 +11,7 @@ import { CouplesModule } from './couples/couples.module';
 import { ExpensesModule } from './expenses/expenses.module';
 import { BalancesModule } from './balances/balances.module';
 import { PaymentsModule } from './payments/payments.module';
+import { SettlementsModule } from './settlements/settlements.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { PaymentsModule } from './payments/payments.module';
     ExpensesModule,
     BalancesModule,
     PaymentsModule,
+    SettlementsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

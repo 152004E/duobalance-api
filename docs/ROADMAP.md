@@ -61,11 +61,13 @@
 
 ---
 
-## Phase 5: Payments & Settlement (v0.6)
+## Phase 5: Payments & Settlement (v0.6) — Done
 **Goal**: Payment recording and settlement
-- Payment recording
-- Payment history
-- Settlement calculation
+- [✓] Payment recording
+- [✓] Payment history
+- [✓] Settlement calculation
+
+> Payment endpoint `POST /payments` y `GET /payments` implementados. Settlement endpoint `GET /settlements` implementado.
 
 **Estimated**: 2 weeks
 
@@ -101,8 +103,8 @@ v0.1  ████████████████████████�
 v0.2  ████████████████████████████████  (Auth & Couples — done)
 v0.3  ████████████████████████████░░░░  (Expenses CRUD — done, splitting pending)
 v0.4  ████████████████████░░░░░░░░░░░░  (Balances EQUAL — done, dashboard pending)
-v0.5  ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░██  (Receipts)
-v0.6  ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░██  (Payments)
+v0.5  ██████████████████████████████████  (Payments + Settlement — done)
+v0.6  ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░██  (Receipts)
 v1.0  ████████████████████████████████  (Production)
 ```
 
