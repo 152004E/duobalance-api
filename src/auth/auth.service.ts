@@ -16,7 +16,7 @@ export class AuthService {
         private readonly refreshTokenService: RefreshTokenService,
     ) { }
 
-    async register(data: { name: string; email: string; password: string }) {
+    async register(data: { firstName: string; lastName: string; email: string; password: string }) {
         const user = await this.usersService.findByEmail(data.email);
 
         if (user) {
@@ -26,7 +26,8 @@ export class AuthService {
         const hashedPassword = await bcrypt.hash(data.password, 10);
 
         const createdUser = await this.usersService.create({
-            name: data.name,
+            firstName: data.firstName,
+            lastName: data.lastName,
             email: data.email,
             password: hashedPassword,
         });

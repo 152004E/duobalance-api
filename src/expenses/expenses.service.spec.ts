@@ -10,14 +10,16 @@ describe('ExpensesService', () => {
 
   const mockUser = {
     id: 'user-uuid-1',
-    name: 'Juan',
+    firstName: 'Juan',
+    lastName: 'Perez',
     email: 'juan@example.com',
     coupleId: 'couple-uuid-1',
   };
 
   const mockUserWithoutCouple = {
     id: 'user-uuid-2',
-    name: 'Solo',
+    firstName: 'Solo',
+    lastName: 'Test',
     email: 'solo@example.com',
     coupleId: null,
   };

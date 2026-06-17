@@ -18,7 +18,8 @@ export class UsersService {
   }
 
   async create(data: {
-    name: string;
+    firstName: string;
+    lastName: string;
     email: string;
     password: string;
   }) {

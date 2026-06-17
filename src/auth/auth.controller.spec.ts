@@ -36,12 +36,12 @@ describe('AuthController', () => {
 
   describe('register', () => {
     it('should call authService.register', async () => {
-      const dto: RegisterDto = { name: 'User', email: 'test@example.com', password: 'password123' };
-      mockAuthService.register.mockResolvedValue({ id: 'uuid', name: 'User', email: 'test@example.com' });
+      const dto: RegisterDto = { firstName: 'John', lastName: 'Doe', email: 'test@example.com', password: 'password123' };
+      mockAuthService.register.mockResolvedValue({ id: 'uuid', firstName: 'John', lastName: 'Doe', email: 'test@example.com' });
 
       const result = await controller.register(dto);
 
-      expect(result).toEqual({ id: 'uuid', name: 'User', email: 'test@example.com' });
+      expect(result).toEqual({ id: 'uuid', firstName: 'John', lastName: 'Doe', email: 'test@example.com' });
       expect(service.register).toHaveBeenCalledWith(dto);
     });
   });

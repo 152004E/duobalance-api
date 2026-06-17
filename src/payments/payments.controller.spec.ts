@@ -58,7 +58,7 @@ describe('PaymentsController', () => {
   describe('findAll', () => {
     it('should call paymentsService.findAll with user id', async () => {
       const expectedResponse = [
-        { id: 'p-1', amount: 50, fromUser: { id: mockReq.user.id, name: 'Juan' }, toUser: { id: 'user-2', name: 'Maria' } },
+        { id: 'p-1', amount: 50, fromUser: { id: mockReq.user.id, firstName: 'Juan', lastName: 'Perez' }, toUser: { id: 'user-2', firstName: 'Maria', lastName: 'Lopez' } },
       ];
       mockPaymentsService.findAll.mockResolvedValue(expectedResponse);
 

@@ -12,14 +12,16 @@ describe('PaymentsService', () => {
 
   const mockUser = {
     id: 'user-1',
-    name: 'Juan',
+    firstName: 'Juan',
+    lastName: 'Perez',
     email: 'juan@test.com',
     coupleId: 'couple-1',
   };
 
   const mockPartner = {
     id: 'user-2',
-    name: 'Maria',
+    firstName: 'Maria',
+    lastName: 'Lopez',
     email: 'maria@test.com',
     coupleId: 'couple-1',
   };
@@ -151,8 +153,8 @@ describe('PaymentsService', () => {
 
     it('should return payments for the couple ordered by createdAt desc', async () => {
       const mockPayments = [
-        { id: 'p-2', amount: 200, fromUser: { id: 'user-2', name: 'Maria' }, toUser: { id: 'user-1', name: 'Juan' } },
-        { id: 'p-1', amount: 100, fromUser: { id: 'user-1', name: 'Juan' }, toUser: { id: 'user-2', name: 'Maria' } },
+        { id: 'p-2', amount: 200, fromUser: { id: 'user-2', firstName: 'Maria', lastName: 'Lopez' }, toUser: { id: 'user-1', firstName: 'Juan', lastName: 'Perez' } },
+        { id: 'p-1', amount: 100, fromUser: { id: 'user-1', firstName: 'Juan', lastName: 'Perez' }, toUser: { id: 'user-2', firstName: 'Maria', lastName: 'Lopez' } },
       ];
 
       mockPrismaService.user.findUnique.mockResolvedValue(mockUser);
@@ -164,8 +166,8 @@ describe('PaymentsService', () => {
       expect(mockPrismaService.payment.findMany).toHaveBeenCalledWith({
         where: { coupleId: 'couple-1' },
         include: {
-          fromUser: { select: { id: true, name: true } },
-          toUser: { select: { id: true, name: true } },
+          fromUser: { select: { id: true, firstName: true, lastName: true } },
+          toUser: { select: { id: true, firstName: true, lastName: true } },
         },
         orderBy: { createdAt: 'desc' },
       });

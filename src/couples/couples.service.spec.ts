@@ -6,7 +6,7 @@ import { BadRequestException, NotFoundException } from '@nestjs/common';
 describe('CouplesService', () => {
   let service: CouplesService;
 
-  const mockUser = { id: 'user-1', name: 'Juan', email: 'juan@test.com', coupleId: null };
+  const mockUser = { id: 'user-1', firstName: 'Juan', lastName: 'Perez', email: 'juan@test.com', coupleId: null };
   const mockUserInCouple = { ...mockUser, coupleId: 'couple-1' };
   const mockCouple = {
     id: 'couple-1',

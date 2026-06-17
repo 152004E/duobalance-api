@@ -43,8 +43,8 @@ describe('SettlementsService', () => {
     const baseCouple = {
       id: 'couple-1',
       users: [
-        { id: userId, name: 'Juan' },
-        { id: partnerId, name: 'Maria' },
+        { id: userId, firstName: 'Juan', lastName: 'Perez' },
+        { id: partnerId, firstName: 'Maria', lastName: 'Lopez' },
       ],
     };
 
