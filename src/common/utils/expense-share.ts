@@ -1,12 +1,13 @@
 export function calculateExpenseShare(
   expense: { amount: { toString: () => string }; splitType: string },
   userId: string,
+  memberCount: number,
   splits?: { userId: string; percentage: { toString: () => string } }[],
 ): number {
   const amount = Number(expense.amount);
 
   if (expense.splitType === 'EQUAL') {
-    return amount / 2;
+    return amount / memberCount;
   }
 
   if (expense.splitType === 'PERCENTAGE' && splits) {

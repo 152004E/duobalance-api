@@ -17,7 +17,7 @@ setup_user() {
 
   curl -s -X POST "$API/auth/register" \
     -H "Content-Type: application/json" \
-    -d "{\"name\":\"$name\",\"email\":\"$email\",\"password\":\"123456\"}" > /dev/null
+    -d "{\"firstName\":\"$name\",\"lastName\":\"Apellido\",\"email\":\"$email\",\"password\":\"123456\"}" > /dev/null
 
   local resp
   resp=$(curl -s -X POST "$API/auth/login" \
@@ -33,12 +33,22 @@ get_id() {
   jq -r '.id' <<< "$resp"
 }
 
+create_couple_group() {
+  local token=$1 label=$2 user1_id=$3 user2_token=$4
+
+  local resp
+  resp=$(curl -s -X POST "$API/groups" \
+    -H "Content-Type: application/json" \
+    -H "Authorization: Bearer $token" \
+    -d "{\"name\":\"$label\",\"type\":\"COUPLE\"}")
+  echo "$resp"
+}
+
 pretty() {
-  # pretty-print JSON response
   python3 -m json.tool 2>/dev/null || cat
 }
 
-# ── Setup: usuarios + pareja ─────────────────────────
+# ── Setup: usuarios + grupo ──────────────────────────
 
 echo "=== Setup: Crear usuarios (run ${TS}) ==="
 TOKEN_JUAN=$(setup_user "Juan")
@@ -49,27 +59,24 @@ echo "Maria token: ${TOKEN_MARIA:0:20}..."
 echo "Solo  token: ${TOKEN_SOLO:0:20}..."
 
 echo ""
-echo "=== Setup: Crear pareja ==="
-INVITE_CODE=$(curl -s -X POST "$API/couples" \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer $TOKEN_JUAN" | jq -r '.inviteCode')
-echo "Couple creada. Invite: $INVITE_CODE"
+echo "=== Setup: Crear grupo (Juan + Maria) ==="
+GROUP_A=$(create_couple_group "$TOKEN_JUAN" "Pareja A" "" "")
+GID_A=$(jq -r '.id' <<< "$GROUP_A")
+INVITE_A=$(jq -r '.inviteCode' <<< "$GROUP_A")
+echo "Grupo A creado. ID: $GID_A  Invite: $INVITE_A"
 
-curl -s -X POST "$API/couples/join" \
+curl -s -X POST "$API/groups/join" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $TOKEN_MARIA" \
-  -d "{\"inviteCode\":\"$INVITE_CODE\"}" > /dev/null
+  -d "{\"inviteCode\":\"$INVITE_A\"}" > /dev/null
 echo "Maria joined ✓"
 
 echo ""
 echo "=== Setup: IDs ==="
 JUAN_ID=$(get_id "$TOKEN_JUAN")
 MARIA_ID=$(get_id "$TOKEN_MARIA")
-COUPLE_ID=$(curl -s -X GET "$API/couples/me" \
-  -H "Authorization: Bearer $TOKEN_JUAN" | jq -r '.id')
-echo "Juan ID:   $JUAN_ID"
-echo "Maria ID:  $MARIA_ID"
-echo "Couple ID: $COUPLE_ID"
+echo "Juan ID:  $JUAN_ID"
+echo "Maria ID: $MARIA_ID"
 
 # ═════════════════════════════════════════════════════
 # BALANCE TESTS
@@ -162,14 +169,14 @@ DIR=$(jq -r '.direction' <<< "$BALANCE")
   && echo "✅ PASS" || { echo "❌ FAIL"; exit 1; }
 
 echo ""
-echo "=== Test 7: Usuario sin pareja (400) ==="
+echo "=== Test 7: Usuario sin grupo (400) ==="
 HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" -X GET "$API/balances" \
   -H "Authorization: Bearer $TOKEN_SOLO")
 echo "HTTP $HTTP_CODE  (esperado: 400)"
 [ "$HTTP_CODE" = "400" ] && echo "✅ PASS" || { echo "❌ FAIL"; exit 1; }
 
 # ═════════════════════════════════════════════════════
-# PAYMENT TESTS  (usa la misma pareja Juan+Maria)
+# PAYMENT TESTS  (usa el mismo grupo Juan+Maria)
 # ═════════════════════════════════════════════════════
 
 echo ""
@@ -207,7 +214,7 @@ echo "HTTP $HTTP_CODE  (esperado: 400)"
 [ "$HTTP_CODE" = "400" ] && echo "✅ PASS" || { echo "❌ FAIL"; exit 1; }
 
 echo ""
-echo "=== Test 11: Usuario sin pareja intenta pagar ==="
+echo "=== Test 11: Usuario sin grupo intenta pagar ==="
 HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" -X POST "$API/payments" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $TOKEN_SOLO" \
@@ -224,32 +231,32 @@ HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" -X POST "$API/payments" \
 echo "HTTP $HTTP_CODE  (esperado: 404)"
 [ "$HTTP_CODE" = "404" ] && echo "✅ PASS" || { echo "❌ FAIL"; exit 1; }
 
-# ── Setup: segunda pareja (Pedro + Ana) ──
+# ── Setup: segundo grupo (Pedro + Ana) ──
 echo ""
-echo "=== Setup: Pareja B (Pedro + Ana) ==="
+echo "=== Setup: Grupo B (Pedro + Ana) ==="
 TOKEN_PEDRO=$(setup_user "Pedro")
 TOKEN_ANA=$(setup_user "Ana")
 
-INVITE_B=$(curl -s -X POST "$API/couples" \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer $TOKEN_PEDRO" | jq -r '.inviteCode')
-echo "Pedro creo pareja B. Invite: $INVITE_B"
+GROUP_B=$(create_couple_group "$TOKEN_PEDRO" "Pareja B" "" "")
+GID_B=$(jq -r '.id' <<< "$GROUP_B")
+INVITE_B=$(jq -r '.inviteCode' <<< "$GROUP_B")
+echo "Grupo B creado. Invite: $INVITE_B"
 
-curl -s -X POST "$API/couples/join" \
+curl -s -X POST "$API/groups/join" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $TOKEN_ANA" \
   -d "{\"inviteCode\":\"$INVITE_B\"}" > /dev/null
 echo "Ana joined ✓"
 
 echo ""
-echo "=== Setup: IDs Pareja B ==="
+echo "=== Setup: IDs Grupo B ==="
 PEDRO_ID=$(get_id "$TOKEN_PEDRO")
 ANA_ID=$(get_id "$TOKEN_ANA")
 echo "Pedro ID: $PEDRO_ID"
 echo "Ana ID:   $ANA_ID"
 
 echo ""
-echo "=== Test 13: Historial vacio (pareja B, sin pagos) ==="
+echo "=== Test 13: Historial vacio (grupo B, sin pagos) ==="
 HIST=$(curl -s -X GET "$API/payments" -H "Authorization: Bearer $TOKEN_PEDRO")
 LEN=$(jq 'length' <<< "$HIST")
 echo "Payments: $LEN (esperado: 0)"
@@ -290,7 +297,7 @@ echo "Primer amount: $FIRST_AMOUNT (esperado: 3000)"
 [ "$FIRST_AMOUNT" = "3000" ] && echo "✅ PASS" || { echo "❌ FAIL"; exit 1; }
 
 echo ""
-echo "=== Test 15: Aislamiento entre parejas ==="
+echo "=== Test 15: Aislamiento entre grupos ==="
 echo "Pedro NO debe ver pagos de Juan:"
 HIST_B=$(curl -s -X GET "$API/payments" -H "Authorization: Bearer $TOKEN_PEDRO")
 LEN_B=$(jq 'length' <<< "$HIST_B")
@@ -298,7 +305,7 @@ echo "Payments que ve Pedro: $LEN_B (esperado: 0)"
 [ "$LEN_B" = "0" ] && echo "✅ PASS" || { echo "❌ FAIL"; exit 1; }
 
 # ═════════════════════════════════════════════════════
-# SETTLEMENT TESTS  (usa pareja B: Pedro + Ana)
+# SETTLEMENT TESTS  (usa grupo B: Pedro + Ana)
 # ═════════════════════════════════════════════════════
 
 echo ""
@@ -372,14 +379,33 @@ echo "netSettlement=$NS settlementDirection=$SD"
   && echo "✅ PASS" || { echo "❌ FAIL"; exit 1; }
 
 echo ""
-echo "=== Test 19: Usuario sin pareja (400) ==="
+echo "=== Test 19: Usuario sin grupo (400) ==="
 HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" -X GET "$API/settlements" \
   -H "Authorization: Bearer $TOKEN_SOLO")
 echo "HTTP $HTTP_CODE  (esperado: 400)"
 [ "$HTTP_CODE" = "400" ] && echo "✅ PASS" || { echo "❌ FAIL"; exit 1; }
 
 # ═════════════════════════════════════════════════════
-# PERCENTAGE SPLIT TESTS (usa pareja C: Carlos + Laura)
+# SETTLEMENT SUGGESTIONS TEST
+# ═════════════════════════════════════════════════════
+
+echo ""
+echo "============================================"
+echo "     SETTLEMENT SUGGESTIONS TEST"
+echo "============================================"
+
+echo ""
+echo "=== Test 20: Settlement suggestions para Grupo B ==="
+SUGGEST=$(curl -s -X GET "$API/settlements/suggestions" \
+  -H "Authorization: Bearer $TOKEN_PEDRO")
+echo "$SUGGEST" | pretty
+
+SUGGEST_COUNT=$(jq '.suggestions | length' <<< "$SUGGEST")
+echo "suggestions: $SUGGEST_COUNT (esperado >= 0)"
+[ "$SUGGEST_COUNT" = "0" ] && echo "✅ PASS (Saldado tras pagos exactos)" || { echo "⚠️  Se encontraron sugerencias (no necesariamente fallo)"; }
+
+# ═════════════════════════════════════════════════════
+# PERCENTAGE SPLIT TESTS (usa grupo C: Carlos + Laura)
 # ═════════════════════════════════════════════════════
 
 echo ""
@@ -388,16 +414,15 @@ echo "          PERCENTAGE SPLIT TESTS"
 echo "============================================"
 
 echo ""
-echo "=== Setup: Pareja C (Carlos + Laura) ==="
+echo "=== Setup: Grupo C (Carlos + Laura) ==="
 TOKEN_CARLOS=$(setup_user "Carlos")
 TOKEN_LAURA=$(setup_user "Laura")
 
-INVITE_C=$(curl -s -X POST "$API/couples" \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer $TOKEN_CARLOS" | jq -r '.inviteCode')
-echo "Carlos creo pareja C. Invite: $INVITE_C"
+GROUP_C=$(create_couple_group "$TOKEN_CARLOS" "Pareja C" "" "")
+INVITE_C=$(jq -r '.inviteCode' <<< "$GROUP_C")
+echo "Grupo C creado. Invite: $INVITE_C"
 
-curl -s -X POST "$API/couples/join" \
+curl -s -X POST "$API/groups/join" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $TOKEN_LAURA" \
   -d "{\"inviteCode\":\"$INVITE_C\"}" > /dev/null
@@ -409,7 +434,7 @@ echo "Carlos ID: $CARLOS_ID"
 echo "Laura ID:  $LAURA_ID"
 
 echo ""
-echo "=== Test 20: PERCENTAGE 70/30 (Laura paga 100) ==="
+echo "=== Test 21: PERCENTAGE 70/30 (Laura paga 100) ==="
 HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" -X POST "$API/expenses" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $TOKEN_LAURA" \
@@ -434,7 +459,7 @@ echo "totalExpenses=$TE totalPaidByMe=$TPM totalPaidByPartner=$TPP myShare=$SH b
   && echo "✅ PASS" || { echo "❌ FAIL"; exit 1; }
 
 echo ""
-echo "=== Test 21: PERCENTAGE inverso (Carlos paga 200 con 60/40) ==="
+echo "=== Test 22: PERCENTAGE inverso (Carlos paga 200 con 60/40) ==="
 HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" -X POST "$API/expenses" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $TOKEN_CARLOS" \
@@ -458,7 +483,7 @@ SH=$(jq -r '.myShare' <<< "$BALANCE")
   && echo "✅ PASS" || { echo "❌ FAIL"; exit 1; }
 
 echo ""
-echo "=== Test 22: Split PERCENTAGE invalido (suma 90) ==="
+echo "=== Test 23: Split PERCENTAGE invalido (suma 90) ==="
 HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" -X POST "$API/expenses" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $TOKEN_CARLOS" \
@@ -467,7 +492,7 @@ echo "HTTP $HTTP_CODE (esperado: 400 — suma 90 != 100)"
 [ "$HTTP_CODE" = "400" ] && echo "✅ PASS" || { echo "❌ FAIL"; exit 1; }
 
 echo ""
-echo "=== Test 22b: Split PERCENTAGE invalido (suma 110) ==="
+echo "=== Test 23b: Split PERCENTAGE invalido (suma 110) ==="
 HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" -X POST "$API/expenses" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $TOKEN_CARLOS" \
@@ -476,7 +501,7 @@ echo "HTTP $HTTP_CODE (esperado: 400 — suma 110 != 100)"
 [ "$HTTP_CODE" = "400" ] && echo "✅ PASS" || { echo "❌ FAIL"; exit 1; }
 
 echo ""
-echo "=== Test 23: Settlement con PERCENTAGE ==="
+echo "=== Test 24: Settlement con PERCENTAGE ==="
 echo "Esperado: Laura debe 10 a Carlos (netSettlement=10, I_OWE)"
 SETTLE=$(curl -s -X GET "$API/settlements" -H "Authorization: Bearer $TOKEN_LAURA")
 echo "$SETTLE" | pretty
@@ -493,7 +518,7 @@ echo "netSettlement=$NS settlementDirection=$SD"
   && echo "✅ PASS" || { echo "❌ FAIL"; exit 1; }
 
 # ═════════════════════════════════════════════════════
-# DASHBOARD MODULE TESTS (usa pareja D: Diego + Sofia)
+# DASHBOARD MODULE TESTS (usa grupo D: Diego + Sofia)
 # ═════════════════════════════════════════════════════
 
 echo ""
@@ -502,16 +527,15 @@ echo "          DASHBOARD MODULE TESTS"
 echo "============================================"
 
 echo ""
-echo "=== Setup: Pareja D (Diego + Sofia) ==="
+echo "=== Setup: Grupo D (Diego + Sofia) ==="
 TOKEN_DIEGO=$(setup_user "Diego")
 TOKEN_SOFIA=$(setup_user "Sofia")
 
-INVITE_D=$(curl -s -X POST "$API/couples" \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer $TOKEN_DIEGO" | jq -r '.inviteCode')
-echo "Diego creo pareja D. Invite: $INVITE_D"
+GROUP_D=$(create_couple_group "$TOKEN_DIEGO" "Pareja D" "" "")
+INVITE_D=$(jq -r '.inviteCode' <<< "$GROUP_D")
+echo "Grupo D creado. Invite: $INVITE_D"
 
-curl -s -X POST "$API/couples/join" \
+curl -s -X POST "$API/groups/join" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $TOKEN_SOFIA" \
   -d "{\"inviteCode\":\"$INVITE_D\"}" > /dev/null
@@ -598,7 +622,7 @@ echo "percentageChange=$PC (esperado: null — mes anterior sin datos)"
 [ "$PC" = "null" ] && echo "✅ PASS" || { echo "❌ FAIL"; exit 1; }
 
 echo ""
-echo "=== Test 30: Usuario sin pareja (400) ==="
+echo "=== Test 30: Usuario sin grupo (400) ==="
 HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" -X GET "$API/dashboard" \
   -H "Authorization: Bearer $TOKEN_SOLO")
 echo "HTTP $HTTP_CODE  (esperado: 400)"

@@ -25,6 +25,10 @@ export class BalancesService {
       ? (await this.validateMembership(userId, groupId))
       : (await this.getDefaultGroupId(userId));
 
+    const memberCount = await this.prisma.groupMember.count({
+      where: { groupId: targetGroupId },
+    });
+
     const expenses = await this.prisma.expense.findMany({
       where: {
         groupId: targetGroupId,
@@ -51,6 +55,7 @@ export class BalancesService {
       const userShare = calculateExpenseShare(
         expense,
         userId,
+        memberCount,
         expense.splits,
       );
       const partnerShareForExpense = amount - userShare;
