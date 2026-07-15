@@ -3,6 +3,7 @@ import {
   IsOptional,
   IsDateString,
   IsNumber,
+  IsString,
   Min,
   Max,
 } from 'class-validator';
@@ -37,4 +38,8 @@ export class QueryExpenseDto {
   @IsNumber()
   @Min(0)
   maxAmount?: number;
+
+  @IsOptional()
+  @IsString()
+  groupId?: string;
 }

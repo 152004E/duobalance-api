@@ -13,6 +13,20 @@ export class PaymentsService {
     private readonly prisma: PrismaService,
   ) {}
 
+  private async getDefaultGroupId(userId: string) {
+    const membership = await this.prisma.groupMember.findFirst({
+      where: { userId },
+    });
+
+    if (!membership) {
+      throw new BadRequestException(
+        'User does not belong to any group',
+      );
+    }
+
+    return membership.groupId;
+  }
+
   async create(userId: string, dto: CreatePaymentDto) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
@@ -22,9 +36,15 @@ export class PaymentsService {
       throw new NotFoundException('User not found');
     }
 
-    if (!user.coupleId) {
+    const groupId = dto.groupId ?? (await this.getDefaultGroupId(userId));
+
+    const membership = await this.prisma.groupMember.findUnique({
+      where: { userId_groupId: { userId, groupId } },
+    });
+
+    if (!membership) {
       throw new BadRequestException(
-        'User is not part of a couple',
+        'User is not a member of this group',
       );
     }
 
@@ -42,9 +62,13 @@ export class PaymentsService {
       throw new NotFoundException('Recipient user not found');
     }
 
-    if (toUser.coupleId !== user.coupleId) {
+    const recipientMembership = await this.prisma.groupMember.findUnique({
+      where: { userId_groupId: { userId: dto.toUserId, groupId } },
+    });
+
+    if (!recipientMembership) {
       throw new ForbiddenException(
-        'Recipient is not in your couple',
+        'Recipient is not in your group',
       );
     }
 
@@ -53,7 +77,7 @@ export class PaymentsService {
         amount: dto.amount,
         fromUserId: userId,
         toUserId: dto.toUserId,
-        coupleId: user.coupleId,
+        groupId,
       },
     });
   }
@@ -67,15 +91,11 @@ export class PaymentsService {
       throw new NotFoundException('User not found');
     }
 
-    if (!user.coupleId) {
-      throw new BadRequestException(
-        'User is not part of a couple',
-      );
-    }
+    const groupId = await this.getDefaultGroupId(userId);
 
     return this.prisma.payment.findMany({
       where: {
-        coupleId: user.coupleId,
+        groupId,
       },
       include: {
         fromUser: {

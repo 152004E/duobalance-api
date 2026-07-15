@@ -45,10 +45,15 @@ export { Prisma }
  */
 export type User = Prisma.UserModel
 /**
- * Model Couple
+ * Model Group
  * 
  */
-export type Couple = Prisma.CoupleModel
+export type Group = Prisma.GroupModel
+/**
+ * Model GroupMember
+ * 
+ */
+export type GroupMember = Prisma.GroupMemberModel
 /**
  * Model Expense
  * 

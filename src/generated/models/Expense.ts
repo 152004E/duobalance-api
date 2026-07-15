@@ -44,7 +44,7 @@ export type ExpenseMinAggregateOutputType = {
   updatedAt: Date | null
   deletedAt: Date | null
   paidById: string | null
-  coupleId: string | null
+  groupId: string | null
 }
 
 export type ExpenseMaxAggregateOutputType = {
@@ -57,7 +57,7 @@ export type ExpenseMaxAggregateOutputType = {
   updatedAt: Date | null
   deletedAt: Date | null
   paidById: string | null
-  coupleId: string | null
+  groupId: string | null
 }
 
 export type ExpenseCountAggregateOutputType = {
@@ -70,7 +70,7 @@ export type ExpenseCountAggregateOutputType = {
   updatedAt: number
   deletedAt: number
   paidById: number
-  coupleId: number
+  groupId: number
   _all: number
 }
 
@@ -93,7 +93,7 @@ export type ExpenseMinAggregateInputType = {
   updatedAt?: true
   deletedAt?: true
   paidById?: true
-  coupleId?: true
+  groupId?: true
 }
 
 export type ExpenseMaxAggregateInputType = {
@@ -106,7 +106,7 @@ export type ExpenseMaxAggregateInputType = {
   updatedAt?: true
   deletedAt?: true
   paidById?: true
-  coupleId?: true
+  groupId?: true
 }
 
 export type ExpenseCountAggregateInputType = {
@@ -119,7 +119,7 @@ export type ExpenseCountAggregateInputType = {
   updatedAt?: true
   deletedAt?: true
   paidById?: true
-  coupleId?: true
+  groupId?: true
   _all?: true
 }
 
@@ -219,7 +219,7 @@ export type ExpenseGroupByOutputType = {
   updatedAt: Date
   deletedAt: Date | null
   paidById: string
-  coupleId: string
+  groupId: string
   _count: ExpenseCountAggregateOutputType | null
   _avg: ExpenseAvgAggregateOutputType | null
   _sum: ExpenseSumAggregateOutputType | null
@@ -255,9 +255,9 @@ export type ExpenseWhereInput = {
   updatedAt?: Prisma.DateTimeFilter<"Expense"> | Date | string
   deletedAt?: Prisma.DateTimeNullableFilter<"Expense"> | Date | string | null
   paidById?: Prisma.StringFilter<"Expense"> | string
-  coupleId?: Prisma.StringFilter<"Expense"> | string
+  groupId?: Prisma.StringFilter<"Expense"> | string
   paidBy?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
-  couple?: Prisma.XOR<Prisma.CoupleScalarRelationFilter, Prisma.CoupleWhereInput>
+  group?: Prisma.XOR<Prisma.GroupScalarRelationFilter, Prisma.GroupWhereInput>
   splits?: Prisma.ExpenseSplitListRelationFilter
 }
 
@@ -271,9 +271,9 @@ export type ExpenseOrderByWithRelationInput = {
   updatedAt?: Prisma.SortOrder
   deletedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   paidById?: Prisma.SortOrder
-  coupleId?: Prisma.SortOrder
+  groupId?: Prisma.SortOrder
   paidBy?: Prisma.UserOrderByWithRelationInput
-  couple?: Prisma.CoupleOrderByWithRelationInput
+  group?: Prisma.GroupOrderByWithRelationInput
   splits?: Prisma.ExpenseSplitOrderByRelationAggregateInput
 }
 
@@ -290,9 +290,9 @@ export type ExpenseWhereUniqueInput = Prisma.AtLeast<{
   updatedAt?: Prisma.DateTimeFilter<"Expense"> | Date | string
   deletedAt?: Prisma.DateTimeNullableFilter<"Expense"> | Date | string | null
   paidById?: Prisma.StringFilter<"Expense"> | string
-  coupleId?: Prisma.StringFilter<"Expense"> | string
+  groupId?: Prisma.StringFilter<"Expense"> | string
   paidBy?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
-  couple?: Prisma.XOR<Prisma.CoupleScalarRelationFilter, Prisma.CoupleWhereInput>
+  group?: Prisma.XOR<Prisma.GroupScalarRelationFilter, Prisma.GroupWhereInput>
   splits?: Prisma.ExpenseSplitListRelationFilter
 }, "id">
 
@@ -306,7 +306,7 @@ export type ExpenseOrderByWithAggregationInput = {
   updatedAt?: Prisma.SortOrder
   deletedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   paidById?: Prisma.SortOrder
-  coupleId?: Prisma.SortOrder
+  groupId?: Prisma.SortOrder
   _count?: Prisma.ExpenseCountOrderByAggregateInput
   _avg?: Prisma.ExpenseAvgOrderByAggregateInput
   _max?: Prisma.ExpenseMaxOrderByAggregateInput
@@ -327,7 +327,7 @@ export type ExpenseScalarWhereWithAggregatesInput = {
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Expense"> | Date | string
   deletedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Expense"> | Date | string | null
   paidById?: Prisma.StringWithAggregatesFilter<"Expense"> | string
-  coupleId?: Prisma.StringWithAggregatesFilter<"Expense"> | string
+  groupId?: Prisma.StringWithAggregatesFilter<"Expense"> | string
 }
 
 export type ExpenseCreateInput = {
@@ -340,7 +340,7 @@ export type ExpenseCreateInput = {
   updatedAt?: Date | string
   deletedAt?: Date | string | null
   paidBy: Prisma.UserCreateNestedOneWithoutExpensesInput
-  couple: Prisma.CoupleCreateNestedOneWithoutExpensesInput
+  group: Prisma.GroupCreateNestedOneWithoutExpensesInput
   splits?: Prisma.ExpenseSplitCreateNestedManyWithoutExpenseInput
 }
 
@@ -354,7 +354,7 @@ export type ExpenseUncheckedCreateInput = {
   updatedAt?: Date | string
   deletedAt?: Date | string | null
   paidById: string
-  coupleId: string
+  groupId: string
   splits?: Prisma.ExpenseSplitUncheckedCreateNestedManyWithoutExpenseInput
 }
 
@@ -368,7 +368,7 @@ export type ExpenseUpdateInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   paidBy?: Prisma.UserUpdateOneRequiredWithoutExpensesNestedInput
-  couple?: Prisma.CoupleUpdateOneRequiredWithoutExpensesNestedInput
+  group?: Prisma.GroupUpdateOneRequiredWithoutExpensesNestedInput
   splits?: Prisma.ExpenseSplitUpdateManyWithoutExpenseNestedInput
 }
 
@@ -382,7 +382,7 @@ export type ExpenseUncheckedUpdateInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   paidById?: Prisma.StringFieldUpdateOperationsInput | string
-  coupleId?: Prisma.StringFieldUpdateOperationsInput | string
+  groupId?: Prisma.StringFieldUpdateOperationsInput | string
   splits?: Prisma.ExpenseSplitUncheckedUpdateManyWithoutExpenseNestedInput
 }
 
@@ -396,7 +396,7 @@ export type ExpenseCreateManyInput = {
   updatedAt?: Date | string
   deletedAt?: Date | string | null
   paidById: string
-  coupleId: string
+  groupId: string
 }
 
 export type ExpenseUpdateManyMutationInput = {
@@ -420,7 +420,7 @@ export type ExpenseUncheckedUpdateManyInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   paidById?: Prisma.StringFieldUpdateOperationsInput | string
-  coupleId?: Prisma.StringFieldUpdateOperationsInput | string
+  groupId?: Prisma.StringFieldUpdateOperationsInput | string
 }
 
 export type ExpenseListRelationFilter = {
@@ -443,7 +443,7 @@ export type ExpenseCountOrderByAggregateInput = {
   updatedAt?: Prisma.SortOrder
   deletedAt?: Prisma.SortOrder
   paidById?: Prisma.SortOrder
-  coupleId?: Prisma.SortOrder
+  groupId?: Prisma.SortOrder
 }
 
 export type ExpenseAvgOrderByAggregateInput = {
@@ -460,7 +460,7 @@ export type ExpenseMaxOrderByAggregateInput = {
   updatedAt?: Prisma.SortOrder
   deletedAt?: Prisma.SortOrder
   paidById?: Prisma.SortOrder
-  coupleId?: Prisma.SortOrder
+  groupId?: Prisma.SortOrder
 }
 
 export type ExpenseMinOrderByAggregateInput = {
@@ -473,7 +473,7 @@ export type ExpenseMinOrderByAggregateInput = {
   updatedAt?: Prisma.SortOrder
   deletedAt?: Prisma.SortOrder
   paidById?: Prisma.SortOrder
-  coupleId?: Prisma.SortOrder
+  groupId?: Prisma.SortOrder
 }
 
 export type ExpenseSumOrderByAggregateInput = {
@@ -527,45 +527,45 @@ export type ExpenseUncheckedUpdateManyWithoutPaidByNestedInput = {
   deleteMany?: Prisma.ExpenseScalarWhereInput | Prisma.ExpenseScalarWhereInput[]
 }
 
-export type ExpenseCreateNestedManyWithoutCoupleInput = {
-  create?: Prisma.XOR<Prisma.ExpenseCreateWithoutCoupleInput, Prisma.ExpenseUncheckedCreateWithoutCoupleInput> | Prisma.ExpenseCreateWithoutCoupleInput[] | Prisma.ExpenseUncheckedCreateWithoutCoupleInput[]
-  connectOrCreate?: Prisma.ExpenseCreateOrConnectWithoutCoupleInput | Prisma.ExpenseCreateOrConnectWithoutCoupleInput[]
-  createMany?: Prisma.ExpenseCreateManyCoupleInputEnvelope
+export type ExpenseCreateNestedManyWithoutGroupInput = {
+  create?: Prisma.XOR<Prisma.ExpenseCreateWithoutGroupInput, Prisma.ExpenseUncheckedCreateWithoutGroupInput> | Prisma.ExpenseCreateWithoutGroupInput[] | Prisma.ExpenseUncheckedCreateWithoutGroupInput[]
+  connectOrCreate?: Prisma.ExpenseCreateOrConnectWithoutGroupInput | Prisma.ExpenseCreateOrConnectWithoutGroupInput[]
+  createMany?: Prisma.ExpenseCreateManyGroupInputEnvelope
   connect?: Prisma.ExpenseWhereUniqueInput | Prisma.ExpenseWhereUniqueInput[]
 }
 
-export type ExpenseUncheckedCreateNestedManyWithoutCoupleInput = {
-  create?: Prisma.XOR<Prisma.ExpenseCreateWithoutCoupleInput, Prisma.ExpenseUncheckedCreateWithoutCoupleInput> | Prisma.ExpenseCreateWithoutCoupleInput[] | Prisma.ExpenseUncheckedCreateWithoutCoupleInput[]
-  connectOrCreate?: Prisma.ExpenseCreateOrConnectWithoutCoupleInput | Prisma.ExpenseCreateOrConnectWithoutCoupleInput[]
-  createMany?: Prisma.ExpenseCreateManyCoupleInputEnvelope
+export type ExpenseUncheckedCreateNestedManyWithoutGroupInput = {
+  create?: Prisma.XOR<Prisma.ExpenseCreateWithoutGroupInput, Prisma.ExpenseUncheckedCreateWithoutGroupInput> | Prisma.ExpenseCreateWithoutGroupInput[] | Prisma.ExpenseUncheckedCreateWithoutGroupInput[]
+  connectOrCreate?: Prisma.ExpenseCreateOrConnectWithoutGroupInput | Prisma.ExpenseCreateOrConnectWithoutGroupInput[]
+  createMany?: Prisma.ExpenseCreateManyGroupInputEnvelope
   connect?: Prisma.ExpenseWhereUniqueInput | Prisma.ExpenseWhereUniqueInput[]
 }
 
-export type ExpenseUpdateManyWithoutCoupleNestedInput = {
-  create?: Prisma.XOR<Prisma.ExpenseCreateWithoutCoupleInput, Prisma.ExpenseUncheckedCreateWithoutCoupleInput> | Prisma.ExpenseCreateWithoutCoupleInput[] | Prisma.ExpenseUncheckedCreateWithoutCoupleInput[]
-  connectOrCreate?: Prisma.ExpenseCreateOrConnectWithoutCoupleInput | Prisma.ExpenseCreateOrConnectWithoutCoupleInput[]
-  upsert?: Prisma.ExpenseUpsertWithWhereUniqueWithoutCoupleInput | Prisma.ExpenseUpsertWithWhereUniqueWithoutCoupleInput[]
-  createMany?: Prisma.ExpenseCreateManyCoupleInputEnvelope
+export type ExpenseUpdateManyWithoutGroupNestedInput = {
+  create?: Prisma.XOR<Prisma.ExpenseCreateWithoutGroupInput, Prisma.ExpenseUncheckedCreateWithoutGroupInput> | Prisma.ExpenseCreateWithoutGroupInput[] | Prisma.ExpenseUncheckedCreateWithoutGroupInput[]
+  connectOrCreate?: Prisma.ExpenseCreateOrConnectWithoutGroupInput | Prisma.ExpenseCreateOrConnectWithoutGroupInput[]
+  upsert?: Prisma.ExpenseUpsertWithWhereUniqueWithoutGroupInput | Prisma.ExpenseUpsertWithWhereUniqueWithoutGroupInput[]
+  createMany?: Prisma.ExpenseCreateManyGroupInputEnvelope
   set?: Prisma.ExpenseWhereUniqueInput | Prisma.ExpenseWhereUniqueInput[]
   disconnect?: Prisma.ExpenseWhereUniqueInput | Prisma.ExpenseWhereUniqueInput[]
   delete?: Prisma.ExpenseWhereUniqueInput | Prisma.ExpenseWhereUniqueInput[]
   connect?: Prisma.ExpenseWhereUniqueInput | Prisma.ExpenseWhereUniqueInput[]
-  update?: Prisma.ExpenseUpdateWithWhereUniqueWithoutCoupleInput | Prisma.ExpenseUpdateWithWhereUniqueWithoutCoupleInput[]
-  updateMany?: Prisma.ExpenseUpdateManyWithWhereWithoutCoupleInput | Prisma.ExpenseUpdateManyWithWhereWithoutCoupleInput[]
+  update?: Prisma.ExpenseUpdateWithWhereUniqueWithoutGroupInput | Prisma.ExpenseUpdateWithWhereUniqueWithoutGroupInput[]
+  updateMany?: Prisma.ExpenseUpdateManyWithWhereWithoutGroupInput | Prisma.ExpenseUpdateManyWithWhereWithoutGroupInput[]
   deleteMany?: Prisma.ExpenseScalarWhereInput | Prisma.ExpenseScalarWhereInput[]
 }
 
-export type ExpenseUncheckedUpdateManyWithoutCoupleNestedInput = {
-  create?: Prisma.XOR<Prisma.ExpenseCreateWithoutCoupleInput, Prisma.ExpenseUncheckedCreateWithoutCoupleInput> | Prisma.ExpenseCreateWithoutCoupleInput[] | Prisma.ExpenseUncheckedCreateWithoutCoupleInput[]
-  connectOrCreate?: Prisma.ExpenseCreateOrConnectWithoutCoupleInput | Prisma.ExpenseCreateOrConnectWithoutCoupleInput[]
-  upsert?: Prisma.ExpenseUpsertWithWhereUniqueWithoutCoupleInput | Prisma.ExpenseUpsertWithWhereUniqueWithoutCoupleInput[]
-  createMany?: Prisma.ExpenseCreateManyCoupleInputEnvelope
+export type ExpenseUncheckedUpdateManyWithoutGroupNestedInput = {
+  create?: Prisma.XOR<Prisma.ExpenseCreateWithoutGroupInput, Prisma.ExpenseUncheckedCreateWithoutGroupInput> | Prisma.ExpenseCreateWithoutGroupInput[] | Prisma.ExpenseUncheckedCreateWithoutGroupInput[]
+  connectOrCreate?: Prisma.ExpenseCreateOrConnectWithoutGroupInput | Prisma.ExpenseCreateOrConnectWithoutGroupInput[]
+  upsert?: Prisma.ExpenseUpsertWithWhereUniqueWithoutGroupInput | Prisma.ExpenseUpsertWithWhereUniqueWithoutGroupInput[]
+  createMany?: Prisma.ExpenseCreateManyGroupInputEnvelope
   set?: Prisma.ExpenseWhereUniqueInput | Prisma.ExpenseWhereUniqueInput[]
   disconnect?: Prisma.ExpenseWhereUniqueInput | Prisma.ExpenseWhereUniqueInput[]
   delete?: Prisma.ExpenseWhereUniqueInput | Prisma.ExpenseWhereUniqueInput[]
   connect?: Prisma.ExpenseWhereUniqueInput | Prisma.ExpenseWhereUniqueInput[]
-  update?: Prisma.ExpenseUpdateWithWhereUniqueWithoutCoupleInput | Prisma.ExpenseUpdateWithWhereUniqueWithoutCoupleInput[]
-  updateMany?: Prisma.ExpenseUpdateManyWithWhereWithoutCoupleInput | Prisma.ExpenseUpdateManyWithWhereWithoutCoupleInput[]
+  update?: Prisma.ExpenseUpdateWithWhereUniqueWithoutGroupInput | Prisma.ExpenseUpdateWithWhereUniqueWithoutGroupInput[]
+  updateMany?: Prisma.ExpenseUpdateManyWithWhereWithoutGroupInput | Prisma.ExpenseUpdateManyWithWhereWithoutGroupInput[]
   deleteMany?: Prisma.ExpenseScalarWhereInput | Prisma.ExpenseScalarWhereInput[]
 }
 
@@ -612,7 +612,7 @@ export type ExpenseCreateWithoutPaidByInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
-  couple: Prisma.CoupleCreateNestedOneWithoutExpensesInput
+  group: Prisma.GroupCreateNestedOneWithoutExpensesInput
   splits?: Prisma.ExpenseSplitCreateNestedManyWithoutExpenseInput
 }
 
@@ -625,7 +625,7 @@ export type ExpenseUncheckedCreateWithoutPaidByInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
-  coupleId: string
+  groupId: string
   splits?: Prisma.ExpenseSplitUncheckedCreateNestedManyWithoutExpenseInput
 }
 
@@ -668,10 +668,10 @@ export type ExpenseScalarWhereInput = {
   updatedAt?: Prisma.DateTimeFilter<"Expense"> | Date | string
   deletedAt?: Prisma.DateTimeNullableFilter<"Expense"> | Date | string | null
   paidById?: Prisma.StringFilter<"Expense"> | string
-  coupleId?: Prisma.StringFilter<"Expense"> | string
+  groupId?: Prisma.StringFilter<"Expense"> | string
 }
 
-export type ExpenseCreateWithoutCoupleInput = {
+export type ExpenseCreateWithoutGroupInput = {
   id?: string
   description: string
   amount: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -684,7 +684,7 @@ export type ExpenseCreateWithoutCoupleInput = {
   splits?: Prisma.ExpenseSplitCreateNestedManyWithoutExpenseInput
 }
 
-export type ExpenseUncheckedCreateWithoutCoupleInput = {
+export type ExpenseUncheckedCreateWithoutGroupInput = {
   id?: string
   description: string
   amount: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -697,30 +697,30 @@ export type ExpenseUncheckedCreateWithoutCoupleInput = {
   splits?: Prisma.ExpenseSplitUncheckedCreateNestedManyWithoutExpenseInput
 }
 
-export type ExpenseCreateOrConnectWithoutCoupleInput = {
+export type ExpenseCreateOrConnectWithoutGroupInput = {
   where: Prisma.ExpenseWhereUniqueInput
-  create: Prisma.XOR<Prisma.ExpenseCreateWithoutCoupleInput, Prisma.ExpenseUncheckedCreateWithoutCoupleInput>
+  create: Prisma.XOR<Prisma.ExpenseCreateWithoutGroupInput, Prisma.ExpenseUncheckedCreateWithoutGroupInput>
 }
 
-export type ExpenseCreateManyCoupleInputEnvelope = {
-  data: Prisma.ExpenseCreateManyCoupleInput | Prisma.ExpenseCreateManyCoupleInput[]
+export type ExpenseCreateManyGroupInputEnvelope = {
+  data: Prisma.ExpenseCreateManyGroupInput | Prisma.ExpenseCreateManyGroupInput[]
   skipDuplicates?: boolean
 }
 
-export type ExpenseUpsertWithWhereUniqueWithoutCoupleInput = {
+export type ExpenseUpsertWithWhereUniqueWithoutGroupInput = {
   where: Prisma.ExpenseWhereUniqueInput
-  update: Prisma.XOR<Prisma.ExpenseUpdateWithoutCoupleInput, Prisma.ExpenseUncheckedUpdateWithoutCoupleInput>
-  create: Prisma.XOR<Prisma.ExpenseCreateWithoutCoupleInput, Prisma.ExpenseUncheckedCreateWithoutCoupleInput>
+  update: Prisma.XOR<Prisma.ExpenseUpdateWithoutGroupInput, Prisma.ExpenseUncheckedUpdateWithoutGroupInput>
+  create: Prisma.XOR<Prisma.ExpenseCreateWithoutGroupInput, Prisma.ExpenseUncheckedCreateWithoutGroupInput>
 }
 
-export type ExpenseUpdateWithWhereUniqueWithoutCoupleInput = {
+export type ExpenseUpdateWithWhereUniqueWithoutGroupInput = {
   where: Prisma.ExpenseWhereUniqueInput
-  data: Prisma.XOR<Prisma.ExpenseUpdateWithoutCoupleInput, Prisma.ExpenseUncheckedUpdateWithoutCoupleInput>
+  data: Prisma.XOR<Prisma.ExpenseUpdateWithoutGroupInput, Prisma.ExpenseUncheckedUpdateWithoutGroupInput>
 }
 
-export type ExpenseUpdateManyWithWhereWithoutCoupleInput = {
+export type ExpenseUpdateManyWithWhereWithoutGroupInput = {
   where: Prisma.ExpenseScalarWhereInput
-  data: Prisma.XOR<Prisma.ExpenseUpdateManyMutationInput, Prisma.ExpenseUncheckedUpdateManyWithoutCoupleInput>
+  data: Prisma.XOR<Prisma.ExpenseUpdateManyMutationInput, Prisma.ExpenseUncheckedUpdateManyWithoutGroupInput>
 }
 
 export type ExpenseCreateWithoutSplitsInput = {
@@ -733,7 +733,7 @@ export type ExpenseCreateWithoutSplitsInput = {
   updatedAt?: Date | string
   deletedAt?: Date | string | null
   paidBy: Prisma.UserCreateNestedOneWithoutExpensesInput
-  couple: Prisma.CoupleCreateNestedOneWithoutExpensesInput
+  group: Prisma.GroupCreateNestedOneWithoutExpensesInput
 }
 
 export type ExpenseUncheckedCreateWithoutSplitsInput = {
@@ -746,7 +746,7 @@ export type ExpenseUncheckedCreateWithoutSplitsInput = {
   updatedAt?: Date | string
   deletedAt?: Date | string | null
   paidById: string
-  coupleId: string
+  groupId: string
 }
 
 export type ExpenseCreateOrConnectWithoutSplitsInput = {
@@ -775,7 +775,7 @@ export type ExpenseUpdateWithoutSplitsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   paidBy?: Prisma.UserUpdateOneRequiredWithoutExpensesNestedInput
-  couple?: Prisma.CoupleUpdateOneRequiredWithoutExpensesNestedInput
+  group?: Prisma.GroupUpdateOneRequiredWithoutExpensesNestedInput
 }
 
 export type ExpenseUncheckedUpdateWithoutSplitsInput = {
@@ -788,7 +788,7 @@ export type ExpenseUncheckedUpdateWithoutSplitsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   paidById?: Prisma.StringFieldUpdateOperationsInput | string
-  coupleId?: Prisma.StringFieldUpdateOperationsInput | string
+  groupId?: Prisma.StringFieldUpdateOperationsInput | string
 }
 
 export type ExpenseCreateManyPaidByInput = {
@@ -800,7 +800,7 @@ export type ExpenseCreateManyPaidByInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
-  coupleId: string
+  groupId: string
 }
 
 export type ExpenseUpdateWithoutPaidByInput = {
@@ -812,7 +812,7 @@ export type ExpenseUpdateWithoutPaidByInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  couple?: Prisma.CoupleUpdateOneRequiredWithoutExpensesNestedInput
+  group?: Prisma.GroupUpdateOneRequiredWithoutExpensesNestedInput
   splits?: Prisma.ExpenseSplitUpdateManyWithoutExpenseNestedInput
 }
 
@@ -825,7 +825,7 @@ export type ExpenseUncheckedUpdateWithoutPaidByInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  coupleId?: Prisma.StringFieldUpdateOperationsInput | string
+  groupId?: Prisma.StringFieldUpdateOperationsInput | string
   splits?: Prisma.ExpenseSplitUncheckedUpdateManyWithoutExpenseNestedInput
 }
 
@@ -838,10 +838,10 @@ export type ExpenseUncheckedUpdateManyWithoutPaidByInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  coupleId?: Prisma.StringFieldUpdateOperationsInput | string
+  groupId?: Prisma.StringFieldUpdateOperationsInput | string
 }
 
-export type ExpenseCreateManyCoupleInput = {
+export type ExpenseCreateManyGroupInput = {
   id?: string
   description: string
   amount: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -853,7 +853,7 @@ export type ExpenseCreateManyCoupleInput = {
   paidById: string
 }
 
-export type ExpenseUpdateWithoutCoupleInput = {
+export type ExpenseUpdateWithoutGroupInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
   amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -866,7 +866,7 @@ export type ExpenseUpdateWithoutCoupleInput = {
   splits?: Prisma.ExpenseSplitUpdateManyWithoutExpenseNestedInput
 }
 
-export type ExpenseUncheckedUpdateWithoutCoupleInput = {
+export type ExpenseUncheckedUpdateWithoutGroupInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
   amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -879,7 +879,7 @@ export type ExpenseUncheckedUpdateWithoutCoupleInput = {
   splits?: Prisma.ExpenseSplitUncheckedUpdateManyWithoutExpenseNestedInput
 }
 
-export type ExpenseUncheckedUpdateManyWithoutCoupleInput = {
+export type ExpenseUncheckedUpdateManyWithoutGroupInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
   amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -932,9 +932,9 @@ export type ExpenseSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   updatedAt?: boolean
   deletedAt?: boolean
   paidById?: boolean
-  coupleId?: boolean
+  groupId?: boolean
   paidBy?: boolean | Prisma.UserDefaultArgs<ExtArgs>
-  couple?: boolean | Prisma.CoupleDefaultArgs<ExtArgs>
+  group?: boolean | Prisma.GroupDefaultArgs<ExtArgs>
   splits?: boolean | Prisma.Expense$splitsArgs<ExtArgs>
   _count?: boolean | Prisma.ExpenseCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["expense"]>
@@ -949,9 +949,9 @@ export type ExpenseSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exten
   updatedAt?: boolean
   deletedAt?: boolean
   paidById?: boolean
-  coupleId?: boolean
+  groupId?: boolean
   paidBy?: boolean | Prisma.UserDefaultArgs<ExtArgs>
-  couple?: boolean | Prisma.CoupleDefaultArgs<ExtArgs>
+  group?: boolean | Prisma.GroupDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["expense"]>
 
 export type ExpenseSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -964,9 +964,9 @@ export type ExpenseSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exten
   updatedAt?: boolean
   deletedAt?: boolean
   paidById?: boolean
-  coupleId?: boolean
+  groupId?: boolean
   paidBy?: boolean | Prisma.UserDefaultArgs<ExtArgs>
-  couple?: boolean | Prisma.CoupleDefaultArgs<ExtArgs>
+  group?: boolean | Prisma.GroupDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["expense"]>
 
 export type ExpenseSelectScalar = {
@@ -979,30 +979,30 @@ export type ExpenseSelectScalar = {
   updatedAt?: boolean
   deletedAt?: boolean
   paidById?: boolean
-  coupleId?: boolean
+  groupId?: boolean
 }
 
-export type ExpenseOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "description" | "amount" | "category" | "splitType" | "createdAt" | "updatedAt" | "deletedAt" | "paidById" | "coupleId", ExtArgs["result"]["expense"]>
+export type ExpenseOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "description" | "amount" | "category" | "splitType" | "createdAt" | "updatedAt" | "deletedAt" | "paidById" | "groupId", ExtArgs["result"]["expense"]>
 export type ExpenseInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   paidBy?: boolean | Prisma.UserDefaultArgs<ExtArgs>
-  couple?: boolean | Prisma.CoupleDefaultArgs<ExtArgs>
+  group?: boolean | Prisma.GroupDefaultArgs<ExtArgs>
   splits?: boolean | Prisma.Expense$splitsArgs<ExtArgs>
   _count?: boolean | Prisma.ExpenseCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type ExpenseIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   paidBy?: boolean | Prisma.UserDefaultArgs<ExtArgs>
-  couple?: boolean | Prisma.CoupleDefaultArgs<ExtArgs>
+  group?: boolean | Prisma.GroupDefaultArgs<ExtArgs>
 }
 export type ExpenseIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   paidBy?: boolean | Prisma.UserDefaultArgs<ExtArgs>
-  couple?: boolean | Prisma.CoupleDefaultArgs<ExtArgs>
+  group?: boolean | Prisma.GroupDefaultArgs<ExtArgs>
 }
 
 export type $ExpensePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "Expense"
   objects: {
     paidBy: Prisma.$UserPayload<ExtArgs>
-    couple: Prisma.$CouplePayload<ExtArgs>
+    group: Prisma.$GroupPayload<ExtArgs>
     splits: Prisma.$ExpenseSplitPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
@@ -1015,7 +1015,7 @@ export type $ExpensePayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     updatedAt: Date
     deletedAt: Date | null
     paidById: string
-    coupleId: string
+    groupId: string
   }, ExtArgs["result"]["expense"]>
   composites: {}
 }
@@ -1411,7 +1411,7 @@ readonly fields: ExpenseFieldRefs;
 export interface Prisma__ExpenseClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   paidBy<T extends Prisma.UserDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserDefaultArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
-  couple<T extends Prisma.CoupleDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.CoupleDefaultArgs<ExtArgs>>): Prisma.Prisma__CoupleClient<runtime.Types.Result.GetResult<Prisma.$CouplePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  group<T extends Prisma.GroupDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.GroupDefaultArgs<ExtArgs>>): Prisma.Prisma__GroupClient<runtime.Types.Result.GetResult<Prisma.$GroupPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   splits<T extends Prisma.Expense$splitsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Expense$splitsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ExpenseSplitPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -1451,7 +1451,7 @@ export interface ExpenseFieldRefs {
   readonly updatedAt: Prisma.FieldRef<"Expense", 'DateTime'>
   readonly deletedAt: Prisma.FieldRef<"Expense", 'DateTime'>
   readonly paidById: Prisma.FieldRef<"Expense", 'String'>
-  readonly coupleId: Prisma.FieldRef<"Expense", 'String'>
+  readonly groupId: Prisma.FieldRef<"Expense", 'String'>
 }
     
 

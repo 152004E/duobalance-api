@@ -44,7 +44,7 @@ describe('PaymentsController', () => {
         amount: 100,
         fromUserId: mockReq.user.id,
         toUserId: 'user-2',
-        coupleId: 'couple-1',
+        groupId: 'group-1',
       };
       mockPaymentsService.create.mockResolvedValue(expectedResponse);
 

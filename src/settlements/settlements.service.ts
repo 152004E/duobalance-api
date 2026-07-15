@@ -12,7 +12,29 @@ export class SettlementsService {
     private readonly prisma: PrismaService,
   ) {}
 
-  async calculate(userId: string) {
+  private async getGroupId(userId: string, preferredGroupId?: string) {
+    if (preferredGroupId) {
+      const membership = await this.prisma.groupMember.findUnique({
+        where: { userId_groupId: { userId, groupId: preferredGroupId } },
+      });
+      if (!membership) {
+        throw new BadRequestException('User is not a member of this group');
+      }
+      return preferredGroupId;
+    }
+
+    const membership = await this.prisma.groupMember.findFirst({
+      where: { userId },
+    });
+
+    if (!membership) {
+      throw new BadRequestException('User does not belong to any group');
+    }
+
+    return membership.groupId;
+  }
+
+  async calculate(userId: string, groupId?: string) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
     });
@@ -21,32 +43,32 @@ export class SettlementsService {
       throw new NotFoundException('User not found');
     }
 
-    if (!user.coupleId) {
-      throw new BadRequestException(
-        'User is not part of a couple',
-      );
-    }
+    const targetGroupId = await this.getGroupId(userId, groupId);
 
-    const couple = await this.prisma.couple.findUnique({
-      where: { id: user.coupleId },
+    const group = await this.prisma.group.findUnique({
+      where: { id: targetGroupId },
       include: {
-        users: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
+        members: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+              },
+            },
           },
         },
       },
     });
 
-    if (!couple) {
-      throw new NotFoundException('Couple not found');
+    if (!group) {
+      throw new NotFoundException('Group not found');
     }
 
     const expenses = await this.prisma.expense.findMany({
       where: {
-        coupleId: user.coupleId,
+        groupId: targetGroupId,
         deletedAt: null,
         splitType: { in: ['EQUAL', 'PERCENTAGE'] },
       },
@@ -91,7 +113,7 @@ export class SettlementsService {
     }
 
     const payments = await this.prisma.payment.findMany({
-      where: { coupleId: user.coupleId },
+      where: { groupId: targetGroupId },
     });
 
     let paymentsMade = 0;

@@ -15,6 +15,28 @@ export class ExpensesService {
     private readonly prisma: PrismaService,
   ) { }
 
+  private async getGroupId(userId: string, preferredGroupId?: string) {
+    if (preferredGroupId) {
+      const membership = await this.prisma.groupMember.findUnique({
+        where: { userId_groupId: { userId, groupId: preferredGroupId } },
+      });
+      if (!membership) {
+        throw new BadRequestException('User is not a member of this group');
+      }
+      return preferredGroupId;
+    }
+
+    const membership = await this.prisma.groupMember.findFirst({
+      where: { userId },
+    });
+
+    if (!membership) {
+      throw new BadRequestException('User does not belong to any group');
+    }
+
+    return membership.groupId;
+  }
+
   async create(
     userId: string,
     dto: CreateExpenseDto,
@@ -27,11 +49,7 @@ export class ExpensesService {
       throw new NotFoundException('User not found');
     }
 
-    if (!user.coupleId) {
-      throw new BadRequestException(
-        'User is not part of a couple',
-      );
-    }
+    const groupId = await this.getGroupId(userId, dto.groupId);
 
     if (dto.splitType === 'PERCENTAGE') {
       if (!dto.splits || dto.splits.length !== 2) {
@@ -58,7 +76,7 @@ export class ExpensesService {
         category: dto.category,
         splitType: dto.splitType,
         paidById: user.id,
-        coupleId: user.coupleId,
+        groupId,
         ...(dto.splits && {
           splits: {
             create: dto.splits.map(s => ({
@@ -88,15 +106,11 @@ export class ExpensesService {
       throw new NotFoundException('User not found');
     }
 
-    if (!user.coupleId) {
-      throw new BadRequestException(
-        'User is not part of a couple',
-      );
-    }
+    const groupId = await this.getGroupId(userId, query?.groupId);
 
     return this.prisma.expense.findMany({
       where: {
-        coupleId: user.coupleId,
+        groupId,
         deletedAt: null,
         ...(query?.category && { category: query.category }),
         ...(query?.splitType && { splitType: query.splitType }),
@@ -138,16 +152,12 @@ export class ExpensesService {
       throw new NotFoundException('User not found');
     }
 
-    if (!user.coupleId) {
-      throw new BadRequestException(
-        'User is not part of a couple',
-      );
-    }
+    const groupId = await this.getGroupId(userId);
 
     const expense = await this.prisma.expense.findFirst({
       where: {
         id: expenseId,
-        coupleId: user.coupleId,
+        groupId,
         deletedAt: null,
       },
       include: { splits: true },
@@ -169,14 +179,16 @@ export class ExpensesService {
       where: { id: userId },
     });
 
-    if (!user || !user.coupleId) {
-      throw new BadRequestException();
+    if (!user) {
+      throw new NotFoundException('User not found');
     }
+
+    const groupId = await this.getGroupId(userId);
 
     const expense = await this.prisma.expense.findFirst({
       where: {
         id: expenseId,
-        coupleId: user.coupleId,
+        groupId,
         deletedAt: null,
       },
     });
@@ -203,14 +215,16 @@ export class ExpensesService {
       where: { id: userId },
     });
 
-    if (!user || !user.coupleId) {
-      throw new BadRequestException();
+    if (!user) {
+      throw new NotFoundException('User not found');
     }
+
+    const groupId = await this.getGroupId(userId);
 
     const expense = await this.prisma.expense.findFirst({
       where: {
         id: expenseId,
-        coupleId: user.coupleId,
+        groupId,
         deletedAt: null,
       },
     });

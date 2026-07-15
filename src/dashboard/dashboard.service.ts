@@ -15,7 +15,7 @@ export class DashboardService {
     private readonly settlementsService: SettlementsService,
   ) {}
 
-  async getSummary(userId: string) {
+  async getSummary(userId: string, groupId?: string) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
     });
@@ -24,10 +24,14 @@ export class DashboardService {
       throw new NotFoundException('User not found');
     }
 
-    if (!user.coupleId) {
-      throw new BadRequestException(
-        'User is not part of a couple',
-      );
+    const targetGroupId = groupId ?? await this.getDefaultGroupId(userId);
+
+    const membership = await this.prisma.groupMember.findUnique({
+      where: { userId_groupId: { userId, groupId: targetGroupId } },
+    });
+
+    if (!membership) {
+      throw new BadRequestException('User is not a member of this group');
     }
 
     const now = new Date();
@@ -47,13 +51,13 @@ export class DashboardService {
       999,
     );
 
-    const balance = await this.balancesService.calculate(userId);
+    const balance = await this.balancesService.calculate(userId, targetGroupId);
 
-    const settlement = await this.settlementsService.calculate(userId);
+    const settlement = await this.settlementsService.calculate(userId, targetGroupId);
 
     const monthExpenses = await this.prisma.expense.findMany({
       where: {
-        coupleId: user.coupleId,
+        groupId: targetGroupId,
         deletedAt: null,
         splitType: { not: 'PERSONAL' },
         createdAt: { gte: startOfMonth },
@@ -69,7 +73,7 @@ export class DashboardService {
 
     const lastMonthExpenses = await this.prisma.expense.findMany({
       where: {
-        coupleId: user.coupleId,
+        groupId: targetGroupId,
         deletedAt: null,
         splitType: { not: 'PERSONAL' },
         createdAt: {
@@ -110,7 +114,7 @@ export class DashboardService {
 
     const monthPayments = await this.prisma.payment.findMany({
       where: {
-        coupleId: user.coupleId,
+        groupId: targetGroupId,
         createdAt: { gte: startOfMonth },
       },
     });
@@ -148,5 +152,17 @@ export class DashboardService {
         percentageChange,
       },
     };
+  }
+
+  private async getDefaultGroupId(userId: string) {
+    const membership = await this.prisma.groupMember.findFirst({
+      where: { userId },
+    });
+
+    if (!membership) {
+      throw new BadRequestException('User does not belong to any group');
+    }
+
+    return membership.groupId;
   }
 }

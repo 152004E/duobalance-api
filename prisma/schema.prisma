@@ -23,6 +23,18 @@ enum SplitType {
   CUSTOM
 }
 
+enum GroupType {
+  PERSONAL
+  COUPLE
+  GROUP
+}
+
+enum MemberRole {
+  OWNER
+  ADMIN
+  MEMBER
+}
+
 model User {
   id        String   @id @default(uuid())
   firstName String
@@ -31,9 +43,7 @@ model User {
   password  String
   createdAt DateTime @default(now())
 
-  coupleId  String?
-  couple    Couple?  @relation(fields: [coupleId], references: [id])
-
+  members           GroupMember[]
   expenses          Expense[]
   expenseSplits     ExpenseSplit[]
   paymentsSent      Payment[] @relation("SentPayments")
@@ -41,14 +51,29 @@ model User {
   refreshTokens     RefreshToken[]
 }
 
-model Couple {
-  id         String   @id @default(uuid())
-  inviteCode String   @unique
-  createdAt  DateTime @default(now())
+model Group {
+  id         String    @id @default(uuid())
+  name       String
+  type       GroupType @default(COUPLE)
+  inviteCode String?   @unique
+  createdAt  DateTime  @default(now())
 
-  users      User[]
-  expenses   Expense[]
-  payments   Payment[]
+  members  GroupMember[]
+  expenses Expense[]
+  payments Payment[]
+}
+
+model GroupMember {
+  id       String     @id @default(uuid())
+  role     MemberRole @default(MEMBER)
+  joinedAt DateTime   @default(now())
+
+  userId  String
+  user    User   @relation(fields: [userId], references: [id])
+  groupId String
+  group   Group  @relation(fields: [groupId], references: [id])
+
+  @@unique([userId, groupId])
 }
 
 model Expense {
@@ -66,8 +91,8 @@ model Expense {
   paidById    String
   paidBy      User @relation(fields: [paidById], references: [id])
 
-  coupleId    String
-  couple      Couple @relation(fields: [coupleId], references: [id])
+  groupId   String
+  group     Group  @relation(fields: [groupId], references: [id])
 
   splits      ExpenseSplit[]
 }
@@ -93,13 +118,14 @@ model Payment {
 
   fromUserId String
   toUserId   String
-  coupleId   String
 
   fromUser   User   @relation("SentPayments", fields: [fromUserId], references: [id])
   toUser     User   @relation("ReceivedPayments", fields: [toUserId], references: [id])
-  couple     Couple @relation(fields: [coupleId], references: [id])
 
-  @@index([coupleId])
+  groupId   String
+  group     Group  @relation(fields: [groupId], references: [id])
+
+  @@index([groupId])
   @@index([fromUserId])
   @@index([toUserId])
 }

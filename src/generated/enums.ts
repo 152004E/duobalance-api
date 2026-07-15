@@ -29,3 +29,21 @@ export const SplitType = {
 } as const
 
 export type SplitType = (typeof SplitType)[keyof typeof SplitType]
+
+
+export const GroupType = {
+  PERSONAL: 'PERSONAL',
+  COUPLE: 'COUPLE',
+  GROUP: 'GROUP'
+} as const
+
+export type GroupType = (typeof GroupType)[keyof typeof GroupType]
+
+
+export const MemberRole = {
+  OWNER: 'OWNER',
+  ADMIN: 'ADMIN',
+  MEMBER: 'MEMBER'
+} as const
+
+export type MemberRole = (typeof MemberRole)[keyof typeof MemberRole]

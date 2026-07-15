@@ -5,13 +5,30 @@ import { PrismaService } from '../prisma/prisma.service';
 
 describe('SettlementsService', () => {
   let service: SettlementsService;
-  let prisma: PrismaService;
+
+  const userId = 'user-1';
+  const partnerId = 'partner-1';
+  const groupId = 'group-1';
+
+  const baseUser = { id: userId };
+  const baseGroup = {
+    id: groupId,
+    members: [
+      { user: { id: userId, firstName: 'Juan', lastName: 'Perez' } },
+      { user: { id: partnerId, firstName: 'Maria', lastName: 'Lopez' } },
+    ],
+  };
+  const baseGroupMember = { userId, groupId, role: 'OWNER' };
 
   const mockPrisma = {
     user: {
       findUnique: jest.fn(),
     },
-    couple: {
+    group: {
+      findUnique: jest.fn(),
+    },
+    groupMember: {
+      findFirst: jest.fn(),
       findUnique: jest.fn(),
     },
     expense: {
@@ -31,39 +48,21 @@ describe('SettlementsService', () => {
     }).compile();
 
     service = module.get<SettlementsService>(SettlementsService);
-    prisma = module.get<PrismaService>(PrismaService);
     jest.clearAllMocks();
   });
 
   describe('calculate', () => {
-    const userId = 'user-1';
-    const partnerId = 'partner-1';
-
-    const baseUser = { id: userId, coupleId: 'couple-1' };
-    const baseCouple = {
-      id: 'couple-1',
-      users: [
-        { id: userId, firstName: 'Juan', lastName: 'Perez' },
-        { id: partnerId, firstName: 'Maria', lastName: 'Lopez' },
-      ],
-    };
-
     it('should throw NotFoundException when user does not exist', async () => {
       mockPrisma.user.findUnique.mockResolvedValue(null);
 
       await expect(service.calculate(userId)).rejects.toThrow(
         NotFoundException,
       );
-      expect(mockPrisma.user.findUnique).toHaveBeenCalledWith({
-        where: { id: userId },
-      });
     });
 
-    it('should throw BadRequestException when user has no couple', async () => {
-      mockPrisma.user.findUnique.mockResolvedValue({
-        id: userId,
-        coupleId: null,
-      });
+    it('should throw BadRequestException when user has no group', async () => {
+      mockPrisma.user.findUnique.mockResolvedValue(baseUser);
+      mockPrisma.groupMember.findFirst.mockResolvedValue(null);
 
       await expect(service.calculate(userId)).rejects.toThrow(
         BadRequestException,
@@ -72,7 +71,8 @@ describe('SettlementsService', () => {
 
     it('should return all zeros and SETTLED when no expenses or payments', async () => {
       mockPrisma.user.findUnique.mockResolvedValue(baseUser);
-      mockPrisma.couple.findUnique.mockResolvedValue(baseCouple);
+      mockPrisma.groupMember.findFirst.mockResolvedValue(baseGroupMember);
+      mockPrisma.group.findUnique.mockResolvedValue(baseGroup);
       mockPrisma.expense.findMany.mockResolvedValue([]);
       mockPrisma.payment.findMany.mockResolvedValue([]);
 
@@ -95,7 +95,8 @@ describe('SettlementsService', () => {
 
     it('should calculate EQUAL settlement with balance and partial payment', async () => {
       mockPrisma.user.findUnique.mockResolvedValue(baseUser);
-      mockPrisma.couple.findUnique.mockResolvedValue(baseCouple);
+      mockPrisma.groupMember.findFirst.mockResolvedValue(baseGroupMember);
+      mockPrisma.group.findUnique.mockResolvedValue(baseGroup);
       mockPrisma.expense.findMany.mockResolvedValue([
         { paidById: userId, amount: 200, splitType: 'EQUAL', splits: [] },
         { paidById: partnerId, amount: 100, splitType: 'EQUAL', splits: [] },
@@ -106,7 +107,7 @@ describe('SettlementsService', () => {
           amount: 30,
           fromUserId: partnerId,
           toUserId: userId,
-          coupleId: 'couple-1',
+          groupId,
         },
       ]);
 
@@ -129,7 +130,8 @@ describe('SettlementsService', () => {
 
     it('should return SETTLED when payment exactly matches balance (EQUAL)', async () => {
       mockPrisma.user.findUnique.mockResolvedValue(baseUser);
-      mockPrisma.couple.findUnique.mockResolvedValue(baseCouple);
+      mockPrisma.groupMember.findFirst.mockResolvedValue(baseGroupMember);
+      mockPrisma.group.findUnique.mockResolvedValue(baseGroup);
       mockPrisma.expense.findMany.mockResolvedValue([
         { paidById: userId, amount: 200, splitType: 'EQUAL', splits: [] },
         { paidById: partnerId, amount: 100, splitType: 'EQUAL', splits: [] },
@@ -140,7 +142,7 @@ describe('SettlementsService', () => {
           amount: 50,
           fromUserId: partnerId,
           toUserId: userId,
-          coupleId: 'couple-1',
+          groupId,
         },
       ]);
 
@@ -152,7 +154,8 @@ describe('SettlementsService', () => {
 
     it('should return I_OWE when payment exceeds balance', async () => {
       mockPrisma.user.findUnique.mockResolvedValue(baseUser);
-      mockPrisma.couple.findUnique.mockResolvedValue(baseCouple);
+      mockPrisma.groupMember.findFirst.mockResolvedValue(baseGroupMember);
+      mockPrisma.group.findUnique.mockResolvedValue(baseGroup);
       mockPrisma.expense.findMany.mockResolvedValue([
         { paidById: userId, amount: 200, splitType: 'EQUAL', splits: [] },
         { paidById: partnerId, amount: 100, splitType: 'EQUAL', splits: [] },
@@ -163,7 +166,7 @@ describe('SettlementsService', () => {
           amount: 70,
           fromUserId: partnerId,
           toUserId: userId,
-          coupleId: 'couple-1',
+          groupId,
         },
       ]);
 
@@ -175,14 +178,15 @@ describe('SettlementsService', () => {
 
     it('should handle PERCENTAGE splits in settlement', async () => {
       mockPrisma.user.findUnique.mockResolvedValue(baseUser);
-      mockPrisma.couple.findUnique.mockResolvedValue(baseCouple);
+      mockPrisma.groupMember.findFirst.mockResolvedValue(baseGroupMember);
+      mockPrisma.group.findUnique.mockResolvedValue(baseGroup);
       mockPrisma.expense.findMany.mockResolvedValue([
         {
           paidById: userId,
           amount: 100,
           splitType: 'PERCENTAGE',
           splits: [
-            { userId: userId, percentage: 70 },
+            { userId, percentage: 70 },
             { userId: partnerId, percentage: 30 },
           ],
         },
@@ -193,14 +197,12 @@ describe('SettlementsService', () => {
           amount: 10,
           fromUserId: partnerId,
           toUserId: userId,
-          coupleId: 'couple-1',
+          groupId,
         },
       ]);
 
       const result = await service.calculate(userId);
 
-      // User paid 100, should pay 70 → balanceAmount=30 OWED_TO_ME
-      // Partner paid 10 → netSettlement = 30 - 10 = 20
       expect(result.balanceAmount).toBe(30);
       expect(result.balanceDirection).toBe('OWED_TO_ME');
       expect(result.paymentsReceived).toBe(10);

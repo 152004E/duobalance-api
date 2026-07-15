@@ -27,6 +27,10 @@ export class CreateExpenseDto {
   splitType: SplitType;
 
   @IsOptional()
+  @IsString()
+  groupId?: string;
+
+  @IsOptional()
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => CreateExpenseSplitDto)

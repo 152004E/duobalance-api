@@ -7,7 +7,7 @@ import { PrismaModule } from './prisma/prisma.module';
 import { envValidationSchema } from './config/env.config';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
-import { CouplesModule } from './couples/couples.module';
+import { GroupsModule } from './groups/groups.module';
 import { ExpensesModule } from './expenses/expenses.module';
 import { BalancesModule } from './balances/balances.module';
 import { PaymentsModule } from './payments/payments.module';
@@ -23,7 +23,7 @@ import { DashboardModule } from './dashboard/dashboard.module';
     PrismaModule,
     AuthModule,
     UsersModule,
-    CouplesModule,
+    GroupsModule,
     ExpensesModule,
     BalancesModule,
     PaymentsModule,

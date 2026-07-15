@@ -12,7 +12,7 @@ export class BalancesService {
     private readonly prisma: PrismaService,
   ) {}
 
-  async calculate(userId: string) {
+  async calculate(userId: string, groupId?: string) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
     });
@@ -21,15 +21,13 @@ export class BalancesService {
       throw new NotFoundException('User not found');
     }
 
-    if (!user.coupleId) {
-      throw new BadRequestException(
-        'User is not part of a couple',
-      );
-    }
+    const targetGroupId = groupId
+      ? (await this.validateMembership(userId, groupId))
+      : (await this.getDefaultGroupId(userId));
 
     const expenses = await this.prisma.expense.findMany({
       where: {
-        coupleId: user.coupleId,
+        groupId: targetGroupId,
         deletedAt: null,
         splitType: { in: ['EQUAL', 'PERCENTAGE'] },
       },
@@ -83,5 +81,29 @@ export class BalancesService {
       balance: Math.abs(netBalance),
       direction,
     };
+  }
+
+  private async validateMembership(userId: string, groupId: string) {
+    const membership = await this.prisma.groupMember.findUnique({
+      where: { userId_groupId: { userId, groupId } },
+    });
+
+    if (!membership) {
+      throw new BadRequestException('User is not a member of this group');
+    }
+
+    return groupId;
+  }
+
+  private async getDefaultGroupId(userId: string) {
+    const membership = await this.prisma.groupMember.findFirst({
+      where: { userId },
+    });
+
+    if (!membership) {
+      throw new BadRequestException('User does not belong to any group');
+    }
+
+    return membership.groupId;
   }
 }

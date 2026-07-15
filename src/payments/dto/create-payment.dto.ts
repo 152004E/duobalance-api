@@ -1,5 +1,5 @@
 import { Type } from 'class-transformer';
-import { IsNumber, IsPositive, IsUUID } from 'class-validator';
+import { IsNumber, IsOptional, IsPositive, IsUUID } from 'class-validator';
 
 export class CreatePaymentDto {
   @Type(() => Number)
@@ -9,4 +9,8 @@ export class CreatePaymentDto {
 
   @IsUUID()
   toUserId: string;
+
+  @IsOptional()
+  @IsUUID()
+  groupId?: string;
 }

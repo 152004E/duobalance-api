@@ -52,7 +52,8 @@ export const AnyNull = runtime.AnyNull
 
 export const ModelName = {
   User: 'User',
-  Couple: 'Couple',
+  Group: 'Group',
+  GroupMember: 'GroupMember',
   Expense: 'Expense',
   ExpenseSplit: 'ExpenseSplit',
   Payment: 'Payment',
@@ -81,20 +82,32 @@ export const UserScalarFieldEnum = {
   lastName: 'lastName',
   email: 'email',
   password: 'password',
-  createdAt: 'createdAt',
-  coupleId: 'coupleId'
+  createdAt: 'createdAt'
 } as const
 
 export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
 
 
-export const CoupleScalarFieldEnum = {
+export const GroupScalarFieldEnum = {
   id: 'id',
+  name: 'name',
+  type: 'type',
   inviteCode: 'inviteCode',
   createdAt: 'createdAt'
 } as const
 
-export type CoupleScalarFieldEnum = (typeof CoupleScalarFieldEnum)[keyof typeof CoupleScalarFieldEnum]
+export type GroupScalarFieldEnum = (typeof GroupScalarFieldEnum)[keyof typeof GroupScalarFieldEnum]
+
+
+export const GroupMemberScalarFieldEnum = {
+  id: 'id',
+  role: 'role',
+  joinedAt: 'joinedAt',
+  userId: 'userId',
+  groupId: 'groupId'
+} as const
+
+export type GroupMemberScalarFieldEnum = (typeof GroupMemberScalarFieldEnum)[keyof typeof GroupMemberScalarFieldEnum]
 
 
 export const ExpenseScalarFieldEnum = {
@@ -107,7 +120,7 @@ export const ExpenseScalarFieldEnum = {
   updatedAt: 'updatedAt',
   deletedAt: 'deletedAt',
   paidById: 'paidById',
-  coupleId: 'coupleId'
+  groupId: 'groupId'
 } as const
 
 export type ExpenseScalarFieldEnum = (typeof ExpenseScalarFieldEnum)[keyof typeof ExpenseScalarFieldEnum]
@@ -130,7 +143,7 @@ export const PaymentScalarFieldEnum = {
   createdAt: 'createdAt',
   fromUserId: 'fromUserId',
   toUserId: 'toUserId',
-  coupleId: 'coupleId'
+  groupId: 'groupId'
 } as const
 
 export type PaymentScalarFieldEnum = (typeof PaymentScalarFieldEnum)[keyof typeof PaymentScalarFieldEnum]

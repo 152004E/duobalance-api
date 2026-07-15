@@ -40,7 +40,7 @@ export type PaymentMinAggregateOutputType = {
   createdAt: Date | null
   fromUserId: string | null
   toUserId: string | null
-  coupleId: string | null
+  groupId: string | null
 }
 
 export type PaymentMaxAggregateOutputType = {
@@ -49,7 +49,7 @@ export type PaymentMaxAggregateOutputType = {
   createdAt: Date | null
   fromUserId: string | null
   toUserId: string | null
-  coupleId: string | null
+  groupId: string | null
 }
 
 export type PaymentCountAggregateOutputType = {
@@ -58,7 +58,7 @@ export type PaymentCountAggregateOutputType = {
   createdAt: number
   fromUserId: number
   toUserId: number
-  coupleId: number
+  groupId: number
   _all: number
 }
 
@@ -77,7 +77,7 @@ export type PaymentMinAggregateInputType = {
   createdAt?: true
   fromUserId?: true
   toUserId?: true
-  coupleId?: true
+  groupId?: true
 }
 
 export type PaymentMaxAggregateInputType = {
@@ -86,7 +86,7 @@ export type PaymentMaxAggregateInputType = {
   createdAt?: true
   fromUserId?: true
   toUserId?: true
-  coupleId?: true
+  groupId?: true
 }
 
 export type PaymentCountAggregateInputType = {
@@ -95,7 +95,7 @@ export type PaymentCountAggregateInputType = {
   createdAt?: true
   fromUserId?: true
   toUserId?: true
-  coupleId?: true
+  groupId?: true
   _all?: true
 }
 
@@ -191,7 +191,7 @@ export type PaymentGroupByOutputType = {
   createdAt: Date
   fromUserId: string
   toUserId: string
-  coupleId: string
+  groupId: string
   _count: PaymentCountAggregateOutputType | null
   _avg: PaymentAvgAggregateOutputType | null
   _sum: PaymentSumAggregateOutputType | null
@@ -223,10 +223,10 @@ export type PaymentWhereInput = {
   createdAt?: Prisma.DateTimeFilter<"Payment"> | Date | string
   fromUserId?: Prisma.StringFilter<"Payment"> | string
   toUserId?: Prisma.StringFilter<"Payment"> | string
-  coupleId?: Prisma.StringFilter<"Payment"> | string
+  groupId?: Prisma.StringFilter<"Payment"> | string
   fromUser?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   toUser?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
-  couple?: Prisma.XOR<Prisma.CoupleScalarRelationFilter, Prisma.CoupleWhereInput>
+  group?: Prisma.XOR<Prisma.GroupScalarRelationFilter, Prisma.GroupWhereInput>
 }
 
 export type PaymentOrderByWithRelationInput = {
@@ -235,10 +235,10 @@ export type PaymentOrderByWithRelationInput = {
   createdAt?: Prisma.SortOrder
   fromUserId?: Prisma.SortOrder
   toUserId?: Prisma.SortOrder
-  coupleId?: Prisma.SortOrder
+  groupId?: Prisma.SortOrder
   fromUser?: Prisma.UserOrderByWithRelationInput
   toUser?: Prisma.UserOrderByWithRelationInput
-  couple?: Prisma.CoupleOrderByWithRelationInput
+  group?: Prisma.GroupOrderByWithRelationInput
 }
 
 export type PaymentWhereUniqueInput = Prisma.AtLeast<{
@@ -250,10 +250,10 @@ export type PaymentWhereUniqueInput = Prisma.AtLeast<{
   createdAt?: Prisma.DateTimeFilter<"Payment"> | Date | string
   fromUserId?: Prisma.StringFilter<"Payment"> | string
   toUserId?: Prisma.StringFilter<"Payment"> | string
-  coupleId?: Prisma.StringFilter<"Payment"> | string
+  groupId?: Prisma.StringFilter<"Payment"> | string
   fromUser?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   toUser?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
-  couple?: Prisma.XOR<Prisma.CoupleScalarRelationFilter, Prisma.CoupleWhereInput>
+  group?: Prisma.XOR<Prisma.GroupScalarRelationFilter, Prisma.GroupWhereInput>
 }, "id">
 
 export type PaymentOrderByWithAggregationInput = {
@@ -262,7 +262,7 @@ export type PaymentOrderByWithAggregationInput = {
   createdAt?: Prisma.SortOrder
   fromUserId?: Prisma.SortOrder
   toUserId?: Prisma.SortOrder
-  coupleId?: Prisma.SortOrder
+  groupId?: Prisma.SortOrder
   _count?: Prisma.PaymentCountOrderByAggregateInput
   _avg?: Prisma.PaymentAvgOrderByAggregateInput
   _max?: Prisma.PaymentMaxOrderByAggregateInput
@@ -279,7 +279,7 @@ export type PaymentScalarWhereWithAggregatesInput = {
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Payment"> | Date | string
   fromUserId?: Prisma.StringWithAggregatesFilter<"Payment"> | string
   toUserId?: Prisma.StringWithAggregatesFilter<"Payment"> | string
-  coupleId?: Prisma.StringWithAggregatesFilter<"Payment"> | string
+  groupId?: Prisma.StringWithAggregatesFilter<"Payment"> | string
 }
 
 export type PaymentCreateInput = {
@@ -288,7 +288,7 @@ export type PaymentCreateInput = {
   createdAt?: Date | string
   fromUser: Prisma.UserCreateNestedOneWithoutPaymentsSentInput
   toUser: Prisma.UserCreateNestedOneWithoutPaymentsReceivedInput
-  couple: Prisma.CoupleCreateNestedOneWithoutPaymentsInput
+  group: Prisma.GroupCreateNestedOneWithoutPaymentsInput
 }
 
 export type PaymentUncheckedCreateInput = {
@@ -297,7 +297,7 @@ export type PaymentUncheckedCreateInput = {
   createdAt?: Date | string
   fromUserId: string
   toUserId: string
-  coupleId: string
+  groupId: string
 }
 
 export type PaymentUpdateInput = {
@@ -306,7 +306,7 @@ export type PaymentUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   fromUser?: Prisma.UserUpdateOneRequiredWithoutPaymentsSentNestedInput
   toUser?: Prisma.UserUpdateOneRequiredWithoutPaymentsReceivedNestedInput
-  couple?: Prisma.CoupleUpdateOneRequiredWithoutPaymentsNestedInput
+  group?: Prisma.GroupUpdateOneRequiredWithoutPaymentsNestedInput
 }
 
 export type PaymentUncheckedUpdateInput = {
@@ -315,7 +315,7 @@ export type PaymentUncheckedUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   fromUserId?: Prisma.StringFieldUpdateOperationsInput | string
   toUserId?: Prisma.StringFieldUpdateOperationsInput | string
-  coupleId?: Prisma.StringFieldUpdateOperationsInput | string
+  groupId?: Prisma.StringFieldUpdateOperationsInput | string
 }
 
 export type PaymentCreateManyInput = {
@@ -324,7 +324,7 @@ export type PaymentCreateManyInput = {
   createdAt?: Date | string
   fromUserId: string
   toUserId: string
-  coupleId: string
+  groupId: string
 }
 
 export type PaymentUpdateManyMutationInput = {
@@ -339,7 +339,7 @@ export type PaymentUncheckedUpdateManyInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   fromUserId?: Prisma.StringFieldUpdateOperationsInput | string
   toUserId?: Prisma.StringFieldUpdateOperationsInput | string
-  coupleId?: Prisma.StringFieldUpdateOperationsInput | string
+  groupId?: Prisma.StringFieldUpdateOperationsInput | string
 }
 
 export type PaymentListRelationFilter = {
@@ -358,7 +358,7 @@ export type PaymentCountOrderByAggregateInput = {
   createdAt?: Prisma.SortOrder
   fromUserId?: Prisma.SortOrder
   toUserId?: Prisma.SortOrder
-  coupleId?: Prisma.SortOrder
+  groupId?: Prisma.SortOrder
 }
 
 export type PaymentAvgOrderByAggregateInput = {
@@ -371,7 +371,7 @@ export type PaymentMaxOrderByAggregateInput = {
   createdAt?: Prisma.SortOrder
   fromUserId?: Prisma.SortOrder
   toUserId?: Prisma.SortOrder
-  coupleId?: Prisma.SortOrder
+  groupId?: Prisma.SortOrder
 }
 
 export type PaymentMinOrderByAggregateInput = {
@@ -380,7 +380,7 @@ export type PaymentMinOrderByAggregateInput = {
   createdAt?: Prisma.SortOrder
   fromUserId?: Prisma.SortOrder
   toUserId?: Prisma.SortOrder
-  coupleId?: Prisma.SortOrder
+  groupId?: Prisma.SortOrder
 }
 
 export type PaymentSumOrderByAggregateInput = {
@@ -471,45 +471,45 @@ export type PaymentUncheckedUpdateManyWithoutToUserNestedInput = {
   deleteMany?: Prisma.PaymentScalarWhereInput | Prisma.PaymentScalarWhereInput[]
 }
 
-export type PaymentCreateNestedManyWithoutCoupleInput = {
-  create?: Prisma.XOR<Prisma.PaymentCreateWithoutCoupleInput, Prisma.PaymentUncheckedCreateWithoutCoupleInput> | Prisma.PaymentCreateWithoutCoupleInput[] | Prisma.PaymentUncheckedCreateWithoutCoupleInput[]
-  connectOrCreate?: Prisma.PaymentCreateOrConnectWithoutCoupleInput | Prisma.PaymentCreateOrConnectWithoutCoupleInput[]
-  createMany?: Prisma.PaymentCreateManyCoupleInputEnvelope
+export type PaymentCreateNestedManyWithoutGroupInput = {
+  create?: Prisma.XOR<Prisma.PaymentCreateWithoutGroupInput, Prisma.PaymentUncheckedCreateWithoutGroupInput> | Prisma.PaymentCreateWithoutGroupInput[] | Prisma.PaymentUncheckedCreateWithoutGroupInput[]
+  connectOrCreate?: Prisma.PaymentCreateOrConnectWithoutGroupInput | Prisma.PaymentCreateOrConnectWithoutGroupInput[]
+  createMany?: Prisma.PaymentCreateManyGroupInputEnvelope
   connect?: Prisma.PaymentWhereUniqueInput | Prisma.PaymentWhereUniqueInput[]
 }
 
-export type PaymentUncheckedCreateNestedManyWithoutCoupleInput = {
-  create?: Prisma.XOR<Prisma.PaymentCreateWithoutCoupleInput, Prisma.PaymentUncheckedCreateWithoutCoupleInput> | Prisma.PaymentCreateWithoutCoupleInput[] | Prisma.PaymentUncheckedCreateWithoutCoupleInput[]
-  connectOrCreate?: Prisma.PaymentCreateOrConnectWithoutCoupleInput | Prisma.PaymentCreateOrConnectWithoutCoupleInput[]
-  createMany?: Prisma.PaymentCreateManyCoupleInputEnvelope
+export type PaymentUncheckedCreateNestedManyWithoutGroupInput = {
+  create?: Prisma.XOR<Prisma.PaymentCreateWithoutGroupInput, Prisma.PaymentUncheckedCreateWithoutGroupInput> | Prisma.PaymentCreateWithoutGroupInput[] | Prisma.PaymentUncheckedCreateWithoutGroupInput[]
+  connectOrCreate?: Prisma.PaymentCreateOrConnectWithoutGroupInput | Prisma.PaymentCreateOrConnectWithoutGroupInput[]
+  createMany?: Prisma.PaymentCreateManyGroupInputEnvelope
   connect?: Prisma.PaymentWhereUniqueInput | Prisma.PaymentWhereUniqueInput[]
 }
 
-export type PaymentUpdateManyWithoutCoupleNestedInput = {
-  create?: Prisma.XOR<Prisma.PaymentCreateWithoutCoupleInput, Prisma.PaymentUncheckedCreateWithoutCoupleInput> | Prisma.PaymentCreateWithoutCoupleInput[] | Prisma.PaymentUncheckedCreateWithoutCoupleInput[]
-  connectOrCreate?: Prisma.PaymentCreateOrConnectWithoutCoupleInput | Prisma.PaymentCreateOrConnectWithoutCoupleInput[]
-  upsert?: Prisma.PaymentUpsertWithWhereUniqueWithoutCoupleInput | Prisma.PaymentUpsertWithWhereUniqueWithoutCoupleInput[]
-  createMany?: Prisma.PaymentCreateManyCoupleInputEnvelope
+export type PaymentUpdateManyWithoutGroupNestedInput = {
+  create?: Prisma.XOR<Prisma.PaymentCreateWithoutGroupInput, Prisma.PaymentUncheckedCreateWithoutGroupInput> | Prisma.PaymentCreateWithoutGroupInput[] | Prisma.PaymentUncheckedCreateWithoutGroupInput[]
+  connectOrCreate?: Prisma.PaymentCreateOrConnectWithoutGroupInput | Prisma.PaymentCreateOrConnectWithoutGroupInput[]
+  upsert?: Prisma.PaymentUpsertWithWhereUniqueWithoutGroupInput | Prisma.PaymentUpsertWithWhereUniqueWithoutGroupInput[]
+  createMany?: Prisma.PaymentCreateManyGroupInputEnvelope
   set?: Prisma.PaymentWhereUniqueInput | Prisma.PaymentWhereUniqueInput[]
   disconnect?: Prisma.PaymentWhereUniqueInput | Prisma.PaymentWhereUniqueInput[]
   delete?: Prisma.PaymentWhereUniqueInput | Prisma.PaymentWhereUniqueInput[]
   connect?: Prisma.PaymentWhereUniqueInput | Prisma.PaymentWhereUniqueInput[]
-  update?: Prisma.PaymentUpdateWithWhereUniqueWithoutCoupleInput | Prisma.PaymentUpdateWithWhereUniqueWithoutCoupleInput[]
-  updateMany?: Prisma.PaymentUpdateManyWithWhereWithoutCoupleInput | Prisma.PaymentUpdateManyWithWhereWithoutCoupleInput[]
+  update?: Prisma.PaymentUpdateWithWhereUniqueWithoutGroupInput | Prisma.PaymentUpdateWithWhereUniqueWithoutGroupInput[]
+  updateMany?: Prisma.PaymentUpdateManyWithWhereWithoutGroupInput | Prisma.PaymentUpdateManyWithWhereWithoutGroupInput[]
   deleteMany?: Prisma.PaymentScalarWhereInput | Prisma.PaymentScalarWhereInput[]
 }
 
-export type PaymentUncheckedUpdateManyWithoutCoupleNestedInput = {
-  create?: Prisma.XOR<Prisma.PaymentCreateWithoutCoupleInput, Prisma.PaymentUncheckedCreateWithoutCoupleInput> | Prisma.PaymentCreateWithoutCoupleInput[] | Prisma.PaymentUncheckedCreateWithoutCoupleInput[]
-  connectOrCreate?: Prisma.PaymentCreateOrConnectWithoutCoupleInput | Prisma.PaymentCreateOrConnectWithoutCoupleInput[]
-  upsert?: Prisma.PaymentUpsertWithWhereUniqueWithoutCoupleInput | Prisma.PaymentUpsertWithWhereUniqueWithoutCoupleInput[]
-  createMany?: Prisma.PaymentCreateManyCoupleInputEnvelope
+export type PaymentUncheckedUpdateManyWithoutGroupNestedInput = {
+  create?: Prisma.XOR<Prisma.PaymentCreateWithoutGroupInput, Prisma.PaymentUncheckedCreateWithoutGroupInput> | Prisma.PaymentCreateWithoutGroupInput[] | Prisma.PaymentUncheckedCreateWithoutGroupInput[]
+  connectOrCreate?: Prisma.PaymentCreateOrConnectWithoutGroupInput | Prisma.PaymentCreateOrConnectWithoutGroupInput[]
+  upsert?: Prisma.PaymentUpsertWithWhereUniqueWithoutGroupInput | Prisma.PaymentUpsertWithWhereUniqueWithoutGroupInput[]
+  createMany?: Prisma.PaymentCreateManyGroupInputEnvelope
   set?: Prisma.PaymentWhereUniqueInput | Prisma.PaymentWhereUniqueInput[]
   disconnect?: Prisma.PaymentWhereUniqueInput | Prisma.PaymentWhereUniqueInput[]
   delete?: Prisma.PaymentWhereUniqueInput | Prisma.PaymentWhereUniqueInput[]
   connect?: Prisma.PaymentWhereUniqueInput | Prisma.PaymentWhereUniqueInput[]
-  update?: Prisma.PaymentUpdateWithWhereUniqueWithoutCoupleInput | Prisma.PaymentUpdateWithWhereUniqueWithoutCoupleInput[]
-  updateMany?: Prisma.PaymentUpdateManyWithWhereWithoutCoupleInput | Prisma.PaymentUpdateManyWithWhereWithoutCoupleInput[]
+  update?: Prisma.PaymentUpdateWithWhereUniqueWithoutGroupInput | Prisma.PaymentUpdateWithWhereUniqueWithoutGroupInput[]
+  updateMany?: Prisma.PaymentUpdateManyWithWhereWithoutGroupInput | Prisma.PaymentUpdateManyWithWhereWithoutGroupInput[]
   deleteMany?: Prisma.PaymentScalarWhereInput | Prisma.PaymentScalarWhereInput[]
 }
 
@@ -518,7 +518,7 @@ export type PaymentCreateWithoutFromUserInput = {
   amount: runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Date | string
   toUser: Prisma.UserCreateNestedOneWithoutPaymentsReceivedInput
-  couple: Prisma.CoupleCreateNestedOneWithoutPaymentsInput
+  group: Prisma.GroupCreateNestedOneWithoutPaymentsInput
 }
 
 export type PaymentUncheckedCreateWithoutFromUserInput = {
@@ -526,7 +526,7 @@ export type PaymentUncheckedCreateWithoutFromUserInput = {
   amount: runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Date | string
   toUserId: string
-  coupleId: string
+  groupId: string
 }
 
 export type PaymentCreateOrConnectWithoutFromUserInput = {
@@ -544,7 +544,7 @@ export type PaymentCreateWithoutToUserInput = {
   amount: runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Date | string
   fromUser: Prisma.UserCreateNestedOneWithoutPaymentsSentInput
-  couple: Prisma.CoupleCreateNestedOneWithoutPaymentsInput
+  group: Prisma.GroupCreateNestedOneWithoutPaymentsInput
 }
 
 export type PaymentUncheckedCreateWithoutToUserInput = {
@@ -552,7 +552,7 @@ export type PaymentUncheckedCreateWithoutToUserInput = {
   amount: runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Date | string
   fromUserId: string
-  coupleId: string
+  groupId: string
 }
 
 export type PaymentCreateOrConnectWithoutToUserInput = {
@@ -590,7 +590,7 @@ export type PaymentScalarWhereInput = {
   createdAt?: Prisma.DateTimeFilter<"Payment"> | Date | string
   fromUserId?: Prisma.StringFilter<"Payment"> | string
   toUserId?: Prisma.StringFilter<"Payment"> | string
-  coupleId?: Prisma.StringFilter<"Payment"> | string
+  groupId?: Prisma.StringFilter<"Payment"> | string
 }
 
 export type PaymentUpsertWithWhereUniqueWithoutToUserInput = {
@@ -609,7 +609,7 @@ export type PaymentUpdateManyWithWhereWithoutToUserInput = {
   data: Prisma.XOR<Prisma.PaymentUpdateManyMutationInput, Prisma.PaymentUncheckedUpdateManyWithoutToUserInput>
 }
 
-export type PaymentCreateWithoutCoupleInput = {
+export type PaymentCreateWithoutGroupInput = {
   id?: string
   amount: runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Date | string
@@ -617,7 +617,7 @@ export type PaymentCreateWithoutCoupleInput = {
   toUser: Prisma.UserCreateNestedOneWithoutPaymentsReceivedInput
 }
 
-export type PaymentUncheckedCreateWithoutCoupleInput = {
+export type PaymentUncheckedCreateWithoutGroupInput = {
   id?: string
   amount: runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Date | string
@@ -625,30 +625,30 @@ export type PaymentUncheckedCreateWithoutCoupleInput = {
   toUserId: string
 }
 
-export type PaymentCreateOrConnectWithoutCoupleInput = {
+export type PaymentCreateOrConnectWithoutGroupInput = {
   where: Prisma.PaymentWhereUniqueInput
-  create: Prisma.XOR<Prisma.PaymentCreateWithoutCoupleInput, Prisma.PaymentUncheckedCreateWithoutCoupleInput>
+  create: Prisma.XOR<Prisma.PaymentCreateWithoutGroupInput, Prisma.PaymentUncheckedCreateWithoutGroupInput>
 }
 
-export type PaymentCreateManyCoupleInputEnvelope = {
-  data: Prisma.PaymentCreateManyCoupleInput | Prisma.PaymentCreateManyCoupleInput[]
+export type PaymentCreateManyGroupInputEnvelope = {
+  data: Prisma.PaymentCreateManyGroupInput | Prisma.PaymentCreateManyGroupInput[]
   skipDuplicates?: boolean
 }
 
-export type PaymentUpsertWithWhereUniqueWithoutCoupleInput = {
+export type PaymentUpsertWithWhereUniqueWithoutGroupInput = {
   where: Prisma.PaymentWhereUniqueInput
-  update: Prisma.XOR<Prisma.PaymentUpdateWithoutCoupleInput, Prisma.PaymentUncheckedUpdateWithoutCoupleInput>
-  create: Prisma.XOR<Prisma.PaymentCreateWithoutCoupleInput, Prisma.PaymentUncheckedCreateWithoutCoupleInput>
+  update: Prisma.XOR<Prisma.PaymentUpdateWithoutGroupInput, Prisma.PaymentUncheckedUpdateWithoutGroupInput>
+  create: Prisma.XOR<Prisma.PaymentCreateWithoutGroupInput, Prisma.PaymentUncheckedCreateWithoutGroupInput>
 }
 
-export type PaymentUpdateWithWhereUniqueWithoutCoupleInput = {
+export type PaymentUpdateWithWhereUniqueWithoutGroupInput = {
   where: Prisma.PaymentWhereUniqueInput
-  data: Prisma.XOR<Prisma.PaymentUpdateWithoutCoupleInput, Prisma.PaymentUncheckedUpdateWithoutCoupleInput>
+  data: Prisma.XOR<Prisma.PaymentUpdateWithoutGroupInput, Prisma.PaymentUncheckedUpdateWithoutGroupInput>
 }
 
-export type PaymentUpdateManyWithWhereWithoutCoupleInput = {
+export type PaymentUpdateManyWithWhereWithoutGroupInput = {
   where: Prisma.PaymentScalarWhereInput
-  data: Prisma.XOR<Prisma.PaymentUpdateManyMutationInput, Prisma.PaymentUncheckedUpdateManyWithoutCoupleInput>
+  data: Prisma.XOR<Prisma.PaymentUpdateManyMutationInput, Prisma.PaymentUncheckedUpdateManyWithoutGroupInput>
 }
 
 export type PaymentCreateManyFromUserInput = {
@@ -656,7 +656,7 @@ export type PaymentCreateManyFromUserInput = {
   amount: runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Date | string
   toUserId: string
-  coupleId: string
+  groupId: string
 }
 
 export type PaymentCreateManyToUserInput = {
@@ -664,7 +664,7 @@ export type PaymentCreateManyToUserInput = {
   amount: runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Date | string
   fromUserId: string
-  coupleId: string
+  groupId: string
 }
 
 export type PaymentUpdateWithoutFromUserInput = {
@@ -672,7 +672,7 @@ export type PaymentUpdateWithoutFromUserInput = {
   amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   toUser?: Prisma.UserUpdateOneRequiredWithoutPaymentsReceivedNestedInput
-  couple?: Prisma.CoupleUpdateOneRequiredWithoutPaymentsNestedInput
+  group?: Prisma.GroupUpdateOneRequiredWithoutPaymentsNestedInput
 }
 
 export type PaymentUncheckedUpdateWithoutFromUserInput = {
@@ -680,7 +680,7 @@ export type PaymentUncheckedUpdateWithoutFromUserInput = {
   amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   toUserId?: Prisma.StringFieldUpdateOperationsInput | string
-  coupleId?: Prisma.StringFieldUpdateOperationsInput | string
+  groupId?: Prisma.StringFieldUpdateOperationsInput | string
 }
 
 export type PaymentUncheckedUpdateManyWithoutFromUserInput = {
@@ -688,7 +688,7 @@ export type PaymentUncheckedUpdateManyWithoutFromUserInput = {
   amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   toUserId?: Prisma.StringFieldUpdateOperationsInput | string
-  coupleId?: Prisma.StringFieldUpdateOperationsInput | string
+  groupId?: Prisma.StringFieldUpdateOperationsInput | string
 }
 
 export type PaymentUpdateWithoutToUserInput = {
@@ -696,7 +696,7 @@ export type PaymentUpdateWithoutToUserInput = {
   amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   fromUser?: Prisma.UserUpdateOneRequiredWithoutPaymentsSentNestedInput
-  couple?: Prisma.CoupleUpdateOneRequiredWithoutPaymentsNestedInput
+  group?: Prisma.GroupUpdateOneRequiredWithoutPaymentsNestedInput
 }
 
 export type PaymentUncheckedUpdateWithoutToUserInput = {
@@ -704,7 +704,7 @@ export type PaymentUncheckedUpdateWithoutToUserInput = {
   amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   fromUserId?: Prisma.StringFieldUpdateOperationsInput | string
-  coupleId?: Prisma.StringFieldUpdateOperationsInput | string
+  groupId?: Prisma.StringFieldUpdateOperationsInput | string
 }
 
 export type PaymentUncheckedUpdateManyWithoutToUserInput = {
@@ -712,10 +712,10 @@ export type PaymentUncheckedUpdateManyWithoutToUserInput = {
   amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   fromUserId?: Prisma.StringFieldUpdateOperationsInput | string
-  coupleId?: Prisma.StringFieldUpdateOperationsInput | string
+  groupId?: Prisma.StringFieldUpdateOperationsInput | string
 }
 
-export type PaymentCreateManyCoupleInput = {
+export type PaymentCreateManyGroupInput = {
   id?: string
   amount: runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Date | string
@@ -723,7 +723,7 @@ export type PaymentCreateManyCoupleInput = {
   toUserId: string
 }
 
-export type PaymentUpdateWithoutCoupleInput = {
+export type PaymentUpdateWithoutGroupInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -731,7 +731,7 @@ export type PaymentUpdateWithoutCoupleInput = {
   toUser?: Prisma.UserUpdateOneRequiredWithoutPaymentsReceivedNestedInput
 }
 
-export type PaymentUncheckedUpdateWithoutCoupleInput = {
+export type PaymentUncheckedUpdateWithoutGroupInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -739,7 +739,7 @@ export type PaymentUncheckedUpdateWithoutCoupleInput = {
   toUserId?: Prisma.StringFieldUpdateOperationsInput | string
 }
 
-export type PaymentUncheckedUpdateManyWithoutCoupleInput = {
+export type PaymentUncheckedUpdateManyWithoutGroupInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -755,10 +755,10 @@ export type PaymentSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   createdAt?: boolean
   fromUserId?: boolean
   toUserId?: boolean
-  coupleId?: boolean
+  groupId?: boolean
   fromUser?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   toUser?: boolean | Prisma.UserDefaultArgs<ExtArgs>
-  couple?: boolean | Prisma.CoupleDefaultArgs<ExtArgs>
+  group?: boolean | Prisma.GroupDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["payment"]>
 
 export type PaymentSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -767,10 +767,10 @@ export type PaymentSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exten
   createdAt?: boolean
   fromUserId?: boolean
   toUserId?: boolean
-  coupleId?: boolean
+  groupId?: boolean
   fromUser?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   toUser?: boolean | Prisma.UserDefaultArgs<ExtArgs>
-  couple?: boolean | Prisma.CoupleDefaultArgs<ExtArgs>
+  group?: boolean | Prisma.GroupDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["payment"]>
 
 export type PaymentSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -779,10 +779,10 @@ export type PaymentSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exten
   createdAt?: boolean
   fromUserId?: boolean
   toUserId?: boolean
-  coupleId?: boolean
+  groupId?: boolean
   fromUser?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   toUser?: boolean | Prisma.UserDefaultArgs<ExtArgs>
-  couple?: boolean | Prisma.CoupleDefaultArgs<ExtArgs>
+  group?: boolean | Prisma.GroupDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["payment"]>
 
 export type PaymentSelectScalar = {
@@ -791,24 +791,24 @@ export type PaymentSelectScalar = {
   createdAt?: boolean
   fromUserId?: boolean
   toUserId?: boolean
-  coupleId?: boolean
+  groupId?: boolean
 }
 
-export type PaymentOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "amount" | "createdAt" | "fromUserId" | "toUserId" | "coupleId", ExtArgs["result"]["payment"]>
+export type PaymentOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "amount" | "createdAt" | "fromUserId" | "toUserId" | "groupId", ExtArgs["result"]["payment"]>
 export type PaymentInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   fromUser?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   toUser?: boolean | Prisma.UserDefaultArgs<ExtArgs>
-  couple?: boolean | Prisma.CoupleDefaultArgs<ExtArgs>
+  group?: boolean | Prisma.GroupDefaultArgs<ExtArgs>
 }
 export type PaymentIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   fromUser?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   toUser?: boolean | Prisma.UserDefaultArgs<ExtArgs>
-  couple?: boolean | Prisma.CoupleDefaultArgs<ExtArgs>
+  group?: boolean | Prisma.GroupDefaultArgs<ExtArgs>
 }
 export type PaymentIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   fromUser?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   toUser?: boolean | Prisma.UserDefaultArgs<ExtArgs>
-  couple?: boolean | Prisma.CoupleDefaultArgs<ExtArgs>
+  group?: boolean | Prisma.GroupDefaultArgs<ExtArgs>
 }
 
 export type $PaymentPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -816,7 +816,7 @@ export type $PaymentPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
   objects: {
     fromUser: Prisma.$UserPayload<ExtArgs>
     toUser: Prisma.$UserPayload<ExtArgs>
-    couple: Prisma.$CouplePayload<ExtArgs>
+    group: Prisma.$GroupPayload<ExtArgs>
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -824,7 +824,7 @@ export type $PaymentPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     createdAt: Date
     fromUserId: string
     toUserId: string
-    coupleId: string
+    groupId: string
   }, ExtArgs["result"]["payment"]>
   composites: {}
 }
@@ -1221,7 +1221,7 @@ export interface Prisma__PaymentClient<T, Null = never, ExtArgs extends runtime.
   readonly [Symbol.toStringTag]: "PrismaPromise"
   fromUser<T extends Prisma.UserDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserDefaultArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   toUser<T extends Prisma.UserDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserDefaultArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
-  couple<T extends Prisma.CoupleDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.CoupleDefaultArgs<ExtArgs>>): Prisma.Prisma__CoupleClient<runtime.Types.Result.GetResult<Prisma.$CouplePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  group<T extends Prisma.GroupDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.GroupDefaultArgs<ExtArgs>>): Prisma.Prisma__GroupClient<runtime.Types.Result.GetResult<Prisma.$GroupPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1256,7 +1256,7 @@ export interface PaymentFieldRefs {
   readonly createdAt: Prisma.FieldRef<"Payment", 'DateTime'>
   readonly fromUserId: Prisma.FieldRef<"Payment", 'String'>
   readonly toUserId: Prisma.FieldRef<"Payment", 'String'>
-  readonly coupleId: Prisma.FieldRef<"Payment", 'String'>
+  readonly groupId: Prisma.FieldRef<"Payment", 'String'>
 }
     
 
