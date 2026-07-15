@@ -6,29 +6,50 @@
 ```prisma
 model User {
   id        String   @id @default(uuid())
-  name      String
+  firstName String
+  lastName  String
   email     String   @unique
   password  String
   createdAt DateTime @default(now())
 
-  coupleId  String?
-  couple    Couple?  @relation(fields: [coupleId], references: [id])
-
-  expenses  Expense[]
+  members           GroupMember[]
+  expenses          Expense[]
+  expenseSplits     ExpenseSplit[]
+  paymentsSent      Payment[] @relation("SentPayments")
+  paymentsReceived  Payment[] @relation("ReceivedPayments")
+  refreshTokens     RefreshToken[]
 }
 ```
 
-### Couple (current)
+### Group (current)
 ```prisma
-model Couple {
-  id         String   @id @default(uuid())
-  inviteCode String   @unique
-  createdAt  DateTime @default(now())
+model Group {
+  id         String    @id @default(uuid())
+  name       String
+  type       GroupType @default(COUPLE)
+  inviteCode String?   @unique
+  createdAt  DateTime  @default(now())
 
-  users      User[]
-  expenses   Expense[]
+  members  GroupMember[]
+  expenses Expense[]
+  payments Payment[]
+}
+
+model GroupMember {
+  id       String     @id @default(uuid())
+  role     MemberRole @default(MEMBER)
+  joinedAt DateTime   @default(now())
+
+  userId  String
+  user    User   @relation(fields: [userId], references: [id])
+  groupId String
+  group   Group  @relation(fields: [groupId], references: [id])
+
+  @@unique([userId, groupId])
 }
 ```
+
+> El modelo `Couple` anterior fue reemplazado por `Group` + `GroupMember`. Los grupos pueden ser de tipo `COUPLE` (2 personas) o `GROUP` (3+). Cada usuario puede pertenecer a múltiples grupos.
 
 ### Expense (implemented ✓)
 ```prisma
@@ -44,12 +65,14 @@ model Expense {
 
   paidById    String
   paidBy      User             @relation(fields: [paidById], references: [id])
-  coupleId    String
-  couple      Couple           @relation(fields: [coupleId], references: [id])
+  groupId     String
+  group       Group            @relation(fields: [groupId], references: [id])
+
+  splits      ExpenseSplit[]
 }
 ```
 
-> **Soft-delete:** Solo `Expense` usa `deletedAt`. `User` y `Couple` se eliminan realmente (no tienen soft-delete).
+> **Soft-delete:** Solo `Expense` usa `deletedAt`. `User` y `Group` se eliminan realmente (no tienen soft-delete).
 
 ### ExpenseSplit (implemented ✓)
 
@@ -75,13 +98,34 @@ model ExpenseSplit {
 model Payment {
   id          String   @id @default(uuid())
   amount      Decimal  @db.Decimal(12,2)
-  fromId      String
-  from        User     @relation("Payer")
-  toId        String
-  to          User     @relation("Payee")
-  coupleId    String
-  couple      Couple   @relation("Payments")
   createdAt   DateTime @default(now())
+
+  fromUserId  String
+  toUserId    String
+
+  fromUser    User     @relation("SentPayments", fields: [fromUserId], references: [id])
+  toUser      User     @relation("ReceivedPayments", fields: [toUserId], references: [id])
+
+  groupId     String
+  group       Group    @relation(fields: [groupId], references: [id])
+
+  @@index([groupId])
+  @@index([fromUserId])
+  @@index([toUserId])
+}
+```
+
+### RefreshToken (implemented ✓)
+
+```prisma
+model RefreshToken {
+  id         String   @id @default(uuid())
+  tokenHash  String   @unique
+  userId     String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 ```
 
@@ -100,6 +144,19 @@ enum SplitType {
   EQUAL
   PERCENTAGE
   PERSONAL
+  CUSTOM
+}
+
+enum GroupType {
+  PERSONAL
+  COUPLE
+  GROUP
+}
+
+enum MemberRole {
+  OWNER
+  ADMIN
+  MEMBER
 }
 ```
 
@@ -108,8 +165,17 @@ enum SplitType {
 ```typescript
 // Auth
 class RegisterDto {
-  name: string;
+  @IsString()
+  firstName: string;
+
+  @IsString()
+  lastName: string;
+
+  @IsEmail()
   email: string;
+
+  @IsString()
+  @MinLength(6)
   password: string;
 }
 
@@ -149,6 +215,22 @@ class CreateExpenseSplitDto {
   @Min(1)
   @Max(100)
   percentage: number;
+}
+
+// Group — Create
+class CreateGroupDto {
+  @IsString()
+  name: string;
+
+  @IsOptional()
+  @IsEnum(GroupType)
+  type?: GroupType;
+}
+
+// Group — Join
+class JoinGroupDto {
+  @IsString()
+  inviteCode: string;
 }
 
 // Expense — Update (all optional via PartialType)
@@ -209,7 +291,8 @@ interface AuthResponse {
   token: string;
   user: {
     id: string;
-    name: string;
+    firstName: string;
+    lastName: string;
     email: string;
     createdAt: Date;
   };
@@ -221,7 +304,7 @@ interface ExpenseResponse {
   amount: number;
   category: ExpenseCategory;
   splitType: SplitType;
-  paidBy: { id: string; name: string; email: string };
+  paidBy: { id: string; firstName: string; lastName: string; email: string };
   createdAt: Date;
   updatedAt: Date;
   deletedAt: Date | null;
@@ -243,9 +326,9 @@ interface PaymentResponse {
   createdAt: Date;
   fromUserId: string;
   toUserId: string;
-  coupleId: string;
-  fromUser?: { id: string; name: string };
-  toUser?: { id: string; name: string };
+  groupId: string;
+  fromUser?: { id: string; firstName: string; lastName: string };
+  toUser?: { id: string; firstName: string; lastName: string };
 }
 
 // Settlement
@@ -261,6 +344,22 @@ interface SettlementResponse {
   paymentsReceived: number;
   netSettlement: number;
   settlementDirection: 'OWED_TO_ME' | 'I_OWE' | 'SETTLED';
+}
+
+// Settlement Suggestions
+interface SettlementSuggestionsResponse {
+  group: { id: string; name: string };
+  members: {
+    user: { id: string; firstName: string; lastName: string };
+    paid: number;
+    share: number;
+    balance: number;
+  }[];
+  suggestions: {
+    from: { id: string; firstName: string; lastName: string };
+    to: { id: string; firstName: string; lastName: string };
+    amount: number;
+  }[];
 }
 
 interface ReceiptUploadResponse {

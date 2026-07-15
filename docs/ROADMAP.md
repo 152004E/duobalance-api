@@ -13,11 +13,11 @@
 
 ---
 
-## Phase 1: Auth & Couples (v0.2) — Done
-**Goal**: Users can register, log in, and link as a couple
+## Phase 1: Auth & Groups (v0.2) — Done
+**Goal**: Users can register, log in, and form groups
 - [✓] Auth (register, login, JWT, profile)
-- [✓] Couple creation + invitation codes
-- [✓] Join + leave couple
+- [✓] Group creation + invitation codes (6 hex chars)
+- [✓] Join + leave group (GroupType: PERSONAL, COUPLE, GROUP)
 
 **Estimated**: Complete
 
@@ -31,20 +31,20 @@
 - [✓] Split types: EQUAL + PERCENTAGE (con ExpenseSplit model)
 - [❌] Tests for expense logic (pendiente)
 
-> ⚠️ **Soft-delete:** Solo `Expense` usa `deletedAt`. `User` y `Couple` se eliminan realmente (no tienen soft-delete).
+> ⚠️ **Soft-delete:** Solo `Expense` usa `deletedAt`. `User` y `Group` se eliminan realmente (no tienen soft-delete).
 
 **Estimated**: Complete (CRUD), splitting & tests pending
 
 ---
 
-## Phase 3: Balances & Dashboard (v0.4) — Done
-**Goal**: Balance aggregation and insights
-- [✓] Balance aggregation engine (EQUAL + PERCENTAGE split, soft-delete filter)
+## Phase 3: Balances & Dashboard + Settlement (v0.4) — Done
+**Goal**: Balance aggregation, insights, and settlement suggestions
+- [✓] Balance aggregation engine (EQUAL + PERCENTAGE split, soft-delete filter, memberCount-aware)
 - [✓] Dashboard with summaries
-- [❌] Settlement suggestions
+- [✓] Settlement suggestions (greedy algorithm, `GET /settlements/suggestions`)
 - [❌] CUSTOM split support
 
-> Dashboard endpoint `GET /dashboard` implementado. Balances soportan EQUAL + PERCENTAGE.
+> Dashboard endpoint `GET /dashboard` implementado. Balances soportan EQUAL + PERCENTAGE. Settlement suggestions implementadas con algoritmo greedy.
 
 **Estimated**: Complete
 
@@ -62,10 +62,10 @@
 ---
 
 ## Phase 5: Payments & Settlement (v0.6) — Done
-**Goal**: Payment recording and settlement
+**Goal**: Payment recording and net settlement
 - [✓] Payment recording
 - [✓] Payment history
-- [✓] Settlement calculation
+- [✓] Net settlement calculation
 
 > Payment endpoint `POST /payments` y `GET /payments` implementados. Settlement endpoint `GET /settlements` implementado.
 
@@ -100,9 +100,9 @@
 
 ```
 v0.1  ████████████████████████████████  (Foundation — done)
-v0.2  ████████████████████████████████  (Auth & Couples — done)
+v0.2  ████████████████████████████████  (Auth & Groups — done)
 v0.3  ██████████████████████████████████  (Expenses CRUD + EQUAL/PERCENTAGE — done)
-v0.4  ██████████████████████████████████  (Balances + Dashboard — done)
+v0.4  ██████████████████████████████████  (Balances + Dashboard + Settlement Suggestions — done)
 v0.5  ██████████████████████████████████  (Payments + Settlement — done)
 v0.6  ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░██  (Receipts)
 v1.0  ████████████████████████████████  (Production)

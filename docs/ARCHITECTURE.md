@@ -38,14 +38,15 @@ duobalance-api/
 │   │   ├── pipes/
 │   │   │   └── validation.pipe.ts         Global validation pipe
 │   │   └── utils/
-│   │       └── invite-code.ts             Invite code generator
-│   ├── couples/
-│   │   ├── couples.module.ts       Couples module
-│   │   ├── couples.controller.ts   POST /couples, POST /couples/join, GET /couples/me, DELETE /couples/leave
-│   │   ├── couples.service.ts      Create, join, get, leave couple logic
+│   │       ├── expense-share.ts            Expense share calculation (EQUAL + PERCENTAGE, memberCount-aware)
+│   │       └── invite-code.ts             Invite code generator (6 hex chars)
+│   ├── groups/
+│   │   ├── groups.module.ts        Groups module
+│   │   ├── groups.controller.ts    POST /groups, POST /groups/join, GET /groups, GET /groups/:id, DELETE /groups/:id/leave
+│   │   ├── groups.service.ts       Create, join, get, leave group logic
 │   │   └── dto/
-│   │       ├── create-couple.dto.ts
-│   │       └── join-couple.dto.ts  Validated invite code DTO
+│   │       ├── create-group.dto.ts
+│   │       └── join-group.dto.ts   Validated invite code DTO
 │   ├── expenses/                          Expenses module ✓
 │   │   ├── expenses.module.ts      Module registered in app.module
 │   │   ├── expenses.controller.ts  CRUD (POST, GET, GET/:id, PATCH/:id, DELETE/:id)
@@ -63,8 +64,8 @@ duobalance-api/
 │   │   └── balances.service.spec.ts
 │   ├── settlements/                        Settlements module ✓
 │   │   ├── settlements.module.ts    Module registered in app.module
-│   │   ├── settlements.controller.ts  GET /settlements (JWT)
-│   │   ├── settlements.service.ts   Cálculo neto (balance + payments)
+│   │   ├── settlements.controller.ts  GET /settlements, GET /settlements/suggestions (JWT)
+│   │   ├── settlements.service.ts   Cálculo neto (balance + payments) + greedy settlement suggestions
 │   │   └── settlements.service.spec.ts
 │   ├── payments/                           Payments module ✓
 │   │   ├── payments.module.ts      Module registered in app.module
@@ -88,10 +89,12 @@ duobalance-api/
 │       └── users.service.ts       findByEmail, findById, create
 │
 ├── prisma/
-│   ├── schema.prisma              Database schema (User + Couple + Expense models)
+│   ├── schema.prisma              Database schema (User + Group + Expense + Payment + RefreshToken models)
 │   ├── migrations/                Prisma migrations
 │   │   ├── 20260611204224_init/   Initial migration (User table)
-│   │   └── 20260612165726_add_couple_model/  Couple model + relation
+│   │   ├── 20260612165726_add_couple_model/  Couple model + relation (migrated to Group)
+│   │   ├── 20260715173312_add_groups/        Group + GroupMember models added
+│   │   └── 20260715173532_remove_couple_model/  Couple model removed
 │   └── prisma.config.ts           Prisma configuration
 │
 ├── test/
@@ -133,13 +136,14 @@ Client (HTTP)
   └─ Protected routes      → JwtAuthGuard     → JwtStrategy   → validate payload
 ```
 
-### Phase 3 (Done — Couples working)
+### Phase 3 (Done — Groups working)
 ```
 Client (HTTP)
-  ├─ POST /couples             → CouplesController → CouplesService → Prisma → couples table
-  ├─ POST /couples/join        → CouplesController → CouplesService → validate invite code
-  ├─ GET  /couples/me          → CouplesController → CouplesService → couple + members
-  └─ DELETE /couples/leave     → CouplesController → CouplesService → unlink + cleanup
+  ├─ POST /groups              → GroupsController → GroupsService → Prisma → groups table
+  ├─ POST /groups/join         → GroupsController → GroupsService → validate invite code
+  ├─ GET  /groups              → GroupsController → GroupsService → list my groups
+  ├─ GET  /groups/:id          → GroupsController → GroupsService → group + members
+  └─ DELETE /groups/:id/leave  → GroupsController → GroupsService → unlink + cleanup
 ```
 
 ### Phase 4 (Done — Expenses CRUD)
@@ -151,7 +155,7 @@ Client (HTTP)
   ├─ PATCH  /expenses/:id     → ExpensesController → ExpensesService → Prisma → update (PartialType)
   └─ DELETE /expenses/:id     → ExpensesController → ExpensesService → Prisma → soft-delete (deletedAt)
 ```
-> **Nota:** Solo `Expense` tiene soft-delete (`deletedAt`). `User` y `Couple` no.
+> **Nota:** Solo `Expense` tiene soft-delete (`deletedAt`). `User` y `Group` no.
 
 ### Phase 5 (Done — Balances EQUAL)
 ```
@@ -166,14 +170,15 @@ Client (HTTP)
   ├─ POST /payments → PaymentsController → PaymentsService → Prisma → payments table
   └─ GET  /payments → PaymentsController → PaymentsService → Prisma → payments history (DESC)
 ```
-> Payments aislados por pareja. No hay DELETE endpoint.
+> Payments aislados por grupo. No hay DELETE endpoint.
 
-### Phase 7 (Implemented — Settlements)
+### Phase 7 (Implemented — Settlements + Suggestions)
 ```
 Client (HTTP)
-  └─ GET /settlements → SettlementsController → SettlementsService → net settlement calculation
+  ├─ GET  /settlements            → SettlementsController → SettlementsService → net settlement calculation
+  └─ GET  /settlements/suggestions → SettlementsController → SettlementsService → greedy settlement suggestions
 ```
-> Reutiliza lógica de balance inline + payments. No depende de BalancesService.
+> El endpoint `GET /settlements/suggestions?groupId=optional` calcula sugerencias de liquidación usando un algoritmo greedy que empareja deudores con acreedores para minimizar transacciones. Reutiliza `calculateExpenseShare()` con memberCount del grupo.
 
 ### Phase 8 (Planned — Receipts + Dashboard)
 
@@ -191,20 +196,22 @@ Client (HTTP)
 | POST | `/auth/register` | AuthController | ✓ | Register with bcrypt |
 | POST | `/auth/login` | AuthController | ✓ | Returns JWT access_token |
 | GET | `/auth/profile` | AuthController | ✓ | Protected — returns user from JWT |
-| POST | `/couples` | CouplesController | ✓ | Create couple |
-| POST | `/couples/join` | CouplesController | ✓ | Join via invite code |
-| GET | `/couples/me` | CouplesController | ✓ | Get my couple + members |
-| DELETE | `/couples/leave` | CouplesController | ✓ | Leave couple |
+| POST | `/groups` | GroupsController | ✓ | Create group (JWT) |
+| POST | `/groups/join` | GroupsController | ✓ | Join via invite code (JWT) |
+| GET | `/groups` | GroupsController | ✓ | List my groups (JWT) |
+| GET | `/groups/:id` | GroupsController | ✓ | Get group details + members (JWT) |
+| DELETE | `/groups/:id/leave` | GroupsController | ✓ | Leave group (JWT) |
 | POST | `/expenses` | ExpensesController | ✓ | Create expense (JWT) |
 | GET | `/expenses` | ExpensesController | ✓ | List expenses with filters (JWT) |
 | GET | `/expenses/:id` | ExpensesController | ✓ | Get one expense (JWT) |
 | PATCH | `/expenses/:id` | ExpensesController | ✓ | Update expense (PartialType, JWT) |
 | DELETE | `/expenses/:id` | ExpensesController | ✓ | Soft-delete expense (JWT, solo Expense) |
-| GET | `/balances` | BalancesController | ✓ | Balance EQUAL (JWT) |
+| GET | `/balances` | BalancesController | ✓ | Balance EQUAL + PERCENTAGE (JWT) |
 | POST | `/payments` | PaymentsController | ✓ | Create payment (JWT) |
 | GET | `/payments` | PaymentsController | ✓ | Payment history (JWT, DESC by createdAt) |
 | GET | `/settlements` | SettlementsController | ✓ | Net settlement calculation (JWT) |
-| - | `/dashboard` | — | ❌ | Not implemented yet |
+| GET | `/settlements/suggestions` | SettlementsController | ✓ | Settlement suggestions via greedy algorithm (JWT, ?groupId=optional) |
+| GET | `/dashboard` | DashboardController | ✓ | Dashboard summary (JWT) |
 | - | `/receipts/*` | — | ❌ | Not implemented yet |
 
 ## Component Architecture
@@ -219,15 +226,24 @@ AppModule
 │   └── JwtAuthGuard     (@UseGuards decorator)
 ├── UsersModule
 │   └── UsersService     (findByEmail, findById, create)
-├── CouplesModule
-│   ├── CouplesController (POST /couples, POST /couples/join, GET /couples/me, DELETE /couples/leave)
-│   └── CouplesService   (create, join, get, leave couple logic)
+├── GroupsModule                    ← ✓ Implemented
+│   ├── GroupsController (POST /groups, POST /groups/join, GET /groups, GET /groups/:id, DELETE /groups/:id/leave)
+│   └── GroupsService    (create, join, get, leave group logic)
 ├── ExpensesModule                  ← ✓ Implemented
 │   ├── ExpensesController (POST, GET, GET/:id, PATCH/:id, DELETE/:id)
 │   └── ExpensesService    (CRUD + soft-delete)
 ├── BalancesModule                  ← ✓ Implemented
 │   ├── BalancesController (GET /balances)
-│   └── BalancesService    (balance EQUAL calculation)
+│   └── BalancesService    (balance EQUAL + PERCENTAGE calculation)
+├── PaymentsModule                   ← ✓ Implemented
+│   ├── PaymentsController (POST /payments, GET /payments)
+│   └── PaymentsService    (create payment, payment history)
+├── SettlementsModule                ← ✓ Implemented
+│   ├── SettlementsController (GET /settlements, GET /settlements/suggestions)
+│   └── SettlementsService   (net settlement + greedy suggestion algorithm)
+├── DashboardModule                  ← ✓ Implemented
+│   ├── DashboardController (GET /dashboard)
+│   └── DashboardService    (aggregated summaries)
 ├── AppController        (GET /)
 ├── AppService           (business logic)
 └── PrismaModule         (PrismaService provider)
@@ -238,7 +254,7 @@ Global (registered in main.ts)
 └── HttpExceptionFilter          (consistent JSON error response)
 ```
 
-### Planned Module Expansion
+### Planned Module Expansion (Future)
 
 ```
 AppModule
@@ -249,20 +265,23 @@ AppModule
 │   └── JwtAuthGuard     (guard decorator)
 ├── UsersModule
 │   └── UsersService     (findByEmail, findById, create)
-├── CouplesModule                  ✓ Implemented
-│   ├── CouplesController
-│   └── CouplesService
-├── ExpensesModule                 ✓ Implemented
+├── GroupsModule                    ✓ Implemented
+│   ├── GroupsController
+│   └── GroupsService
+├── ExpensesModule                   ✓ Implemented
 │   ├── ExpensesController
 │   └── ExpensesService
-├── BalancesModule                  ✓ Implemented
-│   └── BalancesService  (balance EQUAL calculation)
+├── BalancesModule                   ✓ Implemented
+│   └── BalancesService  (balance EQUAL + PERCENTAGE calculation)
 ├── PaymentsModule                   ✓ Implemented
 │   ├── PaymentsController (POST /payments, GET /payments)
 │   └── PaymentsService    (create payment, payment history)
 ├── SettlementsModule                ✓ Implemented
-│   ├── SettlementsController (GET /settlements)
-│   └── SettlementsService   (net settlement calculation)
+│   ├── SettlementsController (GET /settlements, GET /settlements/suggestions)
+│   └── SettlementsService   (net settlement + greedy suggestion algorithm)
+├── DashboardModule                  ✓ Implemented
+│   ├── DashboardController (GET /dashboard)
+│   └── DashboardService    (aggregated summaries)
 ├── ReceiptsModule
 │   ├── ReceiptsController
 │   └── ReceiptsService  (OCR + S3)
@@ -275,24 +294,43 @@ AppModule
 ```prisma
 model User {
   id        String   @id @default(uuid())
-  name      String
+  firstName String
+  lastName  String
   email     String   @unique
   password  String
   createdAt DateTime @default(now())
 
-  coupleId  String?
-  couple    Couple?  @relation(fields: [coupleId], references: [id])
-
-  expenses  Expense[]
+  members           GroupMember[]
+  expenses          Expense[]
+  expenseSplits     ExpenseSplit[]
+  paymentsSent      Payment[] @relation("SentPayments")
+  paymentsReceived  Payment[] @relation("ReceivedPayments")
+  refreshTokens     RefreshToken[]
 }
 
-model Couple {
-  id         String   @id @default(uuid())
-  inviteCode String   @unique
-  createdAt  DateTime @default(now())
+model Group {
+  id         String    @id @default(uuid())
+  name       String
+  type       GroupType @default(COUPLE)
+  inviteCode String?   @unique
+  createdAt  DateTime  @default(now())
 
-  users      User[]
-  expenses   Expense[]
+  members  GroupMember[]
+  expenses Expense[]
+  payments Payment[]
+}
+
+model GroupMember {
+  id       String     @id @default(uuid())
+  role     MemberRole @default(MEMBER)
+  joinedAt DateTime   @default(now())
+
+  userId  String
+  user    User   @relation(fields: [userId], references: [id])
+  groupId String
+  group   Group  @relation(fields: [groupId], references: [id])
+
+  @@unique([userId, groupId])
 }
 
 model Expense {
@@ -307,16 +345,14 @@ model Expense {
 
   paidById    String
   paidBy      User             @relation(fields: [paidById], references: [id])
-  coupleId    String
-  couple      Couple           @relation(fields: [coupleId], references: [id])
+  groupId     String
+  group       Group            @relation(fields: [groupId], references: [id])
 
   splits      ExpenseSplit[]
 }
-```
 
-> **Soft-delete:** Solo `Expense` usa `deletedAt`. `User` y `Couple` se eliminan realmente (no tienen soft-delete).
+> **Soft-delete:** Solo `Expense` usa `deletedAt`. `User` y `Group` se eliminan realmente (no tienen soft-delete).
 
-```prisma
 model ExpenseSplit {
   id          String   @id @default(uuid())
   percentage  Decimal  @db.Decimal(5,2)
@@ -331,17 +367,33 @@ model ExpenseSplit {
   @@unique([expenseId, userId])
 }
 
-```prisma
 model Payment {
   id          String   @id @default(uuid())
   amount      Decimal  @db.Decimal(12,2)
-  fromId      String
-  from        User     @relation("Payer")
-  toId        String
-  to          User     @relation("Payee")
-  coupleId    String
-  couple      Couple   @relation("Payments")
   createdAt   DateTime @default(now())
+
+  fromUserId  String
+  toUserId    String
+
+  fromUser    User     @relation("SentPayments", fields: [fromUserId], references: [id])
+  toUser      User     @relation("ReceivedPayments", fields: [toUserId], references: [id])
+
+  groupId     String
+  group       Group    @relation(fields: [groupId], references: [id])
+
+  @@index([groupId])
+  @@index([fromUserId])
+  @@index([toUserId])
+}
+
+model RefreshToken {
+  id         String   @id @default(uuid())
+  tokenHash  String   @unique
+  userId     String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 ```
 

@@ -27,12 +27,16 @@
 - [❌] Refresh token endpoint
 - [❌] Tests for auth endpoints
 
-## Phase 3: Couple Management
-- [✓] Couple model + migration
-- [✓] Create couple endpoint
-- [✓] Join couple via invitation code
-- [✓] Get my couple
-- [✓] Leave couple
+## Phase 3: Group Management (migrated from Couples)
+- [✓] Group model + migration (replaces Couple)
+- [✓] GroupMember model + migration (replaces User.coupleId)
+- [✓] Create group endpoint
+- [✓] Join group via invitation code
+- [✓] List my groups
+- [✓] Get group details + members
+- [✓] Leave group
+- [✓] GroupType support (PERSONAL, COUPLE, GROUP)
+- [✓] MemberRole support (OWNER, ADMIN, MEMBER)
 
 ## Phase 4: Expenses
 - [✓] Expense model + migration
@@ -42,15 +46,12 @@
 - [✓] Split calculation logic (EQUAL + PERCENTAGE)
 - [❌] Tests for expense logic
 
-> ⚠️ **Soft-delete:** Solo `Expense` usa `deletedAt`. `User` y `Couple` se eliminan realmente (no tienen soft-delete).
+> ⚠️ **Soft-delete:** Solo `Expense` usa `deletedAt`. `User` y `Group` se eliminan realmente (no tienen soft-delete).
 
 ## Phase 5: Balances & Dashboard
-- [✓] Balance aggregation endpoint (EQUAL + PERCENTAGE split, soft-delete filter)
+- [✓] Balance aggregation endpoint (EQUAL + PERCENTAGE split, soft-delete filter, memberCount-aware)
 - [✓] Dashboard summary (totals, categories, trends)
-- [❌] Settlement suggestions
 - [❌] CUSTOM split support
-
-> ⚠️ Balance solo soporta `splitType = EQUAL` por ahora.
 
 ## Phase 6: Receipts
 - [❌] Receipt upload endpoint (multipart)
@@ -59,10 +60,12 @@
 - [❌] Auto-fill expense from receipt
 
 ## Phase 7: Payments & Settlements
-- [✓] Payment model + migration
+- [✓] Payment model + migration (groupId-based)
 - [✓] Record payment endpoint
 - [✓] Payment history
 - [✓] Settlement calculation endpoint
+- [✓] Settlement suggestions endpoint (greedy algorithm, `GET /settlements/suggestions?groupId=optional`)
+- [✓] `calculateExpenseShare()` memberCount support (was hardcoded `/2` for couples)
 
 ## Phase 8: Polish
 - [❌] Push notifications
