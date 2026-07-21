@@ -585,10 +585,6 @@ export type EnumSplitTypeFieldUpdateOperationsInput = {
   set?: $Enums.SplitType
 }
 
-export type NullableDateTimeFieldUpdateOperationsInput = {
-  set?: Date | string | null
-}
-
 export type ExpenseCreateNestedOneWithoutSplitsInput = {
   create?: Prisma.XOR<Prisma.ExpenseCreateWithoutSplitsInput, Prisma.ExpenseUncheckedCreateWithoutSplitsInput>
   connectOrCreate?: Prisma.ExpenseCreateOrConnectWithoutSplitsInput

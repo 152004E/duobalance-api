@@ -4,6 +4,7 @@ import {
     Delete,
     Get,
     Param,
+    Patch,
     Post,
     Req,
     UseGuards,
@@ -11,6 +12,8 @@ import {
 import { GroupsService } from './groups.service';
 import { CreateGroupDto } from './dto/create-group.dto';
 import { JoinGroupDto } from './dto/join-group.dto';
+import { UpdateGroupDto } from './dto/update-group.dto';
+import { UpdateMemberSplitDto } from './dto/update-member-split.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @Controller('groups')
@@ -65,6 +68,55 @@ export class GroupsController {
             req.user.id,
             id,
         );
+    }
+
+    @Patch(':id')
+    @UseGuards(JwtAuthGuard)
+    updateGroup(
+        @Req() req: any,
+        @Param('id') id: string,
+        @Body() dto: UpdateGroupDto,
+    ) {
+        return this.groupsService.updateGroup(req.user.id, id, dto);
+    }
+
+    @Post(':id/archive')
+    @UseGuards(JwtAuthGuard)
+    archiveGroup(
+        @Req() req: any,
+        @Param('id') id: string,
+    ) {
+        return this.groupsService.archiveGroup(req.user.id, id);
+    }
+
+    @Delete(':id')
+    @UseGuards(JwtAuthGuard)
+    deleteGroup(
+        @Req() req: any,
+        @Param('id') id: string,
+    ) {
+        return this.groupsService.deleteGroup(req.user.id, id);
+    }
+
+    @Delete(':id/members/:memberId')
+    @UseGuards(JwtAuthGuard)
+    removeMember(
+        @Req() req: any,
+        @Param('id') id: string,
+        @Param('memberId') memberId: string,
+    ) {
+        return this.groupsService.removeMember(req.user.id, id, memberId);
+    }
+
+    @Patch(':id/members/:memberId/split')
+    @UseGuards(JwtAuthGuard)
+    updateMemberSplit(
+        @Req() req: any,
+        @Param('id') id: string,
+        @Param('memberId') memberId: string,
+        @Body() dto: UpdateMemberSplitDto,
+    ) {
+        return this.groupsService.updateMemberSplit(req.user.id, id, memberId, dto.percentage);
     }
 
     @Delete(':id/leave')

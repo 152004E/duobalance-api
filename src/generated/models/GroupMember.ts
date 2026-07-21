@@ -20,13 +20,24 @@ export type GroupMemberModel = runtime.Types.Result.DefaultSelection<Prisma.$Gro
 
 export type AggregateGroupMember = {
   _count: GroupMemberCountAggregateOutputType | null
+  _avg: GroupMemberAvgAggregateOutputType | null
+  _sum: GroupMemberSumAggregateOutputType | null
   _min: GroupMemberMinAggregateOutputType | null
   _max: GroupMemberMaxAggregateOutputType | null
+}
+
+export type GroupMemberAvgAggregateOutputType = {
+  splitPercentage: runtime.Decimal | null
+}
+
+export type GroupMemberSumAggregateOutputType = {
+  splitPercentage: runtime.Decimal | null
 }
 
 export type GroupMemberMinAggregateOutputType = {
   id: string | null
   role: $Enums.MemberRole | null
+  splitPercentage: runtime.Decimal | null
   joinedAt: Date | null
   userId: string | null
   groupId: string | null
@@ -35,6 +46,7 @@ export type GroupMemberMinAggregateOutputType = {
 export type GroupMemberMaxAggregateOutputType = {
   id: string | null
   role: $Enums.MemberRole | null
+  splitPercentage: runtime.Decimal | null
   joinedAt: Date | null
   userId: string | null
   groupId: string | null
@@ -43,6 +55,7 @@ export type GroupMemberMaxAggregateOutputType = {
 export type GroupMemberCountAggregateOutputType = {
   id: number
   role: number
+  splitPercentage: number
   joinedAt: number
   userId: number
   groupId: number
@@ -50,9 +63,18 @@ export type GroupMemberCountAggregateOutputType = {
 }
 
 
+export type GroupMemberAvgAggregateInputType = {
+  splitPercentage?: true
+}
+
+export type GroupMemberSumAggregateInputType = {
+  splitPercentage?: true
+}
+
 export type GroupMemberMinAggregateInputType = {
   id?: true
   role?: true
+  splitPercentage?: true
   joinedAt?: true
   userId?: true
   groupId?: true
@@ -61,6 +83,7 @@ export type GroupMemberMinAggregateInputType = {
 export type GroupMemberMaxAggregateInputType = {
   id?: true
   role?: true
+  splitPercentage?: true
   joinedAt?: true
   userId?: true
   groupId?: true
@@ -69,6 +92,7 @@ export type GroupMemberMaxAggregateInputType = {
 export type GroupMemberCountAggregateInputType = {
   id?: true
   role?: true
+  splitPercentage?: true
   joinedAt?: true
   userId?: true
   groupId?: true
@@ -113,6 +137,18 @@ export type GroupMemberAggregateArgs<ExtArgs extends runtime.Types.Extensions.In
   /**
    * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
    * 
+   * Select which fields to average
+  **/
+  _avg?: GroupMemberAvgAggregateInputType
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+   * 
+   * Select which fields to sum
+  **/
+  _sum?: GroupMemberSumAggregateInputType
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+   * 
    * Select which fields to find the minimum value
   **/
   _min?: GroupMemberMinAggregateInputType
@@ -143,6 +179,8 @@ export type GroupMemberGroupByArgs<ExtArgs extends runtime.Types.Extensions.Inte
   take?: number
   skip?: number
   _count?: GroupMemberCountAggregateInputType | true
+  _avg?: GroupMemberAvgAggregateInputType
+  _sum?: GroupMemberSumAggregateInputType
   _min?: GroupMemberMinAggregateInputType
   _max?: GroupMemberMaxAggregateInputType
 }
@@ -150,10 +188,13 @@ export type GroupMemberGroupByArgs<ExtArgs extends runtime.Types.Extensions.Inte
 export type GroupMemberGroupByOutputType = {
   id: string
   role: $Enums.MemberRole
+  splitPercentage: runtime.Decimal | null
   joinedAt: Date
   userId: string
   groupId: string
   _count: GroupMemberCountAggregateOutputType | null
+  _avg: GroupMemberAvgAggregateOutputType | null
+  _sum: GroupMemberSumAggregateOutputType | null
   _min: GroupMemberMinAggregateOutputType | null
   _max: GroupMemberMaxAggregateOutputType | null
 }
@@ -179,6 +220,7 @@ export type GroupMemberWhereInput = {
   NOT?: Prisma.GroupMemberWhereInput | Prisma.GroupMemberWhereInput[]
   id?: Prisma.StringFilter<"GroupMember"> | string
   role?: Prisma.EnumMemberRoleFilter<"GroupMember"> | $Enums.MemberRole
+  splitPercentage?: Prisma.DecimalNullableFilter<"GroupMember"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   joinedAt?: Prisma.DateTimeFilter<"GroupMember"> | Date | string
   userId?: Prisma.StringFilter<"GroupMember"> | string
   groupId?: Prisma.StringFilter<"GroupMember"> | string
@@ -189,6 +231,7 @@ export type GroupMemberWhereInput = {
 export type GroupMemberOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   role?: Prisma.SortOrder
+  splitPercentage?: Prisma.SortOrderInput | Prisma.SortOrder
   joinedAt?: Prisma.SortOrder
   userId?: Prisma.SortOrder
   groupId?: Prisma.SortOrder
@@ -203,6 +246,7 @@ export type GroupMemberWhereUniqueInput = Prisma.AtLeast<{
   OR?: Prisma.GroupMemberWhereInput[]
   NOT?: Prisma.GroupMemberWhereInput | Prisma.GroupMemberWhereInput[]
   role?: Prisma.EnumMemberRoleFilter<"GroupMember"> | $Enums.MemberRole
+  splitPercentage?: Prisma.DecimalNullableFilter<"GroupMember"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   joinedAt?: Prisma.DateTimeFilter<"GroupMember"> | Date | string
   userId?: Prisma.StringFilter<"GroupMember"> | string
   groupId?: Prisma.StringFilter<"GroupMember"> | string
@@ -213,12 +257,15 @@ export type GroupMemberWhereUniqueInput = Prisma.AtLeast<{
 export type GroupMemberOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   role?: Prisma.SortOrder
+  splitPercentage?: Prisma.SortOrderInput | Prisma.SortOrder
   joinedAt?: Prisma.SortOrder
   userId?: Prisma.SortOrder
   groupId?: Prisma.SortOrder
   _count?: Prisma.GroupMemberCountOrderByAggregateInput
+  _avg?: Prisma.GroupMemberAvgOrderByAggregateInput
   _max?: Prisma.GroupMemberMaxOrderByAggregateInput
   _min?: Prisma.GroupMemberMinOrderByAggregateInput
+  _sum?: Prisma.GroupMemberSumOrderByAggregateInput
 }
 
 export type GroupMemberScalarWhereWithAggregatesInput = {
@@ -227,6 +274,7 @@ export type GroupMemberScalarWhereWithAggregatesInput = {
   NOT?: Prisma.GroupMemberScalarWhereWithAggregatesInput | Prisma.GroupMemberScalarWhereWithAggregatesInput[]
   id?: Prisma.StringWithAggregatesFilter<"GroupMember"> | string
   role?: Prisma.EnumMemberRoleWithAggregatesFilter<"GroupMember"> | $Enums.MemberRole
+  splitPercentage?: Prisma.DecimalNullableWithAggregatesFilter<"GroupMember"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   joinedAt?: Prisma.DateTimeWithAggregatesFilter<"GroupMember"> | Date | string
   userId?: Prisma.StringWithAggregatesFilter<"GroupMember"> | string
   groupId?: Prisma.StringWithAggregatesFilter<"GroupMember"> | string
@@ -235,6 +283,7 @@ export type GroupMemberScalarWhereWithAggregatesInput = {
 export type GroupMemberCreateInput = {
   id?: string
   role?: $Enums.MemberRole
+  splitPercentage?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   joinedAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutMembersInput
   group: Prisma.GroupCreateNestedOneWithoutMembersInput
@@ -243,6 +292,7 @@ export type GroupMemberCreateInput = {
 export type GroupMemberUncheckedCreateInput = {
   id?: string
   role?: $Enums.MemberRole
+  splitPercentage?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   joinedAt?: Date | string
   userId: string
   groupId: string
@@ -251,6 +301,7 @@ export type GroupMemberUncheckedCreateInput = {
 export type GroupMemberUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumMemberRoleFieldUpdateOperationsInput | $Enums.MemberRole
+  splitPercentage?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   joinedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutMembersNestedInput
   group?: Prisma.GroupUpdateOneRequiredWithoutMembersNestedInput
@@ -259,6 +310,7 @@ export type GroupMemberUpdateInput = {
 export type GroupMemberUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumMemberRoleFieldUpdateOperationsInput | $Enums.MemberRole
+  splitPercentage?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   joinedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   groupId?: Prisma.StringFieldUpdateOperationsInput | string
@@ -267,6 +319,7 @@ export type GroupMemberUncheckedUpdateInput = {
 export type GroupMemberCreateManyInput = {
   id?: string
   role?: $Enums.MemberRole
+  splitPercentage?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   joinedAt?: Date | string
   userId: string
   groupId: string
@@ -275,12 +328,14 @@ export type GroupMemberCreateManyInput = {
 export type GroupMemberUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumMemberRoleFieldUpdateOperationsInput | $Enums.MemberRole
+  splitPercentage?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   joinedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type GroupMemberUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumMemberRoleFieldUpdateOperationsInput | $Enums.MemberRole
+  splitPercentage?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   joinedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   groupId?: Prisma.StringFieldUpdateOperationsInput | string
@@ -304,14 +359,20 @@ export type GroupMemberUserIdGroupIdCompoundUniqueInput = {
 export type GroupMemberCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   role?: Prisma.SortOrder
+  splitPercentage?: Prisma.SortOrder
   joinedAt?: Prisma.SortOrder
   userId?: Prisma.SortOrder
   groupId?: Prisma.SortOrder
 }
 
+export type GroupMemberAvgOrderByAggregateInput = {
+  splitPercentage?: Prisma.SortOrder
+}
+
 export type GroupMemberMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   role?: Prisma.SortOrder
+  splitPercentage?: Prisma.SortOrder
   joinedAt?: Prisma.SortOrder
   userId?: Prisma.SortOrder
   groupId?: Prisma.SortOrder
@@ -320,9 +381,14 @@ export type GroupMemberMaxOrderByAggregateInput = {
 export type GroupMemberMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   role?: Prisma.SortOrder
+  splitPercentage?: Prisma.SortOrder
   joinedAt?: Prisma.SortOrder
   userId?: Prisma.SortOrder
   groupId?: Prisma.SortOrder
+}
+
+export type GroupMemberSumOrderByAggregateInput = {
+  splitPercentage?: Prisma.SortOrder
 }
 
 export type GroupMemberCreateNestedManyWithoutUserInput = {
@@ -413,9 +479,18 @@ export type EnumMemberRoleFieldUpdateOperationsInput = {
   set?: $Enums.MemberRole
 }
 
+export type NullableDecimalFieldUpdateOperationsInput = {
+  set?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  increment?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  decrement?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  multiply?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  divide?: runtime.Decimal | runtime.DecimalJsLike | number | string
+}
+
 export type GroupMemberCreateWithoutUserInput = {
   id?: string
   role?: $Enums.MemberRole
+  splitPercentage?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   joinedAt?: Date | string
   group: Prisma.GroupCreateNestedOneWithoutMembersInput
 }
@@ -423,6 +498,7 @@ export type GroupMemberCreateWithoutUserInput = {
 export type GroupMemberUncheckedCreateWithoutUserInput = {
   id?: string
   role?: $Enums.MemberRole
+  splitPercentage?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   joinedAt?: Date | string
   groupId: string
 }
@@ -459,6 +535,7 @@ export type GroupMemberScalarWhereInput = {
   NOT?: Prisma.GroupMemberScalarWhereInput | Prisma.GroupMemberScalarWhereInput[]
   id?: Prisma.StringFilter<"GroupMember"> | string
   role?: Prisma.EnumMemberRoleFilter<"GroupMember"> | $Enums.MemberRole
+  splitPercentage?: Prisma.DecimalNullableFilter<"GroupMember"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   joinedAt?: Prisma.DateTimeFilter<"GroupMember"> | Date | string
   userId?: Prisma.StringFilter<"GroupMember"> | string
   groupId?: Prisma.StringFilter<"GroupMember"> | string
@@ -467,6 +544,7 @@ export type GroupMemberScalarWhereInput = {
 export type GroupMemberCreateWithoutGroupInput = {
   id?: string
   role?: $Enums.MemberRole
+  splitPercentage?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   joinedAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutMembersInput
 }
@@ -474,6 +552,7 @@ export type GroupMemberCreateWithoutGroupInput = {
 export type GroupMemberUncheckedCreateWithoutGroupInput = {
   id?: string
   role?: $Enums.MemberRole
+  splitPercentage?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   joinedAt?: Date | string
   userId: string
 }
@@ -507,6 +586,7 @@ export type GroupMemberUpdateManyWithWhereWithoutGroupInput = {
 export type GroupMemberCreateManyUserInput = {
   id?: string
   role?: $Enums.MemberRole
+  splitPercentage?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   joinedAt?: Date | string
   groupId: string
 }
@@ -514,6 +594,7 @@ export type GroupMemberCreateManyUserInput = {
 export type GroupMemberUpdateWithoutUserInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumMemberRoleFieldUpdateOperationsInput | $Enums.MemberRole
+  splitPercentage?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   joinedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   group?: Prisma.GroupUpdateOneRequiredWithoutMembersNestedInput
 }
@@ -521,6 +602,7 @@ export type GroupMemberUpdateWithoutUserInput = {
 export type GroupMemberUncheckedUpdateWithoutUserInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumMemberRoleFieldUpdateOperationsInput | $Enums.MemberRole
+  splitPercentage?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   joinedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   groupId?: Prisma.StringFieldUpdateOperationsInput | string
 }
@@ -528,6 +610,7 @@ export type GroupMemberUncheckedUpdateWithoutUserInput = {
 export type GroupMemberUncheckedUpdateManyWithoutUserInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumMemberRoleFieldUpdateOperationsInput | $Enums.MemberRole
+  splitPercentage?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   joinedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   groupId?: Prisma.StringFieldUpdateOperationsInput | string
 }
@@ -535,6 +618,7 @@ export type GroupMemberUncheckedUpdateManyWithoutUserInput = {
 export type GroupMemberCreateManyGroupInput = {
   id?: string
   role?: $Enums.MemberRole
+  splitPercentage?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   joinedAt?: Date | string
   userId: string
 }
@@ -542,6 +626,7 @@ export type GroupMemberCreateManyGroupInput = {
 export type GroupMemberUpdateWithoutGroupInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumMemberRoleFieldUpdateOperationsInput | $Enums.MemberRole
+  splitPercentage?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   joinedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutMembersNestedInput
 }
@@ -549,6 +634,7 @@ export type GroupMemberUpdateWithoutGroupInput = {
 export type GroupMemberUncheckedUpdateWithoutGroupInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumMemberRoleFieldUpdateOperationsInput | $Enums.MemberRole
+  splitPercentage?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   joinedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
 }
@@ -556,6 +642,7 @@ export type GroupMemberUncheckedUpdateWithoutGroupInput = {
 export type GroupMemberUncheckedUpdateManyWithoutGroupInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumMemberRoleFieldUpdateOperationsInput | $Enums.MemberRole
+  splitPercentage?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   joinedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
 }
@@ -565,6 +652,7 @@ export type GroupMemberUncheckedUpdateManyWithoutGroupInput = {
 export type GroupMemberSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   role?: boolean
+  splitPercentage?: boolean
   joinedAt?: boolean
   userId?: boolean
   groupId?: boolean
@@ -575,6 +663,7 @@ export type GroupMemberSelect<ExtArgs extends runtime.Types.Extensions.InternalA
 export type GroupMemberSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   role?: boolean
+  splitPercentage?: boolean
   joinedAt?: boolean
   userId?: boolean
   groupId?: boolean
@@ -585,6 +674,7 @@ export type GroupMemberSelectCreateManyAndReturn<ExtArgs extends runtime.Types.E
 export type GroupMemberSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   role?: boolean
+  splitPercentage?: boolean
   joinedAt?: boolean
   userId?: boolean
   groupId?: boolean
@@ -595,12 +685,13 @@ export type GroupMemberSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.E
 export type GroupMemberSelectScalar = {
   id?: boolean
   role?: boolean
+  splitPercentage?: boolean
   joinedAt?: boolean
   userId?: boolean
   groupId?: boolean
 }
 
-export type GroupMemberOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "role" | "joinedAt" | "userId" | "groupId", ExtArgs["result"]["groupMember"]>
+export type GroupMemberOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "role" | "splitPercentage" | "joinedAt" | "userId" | "groupId", ExtArgs["result"]["groupMember"]>
 export type GroupMemberInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   group?: boolean | Prisma.GroupDefaultArgs<ExtArgs>
@@ -623,6 +714,7 @@ export type $GroupMemberPayload<ExtArgs extends runtime.Types.Extensions.Interna
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     role: $Enums.MemberRole
+    splitPercentage: runtime.Decimal | null
     joinedAt: Date
     userId: string
     groupId: string
@@ -1053,6 +1145,7 @@ export interface Prisma__GroupMemberClient<T, Null = never, ExtArgs extends runt
 export interface GroupMemberFieldRefs {
   readonly id: Prisma.FieldRef<"GroupMember", 'String'>
   readonly role: Prisma.FieldRef<"GroupMember", 'MemberRole'>
+  readonly splitPercentage: Prisma.FieldRef<"GroupMember", 'Decimal'>
   readonly joinedAt: Prisma.FieldRef<"GroupMember", 'DateTime'>
   readonly userId: Prisma.FieldRef<"GroupMember", 'String'>
   readonly groupId: Prisma.FieldRef<"GroupMember", 'String'>
