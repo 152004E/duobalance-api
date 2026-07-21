@@ -115,6 +115,37 @@ export class GroupsService {
     });
   }
 
+  async regenerateInviteCode(userId: string, groupId: string) {
+    const membership = await this.prisma.groupMember.findUnique({
+      where: { userId_groupId: { userId, groupId } },
+    });
+
+    if (!membership) {
+      throw new ForbiddenException('User is not a member of this group');
+    }
+
+    if (membership.role === 'MEMBER') {
+      throw new ForbiddenException('Only the owner or an admin can regenerate the invite code');
+    }
+
+    if (membership.role === 'ADMIN' || membership.role === 'OWNER') {
+      let newCode = generateInviteCode();
+      while (true) {
+        const existing = await this.prisma.group.findUnique({
+          where: { inviteCode: newCode },
+        });
+        if (!existing) break;
+        newCode = generateInviteCode();
+      }
+
+      return this.prisma.group.update({
+        where: { id: groupId },
+        data: { inviteCode: newCode },
+        include: this.groupInclude,
+      });
+    }
+  }
+
   async leaveGroup(userId: string, groupId: string) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },

@@ -55,6 +55,18 @@ export class GroupsController {
         return this.groupsService.getGroup(req.user.id, id);
     }
 
+    @Post(':id/regenerate-invite')
+    @UseGuards(JwtAuthGuard)
+    regenerateInviteCode(
+        @Req() req: any,
+        @Param('id') id: string,
+    ) {
+        return this.groupsService.regenerateInviteCode(
+            req.user.id,
+            id,
+        );
+    }
+
     @Delete(':id/leave')
     @UseGuards(JwtAuthGuard)
     leaveGroup(
