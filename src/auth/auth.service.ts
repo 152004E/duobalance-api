@@ -2,6 +2,7 @@ import {
     Injectable,
     UnauthorizedException,
     ConflictException,
+    NotFoundException,
 } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import * as bcrypt from 'bcrypt';
@@ -78,5 +79,28 @@ export class AuthService {
     async logout(plainToken: string) {
         await this.refreshTokenService.revokeRefreshToken(plainToken);
         return { success: true };
+    }
+
+    async updateProfile(userId: string, data: { firstName?: string; lastName?: string; email?: string }) {
+        const user = await this.usersService.findById(userId);
+        if (!user) throw new NotFoundException('Usuario no encontrado');
+
+        if (data.email && data.email !== user.email) {
+            const emailExists = await this.usersService.findByEmail(data.email);
+            if (emailExists) throw new ConflictException('El correo ya está en uso');
+        }
+
+        const updated = await this.usersService.update(userId, data);
+        const { password, ...result } = updated;
+        return result;
+    }
+
+    async updateAvatar(userId: string, avatarUrl: string) {
+        const user = await this.usersService.findById(userId);
+        if (!user) throw new NotFoundException('Usuario no encontrado');
+
+        const updated = await this.usersService.update(userId, { avatarUrl });
+        const { password, ...result } = updated;
+        return result;
     }
 }

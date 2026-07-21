@@ -41,6 +41,7 @@ model User {
   lastName  String
   email     String   @unique
   password  String
+  avatarUrl String?
   createdAt DateTime @default(now())
 
   members           GroupMember[]

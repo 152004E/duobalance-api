@@ -27,4 +27,19 @@ export class UsersService {
       data,
     });
   }
+
+  async update(
+    id: string,
+    data: {
+      firstName?: string;
+      lastName?: string;
+      email?: string;
+      avatarUrl?: string | null;
+    },
+  ) {
+    return this.prisma.user.update({
+      where: { id },
+      data,
+    });
+  }
 }
