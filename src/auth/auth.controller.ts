@@ -13,6 +13,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
 import { extname } from 'path';
 
 import { AuthService } from './auth.service';
@@ -72,7 +73,18 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @UseInterceptors(
     FileInterceptor('file', {
-      dest: 'uploads/profile-images',
+      storage: diskStorage({
+        destination: 'uploads/profile-images',
+        filename: (
+          _req: any,
+          file: { originalname: string },
+          cb: (error: Error | null, filename: string) => void,
+        ) => {
+          const ext = extname(file.originalname) || '.jpg';
+          const name = `${Date.now()}_${Math.random().toString(36).substring(2, 8)}${ext}`;
+          cb(null, name);
+        },
+      }),
       fileFilter: (
         _req: any,
         file: { mimetype: string },
@@ -91,10 +103,21 @@ export class AuthController {
     }),
   )
   async uploadAvatar(@Req() req: any, @UploadedFile() file: any) {
+    console.log('=== uploadAvatar ===');
+    console.log('file:', JSON.stringify(file, null, 2));
+    console.log('req.user.id:', req.user.id);
+
     if (!file) {
+      console.log('No file received');
       return { message: 'No se proporcionó ningún archivo' };
     }
+    console.log('file.filename:', file.filename);
+    console.log('file.originalname:', file.originalname);
+    console.log('file.mimetype:', file.mimetype);
+    console.log('file.size:', file.size);
+
     const avatarUrl = `/uploads/profile-images/${file.filename}`;
+    console.log('avatarUrl:', avatarUrl);
     return this.authService.updateAvatar(req.user.id, avatarUrl);
   }
 }
