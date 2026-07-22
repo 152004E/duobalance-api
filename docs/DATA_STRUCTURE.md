@@ -10,6 +10,7 @@ model User {
   lastName  String
   email     String   @unique
   password  String
+  avatarUrl String?
   createdAt DateTime @default(now())
 
   members           GroupMember[]
@@ -28,6 +29,7 @@ model Group {
   name       String
   type       GroupType @default(COUPLE)
   inviteCode String?   @unique
+  archivedAt DateTime?
   createdAt  DateTime  @default(now())
 
   members  GroupMember[]
@@ -36,9 +38,10 @@ model Group {
 }
 
 model GroupMember {
-  id       String     @id @default(uuid())
-  role     MemberRole @default(MEMBER)
-  joinedAt DateTime   @default(now())
+  id              String     @id @default(uuid())
+  role            MemberRole @default(MEMBER)
+  splitPercentage Decimal?   @db.Decimal(5,2)
+  joinedAt        DateTime   @default(now())
 
   userId  String
   user    User   @relation(fields: [userId], references: [id])
@@ -184,6 +187,26 @@ class LoginDto {
   password: string;
 }
 
+class RefreshTokenDto {
+  @IsString()
+  @IsNotEmpty()
+  refreshToken: string;
+}
+
+class UpdateProfileDto {
+  @IsOptional()
+  @IsString()
+  firstName?: string;
+
+  @IsOptional()
+  @IsString()
+  lastName?: string;
+
+  @IsOptional()
+  @IsEmail()
+  email?: string;
+}
+
 // Expense — Create
 class CreateExpenseDto {
   @IsString()
@@ -231,6 +254,21 @@ class CreateGroupDto {
 class JoinGroupDto {
   @IsString()
   inviteCode: string;
+}
+
+// Group — Update
+class UpdateGroupDto {
+  @IsOptional()
+  @IsString()
+  name?: string;
+}
+
+// Group — Update Member Split
+class UpdateMemberSplitDto {
+  @IsNumber()
+  @Min(0)
+  @Max(100)
+  percentage: number;
 }
 
 // Expense — Update (all optional via PartialType)

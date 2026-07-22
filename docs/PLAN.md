@@ -23,9 +23,11 @@
 - [✓] JWT strategy + guard (Passport, Bearer token)
 - [✓] bcrypt password hashing
 - [✓] DTOs (register.dto, login.dto with class-validator)
+- [✓] Refresh token rotation and management (`POST /auth/refresh`, `POST /auth/logout`)
+- [✓] Profile update (`PATCH /auth/profile` — firstName, lastName, email)
+- [✓] Avatar upload (`POST /auth/profile/avatar` — static file serving)
 - [❌] Rate limiting on login
-- [❌] Refresh token endpoint
-- [❌] Tests for auth endpoints
+- [✓] Tests for auth endpoints (auth.controller.spec.ts, auth.service.spec.ts, refresh-token.service.spec.ts)
 
 ## Phase 3: Group Management (migrated from Couples)
 - [✓] Group model + migration (replaces Couple)
@@ -37,6 +39,14 @@
 - [✓] Leave group
 - [✓] GroupType support (PERSONAL, COUPLE, GROUP)
 - [✓] MemberRole support (OWNER, ADMIN, MEMBER)
+- [✓] Update group (`PATCH /groups/:id`)
+- [✓] Delete group (`DELETE /groups/:id`)
+- [✓] Archive group (`POST /groups/:id/archive`)
+- [✓] Regenerate invite code (`POST /groups/:id/regenerate-invite`)
+- [✓] Remove member (`DELETE /groups/:id/members/:memberId`)
+- [✓] Update member split percentage (`PATCH /groups/:id/members/:memberId/split`)
+- [✓] splitPercentage field on GroupMember model
+- [✓] Tests (groups.controller.spec.ts, groups.service.spec.ts)
 
 ## Phase 4: Expenses
 - [✓] Expense model + migration
@@ -44,13 +54,14 @@
 - [✓] Soft-delete (solo Expense — `deletedAt`)
 - [✓] Category filtering + date range + amount range (QueryExpenseDto)
 - [✓] Split calculation logic (EQUAL + PERCENTAGE)
-- [❌] Tests for expense logic
+- [✓] Tests (expenses.controller.spec.ts, expenses.service.spec.ts)
 
 > ⚠️ **Soft-delete:** Solo `Expense` usa `deletedAt`. `User` y `Group` se eliminan realmente (no tienen soft-delete).
 
 ## Phase 5: Balances & Dashboard
 - [✓] Balance aggregation endpoint (EQUAL + PERCENTAGE split, soft-delete filter, memberCount-aware)
 - [✓] Dashboard summary (totals, categories, trends)
+- [✓] Tests (balances.service.spec.ts, dashboard.service.spec.ts)
 - [❌] CUSTOM split support
 
 ## Phase 6: Receipts
@@ -66,6 +77,7 @@
 - [✓] Settlement calculation endpoint
 - [✓] Settlement suggestions endpoint (greedy algorithm, `GET /settlements/suggestions?groupId=optional`)
 - [✓] `calculateExpenseShare()` memberCount support (was hardcoded `/2` for couples)
+- [✓] Tests (payments.controller.spec.ts, payments.service.spec.ts, settlements.service.spec.ts)
 
 ## Phase 8: Polish
 - [❌] Push notifications

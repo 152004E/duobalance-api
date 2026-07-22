@@ -15,9 +15,9 @@
 
 ## Phase 1: Auth & Groups (v0.2) — Done
 **Goal**: Users can register, log in, and form groups
-- [✓] Auth (register, login, JWT, profile)
+- [✓] Auth (register, login, JWT, profile, refresh token, logout, profile update, avatar upload)
 - [✓] Group creation + invitation codes (6 hex chars)
-- [✓] Join + leave group (GroupType: PERSONAL, COUPLE, GROUP)
+- [✓] Join + leave group + update + delete + archive + regenerate invite + manage members (GroupType: PERSONAL, COUPLE, GROUP)
 
 **Estimated**: Complete
 
@@ -29,7 +29,7 @@
 - [✓] Category + date + amount range filtering
 - [✓] Soft-delete (`deletedAt` en Expense únicamente)
 - [✓] Split types: EQUAL + PERCENTAGE (con ExpenseSplit model)
-- [❌] Tests for expense logic (pendiente)
+- [✓] Tests for expense logic (expenses.controller.spec.ts, expenses.service.spec.ts)
 
 > ⚠️ **Soft-delete:** Solo `Expense` usa `deletedAt`. `User` y `Group` se eliminan realmente (no tienen soft-delete).
 
@@ -100,12 +100,12 @@
 
 ```
 v0.1  ████████████████████████████████  (Foundation — done)
-v0.2  ████████████████████████████████  (Auth & Groups — done)
-v0.3  ██████████████████████████████████  (Expenses CRUD + EQUAL/PERCENTAGE — done)
+v0.2  ████████████████████████████████  (Auth & Groups including refresh, profile, avatar — done)
+v0.3  ██████████████████████████████████  (Expenses CRUD + EQUAL/PERCENTAGE + tests — done)
 v0.4  ██████████████████████████████████  (Balances + Dashboard + Settlement Suggestions — done)
-v0.5  ██████████████████████████████████  (Payments + Settlement — done)
-v0.6  ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░██  (Receipts)
-v1.0  ████████████████████████████████  (Production)
+v0.5  ██████████████████████████████████  (Payments + Settlement + Groups full CRUD — done)
+v0.6  ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░  (Receipts)
+v1.0  ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░  (Production)
 ```
 
 **Total estimated time to v1.0**: 16-22 weeks

@@ -24,11 +24,18 @@ duobalance-api/
 │   │   ├── auth.service.ts        bcrypt + JWT logic
 │   │   ├── dto/
 │   │   │   ├── register.dto.ts    Validated register DTO
-│   │   │   └── login.dto.ts       Validated login DTO
+│   │   │   ├── login.dto.ts       Validated login DTO
+│   │   │   ├── refresh-token.dto.ts  Refresh token DTO
+│   │   │   └── update-profile.dto.ts Profile update DTO (firstName, lastName, email)
 │   │   ├── guards/
 │   │   │   └── jwt-auth.guard.ts  JWT Auth Guard (@UseGuards)
 │   │   └── strategies/
 │   │       └── jwt.strategy.ts    Passport JWT strategy
+│   ├── auth/
+│   │   ├── auth.controller.spec.ts  Auth controller tests
+│   │   ├── auth.service.spec.ts     Auth service tests
+│   │   └── refresh-token.service.ts  Refresh token rotation & management
+│   │   └── refresh-token.service.spec.ts  Refresh token tests
 │   ├── config/
 │   │   └── env.config.ts          Environment validation (Joi schema)
 │   ├── common/
@@ -42,17 +49,22 @@ duobalance-api/
 │   │       └── invite-code.ts             Invite code generator (6 hex chars)
 │   ├── groups/
 │   │   ├── groups.module.ts        Groups module
-│   │   ├── groups.controller.ts    POST /groups, POST /groups/join, GET /groups, GET /groups/:id, DELETE /groups/:id/leave
-│   │   ├── groups.service.ts       Create, join, get, leave group logic
+│   │   ├── groups.controller.ts    POST /groups, POST /groups/join, GET /groups, GET /groups/:id, PATCH /groups/:id, DELETE /groups/:id, POST /groups/:id/archive, POST /groups/:id/regenerate-invite, DELETE /groups/:id/leave, DELETE /groups/:id/members/:memberId, PATCH /groups/:id/members/:memberId/split
+│   │   ├── groups.service.ts       Create, join, get, update, delete, archive, leave group logic
+│   │   ├── groups.controller.spec.ts
+│   │   ├── groups.service.spec.ts
 │   │   └── dto/
 │   │       ├── create-group.dto.ts
-│   │       └── join-group.dto.ts   Validated invite code DTO
+│   │       ├── join-group.dto.ts   Validated invite code DTO
+│   │       ├── update-group.dto.ts
+│   │       └── update-member-split.dto.ts
 │   ├── expenses/                          Expenses module ✓
 │   │   ├── expenses.module.ts      Module registered in app.module
 │   │   ├── expenses.controller.ts  CRUD (POST, GET, GET/:id, PATCH/:id, DELETE/:id)
 │   │   ├── expenses.service.ts     Full CRUD + soft-delete (solo Expense)
-│   │   ├── dto/                    create, update (PartialType), query (filtros)
+│   │   ├── dto/                    create, update (PartialType), query (filtros), split
 │   │   │   ├── create-expense.dto.ts
+│   │   │   ├── create-expense-split.dto.ts
 │   │   │   ├── update-expense.dto.ts
 │   │   │   └── query-expense.dto.ts
 │   │   ├── expenses.controller.spec.ts
@@ -70,7 +82,9 @@ duobalance-api/
 │   ├── payments/                           Payments module ✓
 │   │   ├── payments.module.ts      Module registered in app.module
 │   │   ├── payments.controller.ts  POST /payments, GET /payments (JWT)
+│   │   ├── payments.controller.spec.ts
 │   │   ├── payments.service.ts     Create payment + payment history
+│   │   ├── payments.service.spec.ts
 │   │   └── dto/
 │   │       └── create-payment.dto.ts  Validated payment DTO
 │   ├── generated/                         Prisma Client (generated)
@@ -86,15 +100,21 @@ duobalance-api/
 │   │   └── prisma.service.ts      PrismaClient wrapper (PrismaPg adapter)
 │   └── users/
 │       ├── users.module.ts        Users module (exported)
-│       └── users.service.ts       findByEmail, findById, create
+│       ├── users.service.ts       findByEmail, findById, create
+│       └── users.service.spec.ts
+│
+├── domain/                         (empty — available for future domain models)
 │
 ├── prisma/
-│   ├── schema.prisma              Database schema (User + Group + Expense + Payment + RefreshToken models)
+│   ├── schema.prisma              Database schema (User + Group + GroupMember + Expense + ExpenseSplit + Payment + RefreshToken models)
 │   ├── migrations/                Prisma migrations
 │   │   ├── 20260611204224_init/   Initial migration (User table)
 │   │   ├── 20260612165726_add_couple_model/  Couple model + relation (migrated to Group)
 │   │   ├── 20260715173312_add_groups/        Group + GroupMember models added
-│   │   └── 20260715173532_remove_couple_model/  Couple model removed
+│   │   ├── 20260715173532_remove_couple_model/  Couple model removed
+│   │   ├── *split_percentage/     splitPercentage field on GroupMember
+│   │   ├── *avatar_url/           avatarUrl field on User
+│   │   └── *archived_at/          archivedAt field on Group
 │   └── prisma.config.ts           Prisma configuration
 │
 ├── test/
@@ -132,7 +152,11 @@ Client (HTTP)
 Client (HTTP)
   ├─ POST /auth/register   → AuthController   → AuthService   → bcrypt → Prisma → users table
   ├─ POST /auth/login      → AuthController   → AuthService   → bcrypt → JWT token
+  ├─ POST /auth/refresh    → AuthController   → RefreshTokenService → rotate refresh token
+  ├─ POST /auth/logout     → AuthController   → RefreshTokenService → revoke refresh token
   ├─ GET  /auth/profile    → AuthController   → JwtAuthGuard → JwtStrategy → user payload
+  ├─ PATCH /auth/profile   → AuthController   → AuthService   → update firstName/lastName/email
+  ├─ POST /auth/profile/avatar → AuthController → static file serving → uploads/
   └─ Protected routes      → JwtAuthGuard     → JwtStrategy   → validate payload
 ```
 
@@ -143,7 +167,13 @@ Client (HTTP)
   ├─ POST /groups/join         → GroupsController → GroupsService → validate invite code
   ├─ GET  /groups              → GroupsController → GroupsService → list my groups
   ├─ GET  /groups/:id          → GroupsController → GroupsService → group + members
-  └─ DELETE /groups/:id/leave  → GroupsController → GroupsService → unlink + cleanup
+  ├─ PATCH /groups/:id         → GroupsController → GroupsService → update group
+  ├─ DELETE /groups/:id        → GroupsController → GroupsService → delete group
+  ├─ POST /groups/:id/archive  → GroupsController → GroupsService → archive group
+  ├─ POST /groups/:id/regenerate-invite → GroupsController → GroupsService → new invite code
+  ├─ DELETE /groups/:id/leave  → GroupsController → GroupsService → unlink + cleanup
+  ├─ DELETE /groups/:id/members/:memberId → GroupsController → GroupsService → remove member
+  └─ PATCH /groups/:id/members/:memberId/split → GroupsController → GroupsService → update split %
 ```
 
 ### Phase 4 (Done — Expenses CRUD)
@@ -180,13 +210,12 @@ Client (HTTP)
 ```
 > El endpoint `GET /settlements/suggestions?groupId=optional` calcula sugerencias de liquidación usando un algoritmo greedy que empareja deudores con acreedores para minimizar transacciones. Reutiliza `calculateExpenseShare()` con memberCount del grupo.
 
-### Phase 8 (Planned — Receipts + Dashboard)
-
+### Phase 8 (Planned — Receipts)
 ```
 Client (HTTP)
-  ├─ POST /receipts/upload → ReceiptsModule → OCR pipeline → S3/cloud
-  └─ GET  /dashboard      → DashboardModule → aggregated queries
+  └─ POST /receipts/upload → ReceiptsModule → OCR pipeline → S3/cloud
 ```
+> Dashboard (`GET /dashboard`) already implemented in DashboardModule.
 
 ## Current Route Map
 
@@ -195,12 +224,22 @@ Client (HTTP)
 | GET | `/` | AppController | ✓ | Returns "Hello World!" |
 | POST | `/auth/register` | AuthController | ✓ | Register with bcrypt |
 | POST | `/auth/login` | AuthController | ✓ | Returns JWT access_token |
+| POST | `/auth/refresh` | AuthController | ✓ | Refresh access token |
+| POST | `/auth/logout` | AuthController | ✓ | Revoke refresh token |
 | GET | `/auth/profile` | AuthController | ✓ | Protected — returns user from JWT |
+| PATCH | `/auth/profile` | AuthController | ✓ | Update profile (firstName, lastName, email) |
+| POST | `/auth/profile/avatar` | AuthController | ✓ | Upload avatar image |
 | POST | `/groups` | GroupsController | ✓ | Create group (JWT) |
 | POST | `/groups/join` | GroupsController | ✓ | Join via invite code (JWT) |
 | GET | `/groups` | GroupsController | ✓ | List my groups (JWT) |
 | GET | `/groups/:id` | GroupsController | ✓ | Get group details + members (JWT) |
+| PATCH | `/groups/:id` | GroupsController | ✓ | Update group (JWT) |
+| DELETE | `/groups/:id` | GroupsController | ✓ | Delete group (JWT) |
+| POST | `/groups/:id/archive` | GroupsController | ✓ | Archive group (JWT) |
+| POST | `/groups/:id/regenerate-invite` | GroupsController | ✓ | Regenerate invite code (JWT) |
 | DELETE | `/groups/:id/leave` | GroupsController | ✓ | Leave group (JWT) |
+| DELETE | `/groups/:id/members/:memberId` | GroupsController | ✓ | Remove member (JWT) |
+| PATCH | `/groups/:id/members/:memberId/split` | GroupsController | ✓ | Update member split % (JWT) |
 | POST | `/expenses` | ExpensesController | ✓ | Create expense (JWT) |
 | GET | `/expenses` | ExpensesController | ✓ | List expenses with filters (JWT) |
 | GET | `/expenses/:id` | ExpensesController | ✓ | Get one expense (JWT) |
@@ -220,15 +259,16 @@ Client (HTTP)
 AppModule
 ├── ConfigModule         (@nestjs/config + Joi validation)
 ├── AuthModule
-│   ├── AuthController   (POST /auth/register, /auth/login, GET /auth/profile)
+│   ├── AuthController   (POST /auth/register, /auth/login, POST /auth/refresh, POST /auth/logout, GET /auth/profile, PATCH /auth/profile, POST /auth/profile/avatar)
 │   ├── AuthService      (bcrypt hash + JWT sign)
+│   ├── RefreshTokenService  (refresh token rotation & management)
 │   ├── JwtStrategy      (Passport strategy — Bearer token validation)
 │   └── JwtAuthGuard     (@UseGuards decorator)
 ├── UsersModule
 │   └── UsersService     (findByEmail, findById, create)
 ├── GroupsModule                    ← ✓ Implemented
-│   ├── GroupsController (POST /groups, POST /groups/join, GET /groups, GET /groups/:id, DELETE /groups/:id/leave)
-│   └── GroupsService    (create, join, get, leave group logic)
+│   ├── GroupsController (POST /groups, POST /groups/join, GET /groups, GET /groups/:id, PATCH /groups/:id, DELETE /groups/:id, POST /groups/:id/archive, POST /groups/:id/regenerate-invite, DELETE /groups/:id/leave, DELETE /groups/:id/members/:memberId, PATCH /groups/:id/members/:memberId/split)
+│   └── GroupsService    (create, join, get, update, delete, archive, leave group logic)
 ├── ExpensesModule                  ← ✓ Implemented
 │   ├── ExpensesController (POST, GET, GET/:id, PATCH/:id, DELETE/:id)
 │   └── ExpensesService    (CRUD + soft-delete)
@@ -298,6 +338,7 @@ model User {
   lastName  String
   email     String   @unique
   password  String
+  avatarUrl String?
   createdAt DateTime @default(now())
 
   members           GroupMember[]
@@ -313,6 +354,7 @@ model Group {
   name       String
   type       GroupType @default(COUPLE)
   inviteCode String?   @unique
+  archivedAt DateTime?
   createdAt  DateTime  @default(now())
 
   members  GroupMember[]
@@ -321,9 +363,10 @@ model Group {
 }
 
 model GroupMember {
-  id       String     @id @default(uuid())
-  role     MemberRole @default(MEMBER)
-  joinedAt DateTime   @default(now())
+  id              String     @id @default(uuid())
+  role            MemberRole @default(MEMBER)
+  splitPercentage Decimal?   @db.Decimal(5,2)
+  joinedAt        DateTime   @default(now())
 
   userId  String
   user    User   @relation(fields: [userId], references: [id])
