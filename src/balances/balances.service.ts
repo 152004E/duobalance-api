@@ -8,9 +8,7 @@ import { calculateExpenseShare } from '../common/utils/expense-share';
 
 @Injectable()
 export class BalancesService {
-  constructor(
-    private readonly prisma: PrismaService,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   async calculate(userId: string, groupId?: string) {
     const user = await this.prisma.user.findUnique({
@@ -22,8 +20,8 @@ export class BalancesService {
     }
 
     const targetGroupId = groupId
-      ? (await this.validateMembership(userId, groupId))
-      : (await this.getDefaultGroupId(userId));
+      ? await this.validateMembership(userId, groupId)
+      : await this.getDefaultGroupId(userId);
 
     const memberCount = await this.prisma.groupMember.count({
       where: { groupId: targetGroupId },

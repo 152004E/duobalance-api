@@ -28,9 +28,7 @@ describe('ExpensesController', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [ExpensesController],
-      providers: [
-        { provide: ExpensesService, useValue: mockExpensesService },
-      ],
+      providers: [{ provide: ExpensesService, useValue: mockExpensesService }],
     })
       .overrideGuard(JwtAuthGuard)
       .useValue({ canActivate: () => true })
@@ -55,7 +53,11 @@ describe('ExpensesController', () => {
         splitType: SplitType.EQUAL,
       };
 
-      const expectedResponse = { id: 'exp-1', ...dto, paidById: mockReq.user.id };
+      const expectedResponse = {
+        id: 'exp-1',
+        ...dto,
+        paidById: mockReq.user.id,
+      };
       mockExpensesService.create.mockResolvedValue(expectedResponse);
 
       const result = await controller.create(mockReq, dto);
@@ -72,7 +74,9 @@ describe('ExpensesController', () => {
         splitType: SplitType.PERSONAL,
       };
 
-      const expectedResponse = [{ id: 'exp-1', description: 'Uber', amount: 20 }];
+      const expectedResponse = [
+        { id: 'exp-1', description: 'Uber', amount: 20 },
+      ];
       mockExpensesService.findAll.mockResolvedValue(expectedResponse);
 
       const result = await controller.findAll(mockReq, query);
@@ -85,7 +89,11 @@ describe('ExpensesController', () => {
   describe('findOne', () => {
     it('should call expensesService.findOne with expense ID', async () => {
       const expenseId = 'expense-123';
-      const expectedResponse = { id: expenseId, description: 'Cena', amount: 100 };
+      const expectedResponse = {
+        id: expenseId,
+        description: 'Cena',
+        amount: 100,
+      };
       mockExpensesService.findOne.mockResolvedValue(expectedResponse);
 
       const result = await controller.findOne(mockReq, expenseId);
@@ -109,7 +117,11 @@ describe('ExpensesController', () => {
       const result = await controller.update(mockReq, expenseId, dto);
 
       expect(result).toEqual(expectedResponse);
-      expect(service.update).toHaveBeenCalledWith(mockReq.user.id, expenseId, dto);
+      expect(service.update).toHaveBeenCalledWith(
+        mockReq.user.id,
+        expenseId,
+        dto,
+      );
     });
   });
 

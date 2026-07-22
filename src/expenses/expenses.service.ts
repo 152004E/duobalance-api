@@ -11,9 +11,7 @@ import { calculateSplitsTotal } from '../common/utils/expense-share';
 
 @Injectable()
 export class ExpensesService {
-  constructor(
-    private readonly prisma: PrismaService,
-  ) { }
+  constructor(private readonly prisma: PrismaService) {}
 
   private async getGroupId(userId: string, preferredGroupId?: string) {
     if (preferredGroupId) {
@@ -37,10 +35,7 @@ export class ExpensesService {
     return membership.groupId;
   }
 
-  async create(
-    userId: string,
-    dto: CreateExpenseDto,
-  ) {
+  async create(userId: string, dto: CreateExpenseDto) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
     });
@@ -59,13 +54,13 @@ export class ExpensesService {
       }
 
       const total = calculateSplitsTotal(
-        dto.splits.map(s => ({ percentage: { toString: () => String(s.percentage) } })),
+        dto.splits.map((s) => ({
+          percentage: { toString: () => String(s.percentage) },
+        })),
       );
 
       if (total !== 100) {
-        throw new BadRequestException(
-          'PERCENTAGE splits must sum to 100',
-        );
+        throw new BadRequestException('PERCENTAGE splits must sum to 100');
       }
     }
 
@@ -79,7 +74,7 @@ export class ExpensesService {
         groupId,
         ...(dto.splits && {
           splits: {
-            create: dto.splits.map(s => ({
+            create: dto.splits.map((s) => ({
               percentage: s.percentage,
               userId: s.userId,
             })),
@@ -94,10 +89,7 @@ export class ExpensesService {
     });
   }
 
-  async findAll(
-    userId: string,
-    query?: QueryExpenseDto,
-  ) {
+  async findAll(userId: string, query?: QueryExpenseDto) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
     });
@@ -114,7 +106,10 @@ export class ExpensesService {
         deletedAt: null,
         ...(query?.category && { category: query.category }),
         ...(query?.splitType && { splitType: query.splitType }),
-        ...(query?.startDate || query?.endDate || query?.minAmount != null || query?.maxAmount != null
+        ...(query?.startDate ||
+        query?.endDate ||
+        query?.minAmount != null ||
+        query?.maxAmount != null
           ? {
               AND: [
                 ...(query?.startDate
@@ -140,10 +135,7 @@ export class ExpensesService {
     });
   }
 
-  async findOne(
-    userId: string,
-    expenseId: string,
-  ) {
+  async findOne(userId: string, expenseId: string) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
     });
@@ -170,11 +162,7 @@ export class ExpensesService {
     return expense;
   }
 
-  async update(
-    userId: string,
-    expenseId: string,
-    dto: UpdateExpenseDto,
-  ) {
+  async update(userId: string, expenseId: string, dto: UpdateExpenseDto) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
     });
@@ -207,10 +195,7 @@ export class ExpensesService {
     });
   }
 
-  async remove(
-    userId: string,
-    expenseId: string,
-  ) {
+  async remove(userId: string, expenseId: string) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
     });

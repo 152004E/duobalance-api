@@ -4,9 +4,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @Controller('balances')
 export class BalancesController {
-  constructor(
-    private readonly balancesService: BalancesService,
-  ) {}
+  constructor(private readonly balancesService: BalancesService) {}
 
   @Get()
   @UseGuards(JwtAuthGuard)

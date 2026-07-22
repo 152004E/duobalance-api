@@ -64,7 +64,10 @@ describe('AuthService', () => {
       mockUsersService.findByEmail.mockResolvedValue(null);
 
       await expect(
-        service.login({ email: 'nonexistent@example.com', password: 'password123' })
+        service.login({
+          email: 'nonexistent@example.com',
+          password: 'password123',
+        }),
       ).rejects.toThrow(UnauthorizedException);
     });
 
@@ -73,7 +76,7 @@ describe('AuthService', () => {
       (bcrypt.compare as jest.Mock).mockResolvedValue(false);
 
       await expect(
-        service.login({ email: 'test@example.com', password: 'wrongpassword' })
+        service.login({ email: 'test@example.com', password: 'wrongpassword' }),
       ).rejects.toThrow(UnauthorizedException);
     });
 
@@ -81,7 +84,9 @@ describe('AuthService', () => {
       mockUsersService.findByEmail.mockResolvedValue(mockUser);
       (bcrypt.compare as jest.Mock).mockResolvedValue(true);
       mockJwtService.sign.mockReturnValue('mock-access-token');
-      mockRefreshTokenService.createRefreshToken.mockResolvedValue('mock-refresh-token');
+      mockRefreshTokenService.createRefreshToken.mockResolvedValue(
+        'mock-refresh-token',
+      );
 
       const result = await service.login({
         email: 'test@example.com',
@@ -95,9 +100,11 @@ describe('AuthService', () => {
       });
       expect(mockJwtService.sign).toHaveBeenCalledWith(
         { id: mockUser.id, email: mockUser.email },
-        { expiresIn: '15m' }
+        { expiresIn: '15m' },
       );
-      expect(mockRefreshTokenService.createRefreshToken).toHaveBeenCalledWith(mockUser.id);
+      expect(mockRefreshTokenService.createRefreshToken).toHaveBeenCalledWith(
+        mockUser.id,
+      );
     });
   });
 
@@ -105,7 +112,9 @@ describe('AuthService', () => {
     it('should throw UnauthorizedException if refresh token is invalid, expired, or revoked', async () => {
       mockRefreshTokenService.validateRefreshToken.mockResolvedValue(null);
 
-      await expect(service.refresh('invalid-token')).rejects.toThrow(UnauthorizedException);
+      await expect(service.refresh('invalid-token')).rejects.toThrow(
+        UnauthorizedException,
+      );
     });
 
     it('should generate a new access token, a new refresh token, and revoke the old one', async () => {
@@ -117,9 +126,13 @@ describe('AuthService', () => {
         user: mockUser,
       };
 
-      mockRefreshTokenService.validateRefreshToken.mockResolvedValue(mockTokenRecord);
+      mockRefreshTokenService.validateRefreshToken.mockResolvedValue(
+        mockTokenRecord,
+      );
       mockJwtService.sign.mockReturnValue('new-access-token');
-      mockRefreshTokenService.createRefreshToken.mockResolvedValue('new-refresh-token');
+      mockRefreshTokenService.createRefreshToken.mockResolvedValue(
+        'new-refresh-token',
+      );
       mockRefreshTokenService.revokeRefreshToken.mockResolvedValue(undefined);
 
       const result = await service.refresh('old-refresh-token');
@@ -130,13 +143,19 @@ describe('AuthService', () => {
         expires_in: 900,
       });
 
-      expect(mockRefreshTokenService.validateRefreshToken).toHaveBeenCalledWith('old-refresh-token');
+      expect(mockRefreshTokenService.validateRefreshToken).toHaveBeenCalledWith(
+        'old-refresh-token',
+      );
       expect(mockJwtService.sign).toHaveBeenCalledWith(
         { id: mockUser.id, email: mockUser.email },
-        { expiresIn: '15m' }
+        { expiresIn: '15m' },
       );
-      expect(mockRefreshTokenService.createRefreshToken).toHaveBeenCalledWith(mockUser.id);
-      expect(mockRefreshTokenService.revokeRefreshToken).toHaveBeenCalledWith('old-refresh-token');
+      expect(mockRefreshTokenService.createRefreshToken).toHaveBeenCalledWith(
+        mockUser.id,
+      );
+      expect(mockRefreshTokenService.revokeRefreshToken).toHaveBeenCalledWith(
+        'old-refresh-token',
+      );
     });
   });
 
@@ -147,7 +166,9 @@ describe('AuthService', () => {
       const result = await service.logout('refresh-token-to-revoke');
 
       expect(result).toEqual({ success: true });
-      expect(mockRefreshTokenService.revokeRefreshToken).toHaveBeenCalledWith('refresh-token-to-revoke');
+      expect(mockRefreshTokenService.revokeRefreshToken).toHaveBeenCalledWith(
+        'refresh-token-to-revoke',
+      );
     });
   });
 });

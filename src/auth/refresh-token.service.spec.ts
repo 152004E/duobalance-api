@@ -59,7 +59,7 @@ describe('RefreshTokenService', () => {
       expect(plainToken).toBeDefined();
       expect(plainToken).toHaveLength(64); // 32 bytes to hex = 64 characters
       expect(mockPrismaService.refreshToken.create).toHaveBeenCalled();
-      
+
       const callArgs = mockPrismaService.refreshToken.create.mock.calls[0][0];
       expect(callArgs.data.userId).toEqual('user-uuid');
       expect(callArgs.data.tokenHash).toEqual(service.hashToken(plainToken));
@@ -126,8 +126,11 @@ describe('RefreshTokenService', () => {
       await service.revokeRefreshToken('token-to-delete');
 
       expect(mockPrismaService.refreshToken.deleteMany).toHaveBeenCalled();
-      const callArgs = mockPrismaService.refreshToken.deleteMany.mock.calls[0][0];
-      expect(callArgs.where.tokenHash).toEqual(service.hashToken('token-to-delete'));
+      const callArgs =
+        mockPrismaService.refreshToken.deleteMany.mock.calls[0][0];
+      expect(callArgs.where.tokenHash).toEqual(
+        service.hashToken('token-to-delete'),
+      );
     });
   });
 });

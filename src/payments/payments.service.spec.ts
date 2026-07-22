@@ -88,7 +88,9 @@ describe('PaymentsService', () => {
 
     it('should throw BadRequestException if user tries to pay themselves', async () => {
       mockPrismaService.user.findUnique.mockResolvedValue(mockUser);
-      mockPrismaService.groupMember.findFirst.mockResolvedValue(mockGroupMember);
+      mockPrismaService.groupMember.findFirst.mockResolvedValue(
+        mockGroupMember,
+      );
 
       await expect(
         service.create('user-1', { amount: 100, toUserId: 'user-1' }),
@@ -100,8 +102,12 @@ describe('PaymentsService', () => {
         if (where.id === 'user-1') return Promise.resolve(mockUser);
         return Promise.resolve(null);
       });
-      mockPrismaService.groupMember.findFirst.mockResolvedValue(mockGroupMember);
-      mockPrismaService.groupMember.findUnique.mockResolvedValue(mockGroupMember);
+      mockPrismaService.groupMember.findFirst.mockResolvedValue(
+        mockGroupMember,
+      );
+      mockPrismaService.groupMember.findUnique.mockResolvedValue(
+        mockGroupMember,
+      );
 
       await expect(
         service.create('user-1', { amount: 100, toUserId: 'user-999' }),
@@ -114,7 +120,9 @@ describe('PaymentsService', () => {
         if (where.id === 'user-2') return Promise.resolve(mockPartner);
         return Promise.resolve(null);
       });
-      mockPrismaService.groupMember.findFirst.mockResolvedValue(mockGroupMember);
+      mockPrismaService.groupMember.findFirst.mockResolvedValue(
+        mockGroupMember,
+      );
       mockPrismaService.groupMember.findUnique
         .mockResolvedValueOnce(mockGroupMember)
         .mockResolvedValueOnce(null);
@@ -138,13 +146,18 @@ describe('PaymentsService', () => {
         if (where.id === 'user-2') return Promise.resolve(mockPartner);
         return Promise.resolve(null);
       });
-      mockPrismaService.groupMember.findFirst.mockResolvedValue(mockGroupMember);
+      mockPrismaService.groupMember.findFirst.mockResolvedValue(
+        mockGroupMember,
+      );
       mockPrismaService.groupMember.findUnique
         .mockResolvedValueOnce(mockGroupMember)
         .mockResolvedValueOnce(mockPartnerGroupMember);
       mockPrismaService.payment.create.mockResolvedValue(mockPayment);
 
-      const result = await service.create('user-1', { amount: 100, toUserId: 'user-2' });
+      const result = await service.create('user-1', {
+        amount: 100,
+        toUserId: 'user-2',
+      });
 
       expect(result).toEqual(mockPayment);
       expect(mockPrismaService.payment.create).toHaveBeenCalledWith({
@@ -160,7 +173,9 @@ describe('PaymentsService', () => {
 
   describe('findAll', () => {
     it('should throw NotFoundException if user is not found', async () => {
-      mockPrismaService.user.findUnique.mockImplementation(() => Promise.resolve(null));
+      mockPrismaService.user.findUnique.mockImplementation(() =>
+        Promise.resolve(null),
+      );
 
       await expect(service.findAll('nonexistent')).rejects.toThrow(
         NotFoundException,
@@ -171,17 +186,31 @@ describe('PaymentsService', () => {
       mockPrismaService.user.findUnique.mockResolvedValue(mockUser);
       mockPrismaService.groupMember.findFirst.mockResolvedValue(null);
 
-      await expect(service.findAll('user-1')).rejects.toThrow(BadRequestException);
+      await expect(service.findAll('user-1')).rejects.toThrow(
+        BadRequestException,
+      );
     });
 
     it('should return payments for the group ordered by createdAt desc', async () => {
       const mockPayments = [
-        { id: 'p-2', amount: 200, fromUser: { id: 'user-2', firstName: 'Maria', lastName: 'Lopez' }, toUser: { id: 'user-1', firstName: 'Juan', lastName: 'Perez' } },
-        { id: 'p-1', amount: 100, fromUser: { id: 'user-1', firstName: 'Juan', lastName: 'Perez' }, toUser: { id: 'user-2', firstName: 'Maria', lastName: 'Lopez' } },
+        {
+          id: 'p-2',
+          amount: 200,
+          fromUser: { id: 'user-2', firstName: 'Maria', lastName: 'Lopez' },
+          toUser: { id: 'user-1', firstName: 'Juan', lastName: 'Perez' },
+        },
+        {
+          id: 'p-1',
+          amount: 100,
+          fromUser: { id: 'user-1', firstName: 'Juan', lastName: 'Perez' },
+          toUser: { id: 'user-2', firstName: 'Maria', lastName: 'Lopez' },
+        },
       ];
 
       mockPrismaService.user.findUnique.mockResolvedValue(mockUser);
-      mockPrismaService.groupMember.findFirst.mockResolvedValue(mockGroupMember);
+      mockPrismaService.groupMember.findFirst.mockResolvedValue(
+        mockGroupMember,
+      );
       mockPrismaService.payment.findMany.mockResolvedValue(mockPayments);
 
       const result = await service.findAll('user-1');

@@ -9,9 +9,7 @@ import { CreatePaymentDto } from './dto/create-payment.dto';
 
 @Injectable()
 export class PaymentsService {
-  constructor(
-    private readonly prisma: PrismaService,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   private async getDefaultGroupId(userId: string) {
     const membership = await this.prisma.groupMember.findFirst({
@@ -19,9 +17,7 @@ export class PaymentsService {
     });
 
     if (!membership) {
-      throw new BadRequestException(
-        'User does not belong to any group',
-      );
+      throw new BadRequestException('User does not belong to any group');
     }
 
     return membership.groupId;
@@ -43,15 +39,11 @@ export class PaymentsService {
     });
 
     if (!membership) {
-      throw new BadRequestException(
-        'User is not a member of this group',
-      );
+      throw new BadRequestException('User is not a member of this group');
     }
 
     if (dto.toUserId === userId) {
-      throw new BadRequestException(
-        'Cannot pay yourself',
-      );
+      throw new BadRequestException('Cannot pay yourself');
     }
 
     const toUser = await this.prisma.user.findUnique({
@@ -67,9 +59,7 @@ export class PaymentsService {
     });
 
     if (!recipientMembership) {
-      throw new ForbiddenException(
-        'Recipient is not in your group',
-      );
+      throw new ForbiddenException('Recipient is not in your group');
     }
 
     return this.prisma.payment.create({

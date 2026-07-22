@@ -24,7 +24,7 @@ export class DashboardService {
       throw new NotFoundException('User not found');
     }
 
-    const targetGroupId = groupId ?? await this.getDefaultGroupId(userId);
+    const targetGroupId = groupId ?? (await this.getDefaultGroupId(userId));
 
     const membership = await this.prisma.groupMember.findUnique({
       where: { userId_groupId: { userId, groupId: targetGroupId } },
@@ -36,11 +36,7 @@ export class DashboardService {
 
     const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-    const startOfLastMonth = new Date(
-      now.getFullYear(),
-      now.getMonth() - 1,
-      1,
-    );
+    const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
     const endOfLastMonth = new Date(
       now.getFullYear(),
       now.getMonth(),
@@ -53,7 +49,10 @@ export class DashboardService {
 
     const balance = await this.balancesService.calculate(userId, targetGroupId);
 
-    const settlement = await this.settlementsService.calculate(userId, targetGroupId);
+    const settlement = await this.settlementsService.calculate(
+      userId,
+      targetGroupId,
+    );
 
     const monthExpenses = await this.prisma.expense.findMany({
       where: {
@@ -91,7 +90,10 @@ export class DashboardService {
     const categoryMap = new Map<string, number>();
     for (const expense of monthExpenses) {
       const cat = expense.category;
-      categoryMap.set(cat, (categoryMap.get(cat) || 0) + Number(expense.amount));
+      categoryMap.set(
+        cat,
+        (categoryMap.get(cat) || 0) + Number(expense.amount),
+      );
     }
 
     const expensesByCategory = Array.from(categoryMap.entries())
@@ -99,18 +101,23 @@ export class DashboardService {
       .sort((a, b) => b.amount - a.amount)
       .slice(0, 5);
 
-    const topCategory = expensesByCategory.length > 0
-      ? { name: expensesByCategory[0].category, amount: expensesByCategory[0].amount }
-      : null;
+    const topCategory =
+      expensesByCategory.length > 0
+        ? {
+            name: expensesByCategory[0].category,
+            amount: expensesByCategory[0].amount,
+          }
+        : null;
 
-    const lastExpense = monthExpenses.length > 0
-      ? {
-          id: monthExpenses[monthExpenses.length - 1].id,
-          description: monthExpenses[monthExpenses.length - 1].description,
-          amount: Number(monthExpenses[monthExpenses.length - 1].amount),
-          createdAt: monthExpenses[monthExpenses.length - 1].createdAt,
-        }
-      : null;
+    const lastExpense =
+      monthExpenses.length > 0
+        ? {
+            id: monthExpenses[monthExpenses.length - 1].id,
+            description: monthExpenses[monthExpenses.length - 1].description,
+            amount: Number(monthExpenses[monthExpenses.length - 1].amount),
+            createdAt: monthExpenses[monthExpenses.length - 1].createdAt,
+          }
+        : null;
 
     const monthPayments = await this.prisma.payment.findMany({
       where: {

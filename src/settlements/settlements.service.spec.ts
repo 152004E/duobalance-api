@@ -56,9 +56,7 @@ describe('SettlementsService', () => {
     it('should throw NotFoundException when user does not exist', async () => {
       mockPrisma.user.findUnique.mockResolvedValue(null);
 
-      await expect(service.suggest(userId)).rejects.toThrow(
-        NotFoundException,
-      );
+      await expect(service.suggest(userId)).rejects.toThrow(NotFoundException);
     });
 
     it('should throw BadRequestException when user has no group', async () => {
@@ -80,7 +78,7 @@ describe('SettlementsService', () => {
 
       expect(result.group.id).toBe(groupId);
       expect(result.members).toHaveLength(2);
-      expect(result.members.every(m => m.balance === 0)).toBe(true);
+      expect(result.members.every((m) => m.balance === 0)).toBe(true);
       expect(result.suggestions).toHaveLength(0);
     });
 
@@ -96,15 +94,17 @@ describe('SettlementsService', () => {
       const result = await service.suggest(userId);
 
       expect(result.members).toHaveLength(2);
-      expect(result.members.find(m => m.user.id === userId)?.balance).toBe(50);
-      expect(result.members.find(m => m.user.id === partnerId)?.balance).toBe(-50);
+      expect(result.members.find((m) => m.user.id === userId)?.balance).toBe(
+        50,
+      );
+      expect(result.members.find((m) => m.user.id === partnerId)?.balance).toBe(
+        -50,
+      );
       expect(result.suggestions).toHaveLength(1);
       expect(result.suggestions[0].from.id).toBe(partnerId);
       expect(result.suggestions[0].to.id).toBe(userId);
       expect(result.suggestions[0].amount).toBe(50);
     });
-
-
 
     it('should return empty suggestions when already settled', async () => {
       mockPrisma.user.findUnique.mockResolvedValue(baseUser);
@@ -132,7 +132,11 @@ describe('SettlementsService', () => {
       };
 
       mockPrisma.user.findUnique.mockResolvedValue({ id: 'u1' });
-      mockPrisma.groupMember.findFirst.mockResolvedValue({ userId: 'u1', groupId: 'group-3', role: 'OWNER' });
+      mockPrisma.groupMember.findFirst.mockResolvedValue({
+        userId: 'u1',
+        groupId: 'group-3',
+        role: 'OWNER',
+      });
       mockPrisma.group.findUnique.mockResolvedValue(group3);
       mockPrisma.expense.findMany.mockResolvedValue([
         { paidById: 'u1', amount: 300, splitType: 'EQUAL', splits: [] },
@@ -141,9 +145,13 @@ describe('SettlementsService', () => {
       const result = await service.suggest('u1');
 
       expect(result.members).toHaveLength(3);
-      expect(result.members.find(m => m.user.id === 'u1')?.balance).toBe(200);
-      expect(result.members.find(m => m.user.id === 'u2')?.balance).toBe(-100);
-      expect(result.members.find(m => m.user.id === 'u3')?.balance).toBe(-100);
+      expect(result.members.find((m) => m.user.id === 'u1')?.balance).toBe(200);
+      expect(result.members.find((m) => m.user.id === 'u2')?.balance).toBe(
+        -100,
+      );
+      expect(result.members.find((m) => m.user.id === 'u3')?.balance).toBe(
+        -100,
+      );
 
       expect(result.suggestions).toHaveLength(2);
       expect(result.suggestions[0].amount).toBe(100);
@@ -168,8 +176,12 @@ describe('SettlementsService', () => {
 
       const result = await service.suggest(userId);
 
-      expect(result.members.find(m => m.user.id === userId)?.balance).toBe(30);
-      expect(result.members.find(m => m.user.id === partnerId)?.balance).toBe(-30);
+      expect(result.members.find((m) => m.user.id === userId)?.balance).toBe(
+        30,
+      );
+      expect(result.members.find((m) => m.user.id === partnerId)?.balance).toBe(
+        -30,
+      );
       expect(result.suggestions).toHaveLength(1);
       expect(result.suggestions[0].amount).toBe(30);
     });

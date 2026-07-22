@@ -60,8 +60,16 @@ describe('DashboardService', () => {
 
     it('should return empty dashboard when no data exists', async () => {
       mockPrisma.user.findUnique.mockResolvedValue({ id: userId });
-      mockPrisma.groupMember.findFirst.mockResolvedValue({ userId, groupId, role: 'OWNER' });
-      mockPrisma.groupMember.findUnique.mockResolvedValue({ userId, groupId, role: 'OWNER' });
+      mockPrisma.groupMember.findFirst.mockResolvedValue({
+        userId,
+        groupId,
+        role: 'OWNER',
+      });
+      mockPrisma.groupMember.findUnique.mockResolvedValue({
+        userId,
+        groupId,
+        role: 'OWNER',
+      });
       mockBalancesService.calculate.mockResolvedValue({
         balance: 0,
         direction: 'SETTLED',
@@ -98,8 +106,16 @@ describe('DashboardService', () => {
 
     it('should return dashboard with expenses', async () => {
       mockPrisma.user.findUnique.mockResolvedValue({ id: userId });
-      mockPrisma.groupMember.findFirst.mockResolvedValue({ userId, groupId, role: 'OWNER' });
-      mockPrisma.groupMember.findUnique.mockResolvedValue({ userId, groupId, role: 'OWNER' });
+      mockPrisma.groupMember.findFirst.mockResolvedValue({
+        userId,
+        groupId,
+        role: 'OWNER',
+      });
+      mockPrisma.groupMember.findUnique.mockResolvedValue({
+        userId,
+        groupId,
+        role: 'OWNER',
+      });
       mockBalancesService.calculate.mockResolvedValue({
         balance: 50,
         direction: 'OWED_TO_ME',
@@ -139,7 +155,10 @@ describe('DashboardService', () => {
       expect(result.monthExpenses).toBe(300);
       expect(result.expenseCount).toBe(2);
       expect(result.balance).toEqual({ amount: 50, direction: 'OWED_TO_ME' });
-      expect(result.settlement).toEqual({ amount: 20, direction: 'OWED_TO_ME' });
+      expect(result.settlement).toEqual({
+        amount: 20,
+        direction: 'OWED_TO_ME',
+      });
       expect(result.topCategory).toEqual({ name: 'FOOD', amount: 200 });
       expect(result.expensesByCategory).toHaveLength(2);
       expect(result.lastExpense).toBeTruthy();
@@ -147,8 +166,16 @@ describe('DashboardService', () => {
 
     it('should return dashboard with payments', async () => {
       mockPrisma.user.findUnique.mockResolvedValue({ id: userId });
-      mockPrisma.groupMember.findFirst.mockResolvedValue({ userId, groupId, role: 'OWNER' });
-      mockPrisma.groupMember.findUnique.mockResolvedValue({ userId, groupId, role: 'OWNER' });
+      mockPrisma.groupMember.findFirst.mockResolvedValue({
+        userId,
+        groupId,
+        role: 'OWNER',
+      });
+      mockPrisma.groupMember.findUnique.mockResolvedValue({
+        userId,
+        groupId,
+        role: 'OWNER',
+      });
       mockBalancesService.calculate.mockResolvedValue({
         balance: 0,
         direction: 'SETTLED',
@@ -170,11 +197,23 @@ describe('DashboardService', () => {
 
     it('should calculate monthly comparison', async () => {
       const now = new Date();
-      const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+      const startOfLastMonth = new Date(
+        now.getFullYear(),
+        now.getMonth() - 1,
+        1,
+      );
 
       mockPrisma.user.findUnique.mockResolvedValue({ id: userId });
-      mockPrisma.groupMember.findFirst.mockResolvedValue({ userId, groupId, role: 'OWNER' });
-      mockPrisma.groupMember.findUnique.mockResolvedValue({ userId, groupId, role: 'OWNER' });
+      mockPrisma.groupMember.findFirst.mockResolvedValue({
+        userId,
+        groupId,
+        role: 'OWNER',
+      });
+      mockPrisma.groupMember.findUnique.mockResolvedValue({
+        userId,
+        groupId,
+        role: 'OWNER',
+      });
       mockBalancesService.calculate.mockResolvedValue({
         balance: 0,
         direction: 'SETTLED',
@@ -186,10 +225,24 @@ describe('DashboardService', () => {
 
       mockPrisma.expense.findMany
         .mockResolvedValueOnce([
-          { amount: 300, category: 'FOOD', id: 'e1', description: 'X', createdAt: new Date(), splitType: 'EQUAL' },
+          {
+            amount: 300,
+            category: 'FOOD',
+            id: 'e1',
+            description: 'X',
+            createdAt: new Date(),
+            splitType: 'EQUAL',
+          },
         ])
         .mockResolvedValueOnce([
-          { amount: 200, category: 'FOOD', id: 'e2', description: 'Y', createdAt: new Date(startOfLastMonth), splitType: 'EQUAL' },
+          {
+            amount: 200,
+            category: 'FOOD',
+            id: 'e2',
+            description: 'Y',
+            createdAt: new Date(startOfLastMonth),
+            splitType: 'EQUAL',
+          },
         ]);
 
       mockPrisma.payment.findMany.mockResolvedValue([]);
@@ -206,8 +259,16 @@ describe('DashboardService', () => {
 
     it('should set percentageChange to null when previous month is 0', async () => {
       mockPrisma.user.findUnique.mockResolvedValue({ id: userId });
-      mockPrisma.groupMember.findFirst.mockResolvedValue({ userId, groupId, role: 'OWNER' });
-      mockPrisma.groupMember.findUnique.mockResolvedValue({ userId, groupId, role: 'OWNER' });
+      mockPrisma.groupMember.findFirst.mockResolvedValue({
+        userId,
+        groupId,
+        role: 'OWNER',
+      });
+      mockPrisma.groupMember.findUnique.mockResolvedValue({
+        userId,
+        groupId,
+        role: 'OWNER',
+      });
       mockBalancesService.calculate.mockResolvedValue({
         balance: 0,
         direction: 'SETTLED',
@@ -218,7 +279,14 @@ describe('DashboardService', () => {
       });
       mockPrisma.expense.findMany
         .mockResolvedValueOnce([
-          { amount: 300, category: 'FOOD', id: 'e1', description: 'X', createdAt: new Date(), splitType: 'EQUAL' },
+          {
+            amount: 300,
+            category: 'FOOD',
+            id: 'e1',
+            description: 'X',
+            createdAt: new Date(),
+            splitType: 'EQUAL',
+          },
         ])
         .mockResolvedValueOnce([]);
       mockPrisma.payment.findMany.mockResolvedValue([]);

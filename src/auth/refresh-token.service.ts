@@ -21,7 +21,7 @@ export class RefreshTokenService {
   async createRefreshToken(userId: string): Promise<string> {
     const plainToken = crypto.randomBytes(32).toString('hex');
     const tokenHash = this.hashToken(plainToken);
-    
+
     // Expires in 7 days
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + 7);

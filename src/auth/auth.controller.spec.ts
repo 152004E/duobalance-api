@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
+import { UsersService } from '../users/users.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
@@ -16,11 +17,16 @@ describe('AuthController', () => {
     logout: jest.fn(),
   };
 
+  const mockUsersService = {
+    findById: jest.fn(),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [AuthController],
       providers: [
         { provide: AuthService, useValue: mockAuthService },
+        { provide: UsersService, useValue: mockUsersService },
       ],
     }).compile();
 
@@ -36,19 +42,37 @@ describe('AuthController', () => {
 
   describe('register', () => {
     it('should call authService.register', async () => {
-      const dto: RegisterDto = { firstName: 'John', lastName: 'Doe', email: 'test@example.com', password: 'password123' };
-      mockAuthService.register.mockResolvedValue({ id: 'uuid', firstName: 'John', lastName: 'Doe', email: 'test@example.com' });
+      const dto: RegisterDto = {
+        firstName: 'John',
+        lastName: 'Doe',
+        email: 'test@example.com',
+        password: 'password123',
+      };
+      mockAuthService.register.mockResolvedValue({
+        id: 'uuid',
+        firstName: 'John',
+        lastName: 'Doe',
+        email: 'test@example.com',
+      });
 
       const result = await controller.register(dto);
 
-      expect(result).toEqual({ id: 'uuid', firstName: 'John', lastName: 'Doe', email: 'test@example.com' });
+      expect(result).toEqual({
+        id: 'uuid',
+        firstName: 'John',
+        lastName: 'Doe',
+        email: 'test@example.com',
+      });
       expect(service.register).toHaveBeenCalledWith(dto);
     });
   });
 
   describe('login', () => {
     it('should call authService.login and return token credentials', async () => {
-      const dto: LoginDto = { email: 'test@example.com', password: 'password123' };
+      const dto: LoginDto = {
+        email: 'test@example.com',
+        password: 'password123',
+      };
       const expectedResponse = {
         access_token: 'mock-access-token',
         refresh_token: 'mock-refresh-token',
@@ -93,10 +117,35 @@ describe('AuthController', () => {
   });
 
   describe('profile', () => {
-    it('should return req.user', () => {
-      const mockReq = { user: { id: 'uuid', email: 'test@example.com' } };
-      const result = controller.profile(mockReq);
-      expect(result).toEqual(mockReq.user);
+    it('should return user without password', async () => {
+      const mockReq = { user: { id: 'uuid' } };
+      const dbUser = {
+        id: 'uuid',
+        firstName: 'John',
+        lastName: 'Doe',
+        email: 'test@example.com',
+        password: 'hashed',
+        createdAt: new Date('2024-01-01'),
+      };
+      mockUsersService.findById.mockResolvedValue(dbUser);
+
+      const result = await controller.profile(mockReq);
+
+      expect(result).toEqual({
+        id: 'uuid',
+        firstName: 'John',
+        lastName: 'Doe',
+        email: 'test@example.com',
+        createdAt: dbUser.createdAt,
+      });
+      expect(mockUsersService.findById).toHaveBeenCalledWith('uuid');
+    });
+
+    it('should throw NotFoundException when user does not exist', async () => {
+      const mockReq = { user: { id: 'nonexistent' } };
+      mockUsersService.findById.mockResolvedValue(null);
+
+      await expect(controller.profile(mockReq)).rejects.toThrow();
     });
   });
 });

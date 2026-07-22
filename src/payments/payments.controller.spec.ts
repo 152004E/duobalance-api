@@ -18,9 +18,7 @@ describe('PaymentsController', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [PaymentsController],
-      providers: [
-        { provide: PaymentsService, useValue: mockPaymentsService },
-      ],
+      providers: [{ provide: PaymentsService, useValue: mockPaymentsService }],
     })
       .overrideGuard(JwtAuthGuard)
       .useValue({ canActivate: () => true })
@@ -58,7 +56,16 @@ describe('PaymentsController', () => {
   describe('findAll', () => {
     it('should call paymentsService.findAll with user id', async () => {
       const expectedResponse = [
-        { id: 'p-1', amount: 50, fromUser: { id: mockReq.user.id, firstName: 'Juan', lastName: 'Perez' }, toUser: { id: 'user-2', firstName: 'Maria', lastName: 'Lopez' } },
+        {
+          id: 'p-1',
+          amount: 50,
+          fromUser: {
+            id: mockReq.user.id,
+            firstName: 'Juan',
+            lastName: 'Perez',
+          },
+          toUser: { id: 'user-2', firstName: 'Maria', lastName: 'Lopez' },
+        },
       ];
       mockPaymentsService.findAll.mockResolvedValue(expectedResponse);
 

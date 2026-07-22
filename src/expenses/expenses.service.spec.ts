@@ -89,7 +89,9 @@ describe('ExpensesService', () => {
 
     it('should throw BadRequestException if splitType is PERCENTAGE but splits are missing or not exactly 2', async () => {
       mockPrismaService.user.findUnique.mockResolvedValue(mockUser);
-      mockPrismaService.groupMember.findFirst.mockResolvedValue(mockGroupMember);
+      mockPrismaService.groupMember.findFirst.mockResolvedValue(
+        mockGroupMember,
+      );
 
       await expect(
         service.create(userId, {
@@ -114,7 +116,9 @@ describe('ExpensesService', () => {
 
     it('should throw BadRequestException if splitType is PERCENTAGE and splits do not sum to 100', async () => {
       mockPrismaService.user.findUnique.mockResolvedValue(mockUser);
-      mockPrismaService.groupMember.findFirst.mockResolvedValue(mockGroupMember);
+      mockPrismaService.groupMember.findFirst.mockResolvedValue(
+        mockGroupMember,
+      );
 
       await expect(
         service.create(userId, {
@@ -150,7 +154,9 @@ describe('ExpensesService', () => {
       };
 
       mockPrismaService.user.findUnique.mockResolvedValue(mockUser);
-      mockPrismaService.groupMember.findFirst.mockResolvedValue(mockGroupMember);
+      mockPrismaService.groupMember.findFirst.mockResolvedValue(
+        mockGroupMember,
+      );
       mockPrismaService.expense.create.mockResolvedValue(createdExpense);
       mockPrismaService.expense.findUnique.mockResolvedValue(createdExpense);
 
@@ -189,11 +195,13 @@ describe('ExpensesService', () => {
         splitType: dto.splitType,
         paidById: userId,
         groupId,
-        splits: dto.splits.map(s => ({ ...s, id: 'split-id' })),
+        splits: dto.splits.map((s) => ({ ...s, id: 'split-id' })),
       };
 
       mockPrismaService.user.findUnique.mockResolvedValue(mockUser);
-      mockPrismaService.groupMember.findFirst.mockResolvedValue(mockGroupMember);
+      mockPrismaService.groupMember.findFirst.mockResolvedValue(
+        mockGroupMember,
+      );
       mockPrismaService.expense.create.mockResolvedValue(createdExpense);
       mockPrismaService.expense.findUnique.mockResolvedValue(createdExpense);
 
@@ -209,7 +217,7 @@ describe('ExpensesService', () => {
           paidById: userId,
           groupId,
           splits: {
-            create: dto.splits.map(s => ({
+            create: dto.splits.map((s) => ({
               percentage: s.percentage,
               userId: s.userId,
             })),
@@ -223,14 +231,18 @@ describe('ExpensesService', () => {
     it('should throw NotFoundException if user is not found', async () => {
       mockPrismaService.user.findUnique.mockResolvedValue(null);
 
-      await expect(service.findAll('nonexistent-id')).rejects.toThrow(NotFoundException);
+      await expect(service.findAll('nonexistent-id')).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
     it('should throw BadRequestException if user is not in a group', async () => {
       mockPrismaService.user.findUnique.mockResolvedValue(mockUser);
       mockPrismaService.groupMember.findFirst.mockResolvedValue(null);
 
-      await expect(service.findAll(userId)).rejects.toThrow(BadRequestException);
+      await expect(service.findAll(userId)).rejects.toThrow(
+        BadRequestException,
+      );
     });
 
     it('should retrieve group expenses and filter by query params', async () => {
@@ -257,7 +269,9 @@ describe('ExpensesService', () => {
       ];
 
       mockPrismaService.user.findUnique.mockResolvedValue(mockUser);
-      mockPrismaService.groupMember.findFirst.mockResolvedValue(mockGroupMember);
+      mockPrismaService.groupMember.findFirst.mockResolvedValue(
+        mockGroupMember,
+      );
       mockPrismaService.expense.findMany.mockResolvedValue(mockExpenses);
 
       const result = await service.findAll(userId, query);
@@ -286,22 +300,30 @@ describe('ExpensesService', () => {
     it('should throw NotFoundException if user is not found', async () => {
       mockPrismaService.user.findUnique.mockResolvedValue(null);
 
-      await expect(service.findOne('nonexistent-id', 'exp-id')).rejects.toThrow(NotFoundException);
+      await expect(service.findOne('nonexistent-id', 'exp-id')).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
     it('should throw BadRequestException if user is not in a group', async () => {
       mockPrismaService.user.findUnique.mockResolvedValue(mockUser);
       mockPrismaService.groupMember.findFirst.mockResolvedValue(null);
 
-      await expect(service.findOne(userId, 'exp-id')).rejects.toThrow(BadRequestException);
+      await expect(service.findOne(userId, 'exp-id')).rejects.toThrow(
+        BadRequestException,
+      );
     });
 
     it('should throw NotFoundException if expense is not found or belongs to another group', async () => {
       mockPrismaService.user.findUnique.mockResolvedValue(mockUser);
-      mockPrismaService.groupMember.findFirst.mockResolvedValue(mockGroupMember);
+      mockPrismaService.groupMember.findFirst.mockResolvedValue(
+        mockGroupMember,
+      );
       mockPrismaService.expense.findFirst.mockResolvedValue(null);
 
-      await expect(service.findOne(userId, 'other-group-exp')).rejects.toThrow(NotFoundException);
+      await expect(service.findOne(userId, 'other-group-exp')).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
     it('should return expense when found and belonging to the user group', async () => {
@@ -315,7 +337,9 @@ describe('ExpensesService', () => {
       };
 
       mockPrismaService.user.findUnique.mockResolvedValue(mockUser);
-      mockPrismaService.groupMember.findFirst.mockResolvedValue(mockGroupMember);
+      mockPrismaService.groupMember.findFirst.mockResolvedValue(
+        mockGroupMember,
+      );
       mockPrismaService.expense.findFirst.mockResolvedValue(mockExpense);
 
       const result = await service.findOne(userId, 'exp-uuid');
@@ -337,7 +361,9 @@ describe('ExpensesService', () => {
       mockPrismaService.user.findUnique.mockResolvedValue(null);
 
       await expect(
-        service.update('nonexistent-id', 'exp-id', { description: 'New description' }),
+        service.update('nonexistent-id', 'exp-id', {
+          description: 'New description',
+        }),
       ).rejects.toThrow(NotFoundException);
     });
 
@@ -352,7 +378,9 @@ describe('ExpensesService', () => {
 
     it('should throw NotFoundException if expense is not found or belongs to another group', async () => {
       mockPrismaService.user.findUnique.mockResolvedValue(mockUser);
-      mockPrismaService.groupMember.findFirst.mockResolvedValue(mockGroupMember);
+      mockPrismaService.groupMember.findFirst.mockResolvedValue(
+        mockGroupMember,
+      );
       mockPrismaService.expense.findFirst.mockResolvedValue(null);
 
       await expect(
@@ -375,7 +403,9 @@ describe('ExpensesService', () => {
       };
 
       mockPrismaService.user.findUnique.mockResolvedValue(mockUser);
-      mockPrismaService.groupMember.findFirst.mockResolvedValue(mockGroupMember);
+      mockPrismaService.groupMember.findFirst.mockResolvedValue(
+        mockGroupMember,
+      );
       mockPrismaService.expense.findFirst.mockResolvedValue(mockExpense);
       mockPrismaService.expense.update.mockResolvedValue({
         ...mockExpense,
@@ -397,22 +427,30 @@ describe('ExpensesService', () => {
     it('should throw NotFoundException if user is not found', async () => {
       mockPrismaService.user.findUnique.mockResolvedValue(null);
 
-      await expect(service.remove('nonexistent-id', 'exp-id')).rejects.toThrow(NotFoundException);
+      await expect(service.remove('nonexistent-id', 'exp-id')).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
     it('should throw BadRequestException if user has no group', async () => {
       mockPrismaService.user.findUnique.mockResolvedValue(mockUser);
       mockPrismaService.groupMember.findFirst.mockResolvedValue(null);
 
-      await expect(service.remove(userId, 'exp-id')).rejects.toThrow(BadRequestException);
+      await expect(service.remove(userId, 'exp-id')).rejects.toThrow(
+        BadRequestException,
+      );
     });
 
     it('should throw NotFoundException if expense is not found or belongs to another group', async () => {
       mockPrismaService.user.findUnique.mockResolvedValue(mockUser);
-      mockPrismaService.groupMember.findFirst.mockResolvedValue(mockGroupMember);
+      mockPrismaService.groupMember.findFirst.mockResolvedValue(
+        mockGroupMember,
+      );
       mockPrismaService.expense.findFirst.mockResolvedValue(null);
 
-      await expect(service.remove(userId, 'exp-id')).rejects.toThrow(NotFoundException);
+      await expect(service.remove(userId, 'exp-id')).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
     it('should perform soft-delete by setting deletedAt', async () => {
@@ -425,7 +463,9 @@ describe('ExpensesService', () => {
       };
 
       mockPrismaService.user.findUnique.mockResolvedValue(mockUser);
-      mockPrismaService.groupMember.findFirst.mockResolvedValue(mockGroupMember);
+      mockPrismaService.groupMember.findFirst.mockResolvedValue(
+        mockGroupMember,
+      );
       mockPrismaService.expense.findFirst.mockResolvedValue(mockExpense);
       mockPrismaService.expense.update.mockResolvedValue({
         ...mockExpense,

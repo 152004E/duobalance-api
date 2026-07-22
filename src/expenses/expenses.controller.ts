@@ -19,65 +19,31 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @Controller('expenses')
 export class ExpensesController {
-  constructor(
-    private readonly expensesService: ExpensesService,
-  ) { }
+  constructor(private readonly expensesService: ExpensesService) {}
 
   @Post()
   @UseGuards(JwtAuthGuard)
-  create(
-    @Req() req,
-    @Body() dto: CreateExpenseDto,
-  ) {
-    return this.expensesService.create(
-      req.user.id,
-      dto,
-    );
+  create(@Req() req, @Body() dto: CreateExpenseDto) {
+    return this.expensesService.create(req.user.id, dto);
   }
   @Get()
   @UseGuards(JwtAuthGuard)
-  findAll(
-    @Req() req,
-    @Query() query: QueryExpenseDto,
-  ) {
-    return this.expensesService.findAll(
-      req.user.id,
-      query,
-    );
+  findAll(@Req() req, @Query() query: QueryExpenseDto) {
+    return this.expensesService.findAll(req.user.id, query);
   }
   @Get(':id')
   @UseGuards(JwtAuthGuard)
-  findOne(
-    @Req() req,
-    @Param('id') id: string,
-  ) {
-    return this.expensesService.findOne(
-      req.user.id,
-      id,
-    );
+  findOne(@Req() req, @Param('id') id: string) {
+    return this.expensesService.findOne(req.user.id, id);
   }
   @Patch(':id')
   @UseGuards(JwtAuthGuard)
-  update(
-    @Req() req,
-    @Param('id') id: string,
-    @Body() dto: UpdateExpenseDto,
-  ) {
-    return this.expensesService.update(
-      req.user.id,
-      id,
-      dto,
-    );
+  update(@Req() req, @Param('id') id: string, @Body() dto: UpdateExpenseDto) {
+    return this.expensesService.update(req.user.id, id, dto);
   }
   @Delete(':id')
   @UseGuards(JwtAuthGuard)
-  remove(
-    @Req() req,
-    @Param('id') id: string,
-  ) {
-    return this.expensesService.remove(
-      req.user.id,
-      id,
-    );
+  remove(@Req() req, @Param('id') id: string) {
+    return this.expensesService.remove(req.user.id, id);
   }
 }

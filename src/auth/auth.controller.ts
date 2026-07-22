@@ -1,4 +1,17 @@
-import { Body, Controller, Get, Post, Patch, Req, UseGuards, HttpCode, HttpStatus, UseInterceptors, UploadedFile } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Post,
+  Patch,
+  Req,
+  UseGuards,
+  HttpCode,
+  HttpStatus,
+  UseInterceptors,
+  UploadedFile,
+  NotFoundException,
+} from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { extname } from 'path';
 
@@ -8,10 +21,14 @@ import { LoginDto } from './dto/login.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { UsersService } from '../users/users.service';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly usersService: UsersService,
+  ) {}
 
   @Post('register')
   register(@Body() data: RegisterDto) {
@@ -38,8 +55,11 @@ export class AuthController {
 
   @Get('profile')
   @UseGuards(JwtAuthGuard)
-  profile(@Req() req: any) {
-    return req.user;
+  async profile(@Req() req: any) {
+    const user = await this.usersService.findById(req.user.id);
+    if (!user) throw new NotFoundException('Usuario no encontrado');
+    const { password, ...result } = user;
+    return result;
   }
 
   @Patch('profile')
@@ -53,9 +73,16 @@ export class AuthController {
   @UseInterceptors(
     FileInterceptor('file', {
       dest: 'uploads/profile-images',
-      fileFilter: (_req: any, file: { mimetype: string }, cb: (error: Error | null, acceptFile: boolean) => void) => {
+      fileFilter: (
+        _req: any,
+        file: { mimetype: string },
+        cb: (error: Error | null, acceptFile: boolean) => void,
+      ) => {
         if (!file.mimetype.match(/\/(jpg|jpeg|png|gif|webp)$/)) {
-          cb(new Error('Solo se permiten imágenes (jpg, jpeg, png, gif, webp)'), false);
+          cb(
+            new Error('Solo se permiten imágenes (jpg, jpeg, png, gif, webp)'),
+            false,
+          );
           return;
         }
         cb(null, true);

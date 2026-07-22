@@ -4,9 +4,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @Controller('settlements')
 export class SettlementsController {
-  constructor(
-    private readonly settlementsService: SettlementsService,
-  ) {}
+  constructor(private readonly settlementsService: SettlementsService) {}
 
   @Get()
   @UseGuards(JwtAuthGuard)

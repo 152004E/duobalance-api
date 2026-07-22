@@ -55,7 +55,11 @@ describe('BalancesService', () => {
 
     it('should return SETTLED when there are no expenses', async () => {
       mockPrisma.user.findUnique.mockResolvedValue({ id: userId });
-      mockPrisma.groupMember.findFirst.mockResolvedValue({ userId, groupId, role: 'OWNER' });
+      mockPrisma.groupMember.findFirst.mockResolvedValue({
+        userId,
+        groupId,
+        role: 'OWNER',
+      });
       mockPrisma.groupMember.count.mockResolvedValue(2);
       mockPrisma.expense.findMany.mockResolvedValue([]);
 
@@ -74,7 +78,11 @@ describe('BalancesService', () => {
 
     it('should calculate correct EQUAL balance when user paid more', async () => {
       mockPrisma.user.findUnique.mockResolvedValue({ id: userId });
-      mockPrisma.groupMember.findFirst.mockResolvedValue({ userId, groupId, role: 'OWNER' });
+      mockPrisma.groupMember.findFirst.mockResolvedValue({
+        userId,
+        groupId,
+        role: 'OWNER',
+      });
       mockPrisma.groupMember.count.mockResolvedValue(2);
       mockPrisma.expense.findMany.mockResolvedValue([
         { paidById: userId, amount: 200, splitType: 'EQUAL', splits: [] },
@@ -96,7 +104,11 @@ describe('BalancesService', () => {
 
     it('should calculate correct EQUAL balance when user paid less', async () => {
       mockPrisma.user.findUnique.mockResolvedValue({ id: userId });
-      mockPrisma.groupMember.findFirst.mockResolvedValue({ userId, groupId, role: 'OWNER' });
+      mockPrisma.groupMember.findFirst.mockResolvedValue({
+        userId,
+        groupId,
+        role: 'OWNER',
+      });
       mockPrisma.groupMember.count.mockResolvedValue(2);
       mockPrisma.expense.findMany.mockResolvedValue([
         { paidById: userId, amount: 100, splitType: 'EQUAL', splits: [] },
@@ -118,7 +130,11 @@ describe('BalancesService', () => {
 
     it('should return SETTLED when both paid equally EQUAL', async () => {
       mockPrisma.user.findUnique.mockResolvedValue({ id: userId });
-      mockPrisma.groupMember.findFirst.mockResolvedValue({ userId, groupId, role: 'OWNER' });
+      mockPrisma.groupMember.findFirst.mockResolvedValue({
+        userId,
+        groupId,
+        role: 'OWNER',
+      });
       mockPrisma.groupMember.count.mockResolvedValue(2);
       mockPrisma.expense.findMany.mockResolvedValue([
         { paidById: userId, amount: 150, splitType: 'EQUAL', splits: [] },
@@ -140,7 +156,11 @@ describe('BalancesService', () => {
 
     it('should calculate PERCENTAGE balance correctly', async () => {
       mockPrisma.user.findUnique.mockResolvedValue({ id: userId });
-      mockPrisma.groupMember.findFirst.mockResolvedValue({ userId, groupId, role: 'OWNER' });
+      mockPrisma.groupMember.findFirst.mockResolvedValue({
+        userId,
+        groupId,
+        role: 'OWNER',
+      });
       mockPrisma.groupMember.count.mockResolvedValue(2);
       mockPrisma.expense.findMany.mockResolvedValue([
         {
@@ -167,7 +187,11 @@ describe('BalancesService', () => {
 
     it('should handle mixed EQUAL + PERCENTAGE expenses', async () => {
       mockPrisma.user.findUnique.mockResolvedValue({ id: userId });
-      mockPrisma.groupMember.findFirst.mockResolvedValue({ userId, groupId, role: 'OWNER' });
+      mockPrisma.groupMember.findFirst.mockResolvedValue({
+        userId,
+        groupId,
+        role: 'OWNER',
+      });
       mockPrisma.groupMember.count.mockResolvedValue(2);
       mockPrisma.expense.findMany.mockResolvedValue([
         { paidById: userId, amount: 100, splitType: 'EQUAL', splits: [] },
@@ -195,7 +219,11 @@ describe('BalancesService', () => {
 
     it('should only consider non-deleted expenses', async () => {
       mockPrisma.user.findUnique.mockResolvedValue({ id: userId });
-      mockPrisma.groupMember.findFirst.mockResolvedValue({ userId, groupId, role: 'OWNER' });
+      mockPrisma.groupMember.findFirst.mockResolvedValue({
+        userId,
+        groupId,
+        role: 'OWNER',
+      });
       mockPrisma.groupMember.count.mockResolvedValue(2);
       mockPrisma.expense.findMany.mockResolvedValue([
         { paidById: userId, amount: 200, splitType: 'EQUAL', splits: [] },

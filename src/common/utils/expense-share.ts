@@ -11,10 +11,10 @@ export function calculateExpenseShare(
   }
 
   if (expense.splitType === 'PERCENTAGE' && splits) {
-    const split = splits.find(s => s.userId === userId);
+    const split = splits.find((s) => s.userId === userId);
     if (!split) return 0;
     const percentage = Number(split.percentage);
-    return amount * percentage / 100;
+    return (amount * percentage) / 100;
   }
 
   return 0;

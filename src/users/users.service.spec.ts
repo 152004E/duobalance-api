@@ -31,7 +31,12 @@ describe('UsersService', () => {
   describe('findByEmail', () => {
     it('should call prisma.user.findUnique with the correct email', async () => {
       const email = 'juan@example.com';
-      const mockUser = { id: 'uuid-1', firstName: 'Juan', lastName: 'Perez', email };
+      const mockUser = {
+        id: 'uuid-1',
+        firstName: 'Juan',
+        lastName: 'Perez',
+        email,
+      };
       mockPrismaService.user.findUnique.mockResolvedValue(mockUser);
 
       const result = await service.findByEmail(email);
@@ -54,7 +59,12 @@ describe('UsersService', () => {
   describe('findById', () => {
     it('should call prisma.user.findUnique with the correct id', async () => {
       const id = 'uuid-1';
-      const mockUser = { id, firstName: 'Juan', lastName: 'Perez', email: 'juan@example.com' };
+      const mockUser = {
+        id,
+        firstName: 'Juan',
+        lastName: 'Perez',
+        email: 'juan@example.com',
+      };
       mockPrismaService.user.findUnique.mockResolvedValue(mockUser);
 
       const result = await service.findById(id);
@@ -68,7 +78,12 @@ describe('UsersService', () => {
 
   describe('create', () => {
     it('should create a new user', async () => {
-      const data = { firstName: 'Juan', lastName: 'Perez', email: 'juan@example.com', password: 'hashed-password' };
+      const data = {
+        firstName: 'Juan',
+        lastName: 'Perez',
+        email: 'juan@example.com',
+        password: 'hashed-password',
+      };
       const created = { id: 'uuid-1', ...data };
       mockPrismaService.user.create.mockResolvedValue(created);
 

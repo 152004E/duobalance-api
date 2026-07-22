@@ -79,9 +79,8 @@ export class GroupsService {
       throw new BadRequestException('Cannot join a personal group');
     }
 
-    const role = group.type === 'COUPLE' && group.members.length < 2
-      ? 'ADMIN'
-      : 'MEMBER';
+    const role =
+      group.type === 'COUPLE' && group.members.length < 2 ? 'ADMIN' : 'MEMBER';
 
     await this.prisma.groupMember.create({
       data: { userId, groupId: group.id, role },
@@ -125,7 +124,9 @@ export class GroupsService {
     }
 
     if (membership.role === 'MEMBER') {
-      throw new ForbiddenException('Only the owner or an admin can regenerate the invite code');
+      throw new ForbiddenException(
+        'Only the owner or an admin can regenerate the invite code',
+      );
     }
 
     if (membership.role === 'ADMIN' || membership.role === 'OWNER') {
@@ -150,8 +151,12 @@ export class GroupsService {
     const membership = await this.prisma.groupMember.findUnique({
       where: { userId_groupId: { userId, groupId } },
     });
-    if (!membership) throw new ForbiddenException('User is not a member of this group');
-    if (membership.role === 'MEMBER') throw new ForbiddenException('Only the owner or an admin can update the group');
+    if (!membership)
+      throw new ForbiddenException('User is not a member of this group');
+    if (membership.role === 'MEMBER')
+      throw new ForbiddenException(
+        'Only the owner or an admin can update the group',
+      );
 
     return this.prisma.group.update({
       where: { id: groupId },
@@ -164,8 +169,10 @@ export class GroupsService {
     const membership = await this.prisma.groupMember.findUnique({
       where: { userId_groupId: { userId, groupId } },
     });
-    if (!membership) throw new ForbiddenException('User is not a member of this group');
-    if (membership.role !== 'OWNER') throw new ForbiddenException('Only the owner can delete the group');
+    if (!membership)
+      throw new ForbiddenException('User is not a member of this group');
+    if (membership.role !== 'OWNER')
+      throw new ForbiddenException('Only the owner can delete the group');
 
     await this.prisma.expenseSplit.deleteMany({
       where: { expense: { groupId } },
@@ -182,8 +189,12 @@ export class GroupsService {
     const membership = await this.prisma.groupMember.findUnique({
       where: { userId_groupId: { userId, groupId } },
     });
-    if (!membership) throw new ForbiddenException('User is not a member of this group');
-    if (membership.role === 'MEMBER') throw new ForbiddenException('Only the owner or an admin can archive the group');
+    if (!membership)
+      throw new ForbiddenException('User is not a member of this group');
+    if (membership.role === 'MEMBER')
+      throw new ForbiddenException(
+        'Only the owner or an admin can archive the group',
+      );
 
     return this.prisma.group.update({
       where: { id: groupId },
@@ -196,14 +207,19 @@ export class GroupsService {
     const requesterMembership = await this.prisma.groupMember.findUnique({
       where: { userId_groupId: { userId, groupId } },
     });
-    if (!requesterMembership) throw new ForbiddenException('User is not a member of this group');
-    if (requesterMembership.role === 'MEMBER') throw new ForbiddenException('Only the owner or an admin can remove members');
+    if (!requesterMembership)
+      throw new ForbiddenException('User is not a member of this group');
+    if (requesterMembership.role === 'MEMBER')
+      throw new ForbiddenException(
+        'Only the owner or an admin can remove members',
+      );
 
     const target = await this.prisma.groupMember.findUnique({
       where: { id: memberId },
     });
     if (!target) throw new NotFoundException('Member not found');
-    if (target.role === 'OWNER') throw new ForbiddenException('Cannot remove the owner');
+    if (target.role === 'OWNER')
+      throw new ForbiddenException('Cannot remove the owner');
 
     await this.prisma.expenseSplit.deleteMany({
       where: { userId: target.userId, expense: { groupId } },
@@ -213,12 +229,21 @@ export class GroupsService {
     return { message: 'Member removed' };
   }
 
-  async updateMemberSplit(userId: string, groupId: string, memberId: string, percentage: number) {
+  async updateMemberSplit(
+    userId: string,
+    groupId: string,
+    memberId: string,
+    percentage: number,
+  ) {
     const requesterMembership = await this.prisma.groupMember.findUnique({
       where: { userId_groupId: { userId, groupId } },
     });
-    if (!requesterMembership) throw new ForbiddenException('User is not a member of this group');
-    if (requesterMembership.role === 'MEMBER') throw new ForbiddenException('Only the owner or an admin can adjust split percentages');
+    if (!requesterMembership)
+      throw new ForbiddenException('User is not a member of this group');
+    if (requesterMembership.role === 'MEMBER')
+      throw new ForbiddenException(
+        'Only the owner or an admin can adjust split percentages',
+      );
 
     const target = await this.prisma.groupMember.findUnique({
       where: { id: memberId },
@@ -234,7 +259,9 @@ export class GroupsService {
         splitPercentage: true,
         userId: true,
         groupId: true,
-        user: { select: { id: true, firstName: true, lastName: true, email: true } },
+        user: {
+          select: { id: true, firstName: true, lastName: true, email: true },
+        },
       },
     });
   }

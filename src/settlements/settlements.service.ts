@@ -8,9 +8,7 @@ import { calculateExpenseShare } from '../common/utils/expense-share';
 
 @Injectable()
 export class SettlementsService {
-  constructor(
-    private readonly prisma: PrismaService,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   private async getGroupId(userId: string, preferredGroupId?: string) {
     if (preferredGroupId) {
@@ -130,8 +128,7 @@ export class SettlementsService {
       }
     }
 
-    const netSettlementSigned =
-      signedBalance - paymentsReceived + paymentsMade;
+    const netSettlementSigned = signedBalance - paymentsReceived + paymentsMade;
 
     let settlementDirection: 'OWED_TO_ME' | 'I_OWE' | 'SETTLED';
     if (netSettlementSigned > 0) {
@@ -200,7 +197,7 @@ export class SettlementsService {
       include: { splits: true },
     });
 
-    const memberBalances = group.members.map(m => {
+    const memberBalances = group.members.map((m) => {
       let paid = 0;
       let share = 0;
 
@@ -209,7 +206,12 @@ export class SettlementsService {
         if (expense.paidById === m.user.id) {
           paid += amount;
         }
-        share += calculateExpenseShare(expense, m.user.id, memberCount, expense.splits);
+        share += calculateExpenseShare(
+          expense,
+          m.user.id,
+          memberCount,
+          expense.splits,
+        );
       }
 
       return {
@@ -220,18 +222,18 @@ export class SettlementsService {
       };
     });
 
-    const workingBalances = memberBalances.map(m => ({
+    const workingBalances = memberBalances.map((m) => ({
       ...m,
       balance: m.balance,
       user: m.user,
     }));
 
     const debtors = workingBalances
-      .filter(m => m.balance < -0.01)
+      .filter((m) => m.balance < -0.01)
       .sort((a, b) => a.balance - b.balance);
 
     const creditors = workingBalances
-      .filter(m => m.balance > 0.01)
+      .filter((m) => m.balance > 0.01)
       .sort((a, b) => b.balance - a.balance);
 
     const suggestions: {
@@ -249,8 +251,16 @@ export class SettlementsService {
 
       if (amount > 0.01) {
         suggestions.push({
-          from: { id: debtor.user.id, firstName: debtor.user.firstName, lastName: debtor.user.lastName },
-          to: { id: creditor.user.id, firstName: creditor.user.firstName, lastName: creditor.user.lastName },
+          from: {
+            id: debtor.user.id,
+            firstName: debtor.user.firstName,
+            lastName: debtor.user.lastName,
+          },
+          to: {
+            id: creditor.user.id,
+            firstName: creditor.user.firstName,
+            lastName: creditor.user.lastName,
+          },
           amount: Math.round(amount * 100) / 100,
         });
       }

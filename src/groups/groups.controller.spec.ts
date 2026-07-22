@@ -22,9 +22,7 @@ describe('GroupsController', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [GroupsController],
-      providers: [
-        { provide: GroupsService, useValue: mockGroupsService },
-      ],
+      providers: [{ provide: GroupsService, useValue: mockGroupsService }],
     })
       .overrideGuard(JwtAuthGuard)
       .useValue({ canActivate: () => true })
@@ -43,7 +41,11 @@ describe('GroupsController', () => {
   describe('createGroup', () => {
     it('should call groupsService.createGroup with user id and dto', async () => {
       const dto: CreateGroupDto = { name: 'Test Group', type: 'COUPLE' };
-      const mockGroup = { id: 'group-1', name: 'Test Group', inviteCode: 'ABCD1234' };
+      const mockGroup = {
+        id: 'group-1',
+        name: 'Test Group',
+        inviteCode: 'ABCD1234',
+      };
       mockGroupsService.createGroup.mockResolvedValue(mockGroup);
 
       const result = await controller.createGroup(mockReq, dto);
@@ -62,14 +64,22 @@ describe('GroupsController', () => {
       const result = await controller.joinGroup(mockReq, dto);
 
       expect(result).toEqual(mockGroup);
-      expect(service.joinGroup).toHaveBeenCalledWith(mockReq.user.id, 'ABCD1234');
+      expect(service.joinGroup).toHaveBeenCalledWith(
+        mockReq.user.id,
+        'ABCD1234',
+      );
     });
   });
 
   describe('getMyGroups', () => {
     it('should call groupsService.getMyGroups with user id', async () => {
       const mockGroups = [
-        { id: 'group-1', name: 'Test Group', inviteCode: 'ABCD1234', members: [] },
+        {
+          id: 'group-1',
+          name: 'Test Group',
+          inviteCode: 'ABCD1234',
+          members: [],
+        },
       ];
       mockGroupsService.getMyGroups.mockResolvedValue(mockGroups);
 
@@ -82,7 +92,12 @@ describe('GroupsController', () => {
 
   describe('getGroup', () => {
     it('should call groupsService.getGroup with user id and group id', async () => {
-      const mockGroup = { id: 'group-1', name: 'Test Group', inviteCode: 'ABCD1234', members: [] };
+      const mockGroup = {
+        id: 'group-1',
+        name: 'Test Group',
+        inviteCode: 'ABCD1234',
+        members: [],
+      };
       mockGroupsService.getGroup.mockResolvedValue(mockGroup);
 
       const result = await controller.getGroup(mockReq, 'group-1');
@@ -100,7 +115,10 @@ describe('GroupsController', () => {
       const result = await controller.leaveGroup(mockReq, 'group-1');
 
       expect(result).toEqual(mockResponse);
-      expect(service.leaveGroup).toHaveBeenCalledWith(mockReq.user.id, 'group-1');
+      expect(service.leaveGroup).toHaveBeenCalledWith(
+        mockReq.user.id,
+        'group-1',
+      );
     });
   });
 });
