@@ -103,21 +103,10 @@ export class AuthController {
     }),
   )
   async uploadAvatar(@Req() req: any, @UploadedFile() file: any) {
-    console.log('=== uploadAvatar ===');
-    console.log('file:', JSON.stringify(file, null, 2));
-    console.log('req.user.id:', req.user.id);
-
     if (!file) {
-      console.log('No file received');
       return { message: 'No se proporcionó ningún archivo' };
     }
-    console.log('file.filename:', file.filename);
-    console.log('file.originalname:', file.originalname);
-    console.log('file.mimetype:', file.mimetype);
-    console.log('file.size:', file.size);
-
     const avatarUrl = `/uploads/profile-images/${file.filename}`;
-    console.log('avatarUrl:', avatarUrl);
     return this.authService.updateAvatar(req.user.id, avatarUrl);
   }
 }
