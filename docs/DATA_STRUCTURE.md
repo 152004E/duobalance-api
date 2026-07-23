@@ -207,6 +207,15 @@ class UpdateProfileDto {
   email?: string;
 }
 
+class ChangePasswordDto {
+  @IsString()
+  currentPassword: string;
+
+  @IsString()
+  @MinLength(6)
+  newPassword: string;
+}
+
 // Expense — Create
 class CreateExpenseDto {
   @IsString()

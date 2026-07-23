@@ -15,7 +15,7 @@
 
 ## Phase 1: Auth & Groups (v0.2) — Done
 **Goal**: Users can register, log in, and form groups
-- [✓] Auth (register, login, JWT, profile, refresh token, logout, profile update, avatar upload)
+- [✓] Auth (register, login, JWT, profile, refresh token, logout, profile update, avatar upload, password change)
 - [✓] Group creation + invitation codes (6 hex chars)
 - [✓] Join + leave group + update + delete + archive + regenerate invite + manage members (GroupType: PERSONAL, COUPLE, GROUP)
 

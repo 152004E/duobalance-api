@@ -28,6 +28,7 @@
 - [✓] Avatar upload (`POST /auth/profile/avatar` — static file serving)
 - [❌] Rate limiting on login
 - [✓] Tests for auth endpoints (auth.controller.spec.ts, auth.service.spec.ts, refresh-token.service.spec.ts)
+- [✓] Change password (`PATCH /auth/password` — JWT-protected, verifies current password, hashes new one)
 
 ## Phase 3: Group Management (migrated from Couples)
 - [✓] Group model + migration (replaces Couple)

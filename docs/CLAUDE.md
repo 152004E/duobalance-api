@@ -5,7 +5,7 @@ DuoBalance is a shared expense tracking app for groups (couples, roommates, frie
 - **duobalance-api**: NestJS backend (TypeScript, Prisma, PostgreSQL)
 - **DuoBalance-app**: React Native + Expo mobile client
 
-The API is fully functional with auth (register, login, refresh, logout, profile update, avatar upload), group management, expenses CRUD, balances, payments, settlements, and dashboard.
+The API is fully functional with auth (register, login, refresh, logout, profile update, avatar upload, password change), group management, expenses CRUD, balances, payments, settlements, and dashboard.
 
 ## Current State
 - **Auth**: register + login + refresh + logout with bcrypt + JWT, Passport strategy + guard, refresh token rotation ✅
@@ -83,8 +83,8 @@ npx prisma db push        # Push schema (dev)
 | `duobalance-api/src/common/utils/invite-code.ts` | Invite code generation (6 hex chars) |
 | `duobalance-api/src/prisma/prisma.service.ts` | PrismaClient DI wrapper |
 | `duobalance-api/src/prisma/prisma.module.ts` | Global Prisma module |
-| `duobalance-api/src/auth/auth.controller.ts` | Auth routes (register, login, refresh, logout, profile, profile/avatar) |
-| `duobalance-api/src/auth/auth.service.ts` | Auth business logic |
+| `duobalance-api/src/auth/auth.controller.ts` | Auth routes (register, login, refresh, logout, profile, profile/avatar, password) |
+| `duobalance-api/src/auth/auth.service.ts` | Auth business logic (register, login, changePassword, updateProfile, updateAvatar) |
 | `duobalance-api/src/auth/refresh-token.service.ts` | Refresh token rotation & management |
 | `duobalance-api/src/auth/strategies/jwt.strategy.ts` | Passport JWT strategy |
 | `duobalance-api/src/auth/guards/jwt-auth.guard.ts` | JWT Auth Guard |
@@ -92,6 +92,7 @@ npx prisma db push        # Push schema (dev)
 | `duobalance-api/src/auth/dto/login.dto.ts` | Login validation |
 | `duobalance-api/src/auth/dto/refresh-token.dto.ts` | Refresh token validation |
 | `duobalance-api/src/auth/dto/update-profile.dto.ts` | Profile update validation |
+| `duobalance-api/src/auth/dto/change-password.dto.ts` | Change password validation (currentPassword, newPassword) |
 | `duobalance-api/src/users/users.service.ts` | User queries |
 | `duobalance-api/src/groups/groups.controller.ts` | Group routes (create, join, list, get, update, delete, archive, regenerate invite, leave, remove member, update member split) |
 | `duobalance-api/src/groups/groups.service.ts` | Group business logic |

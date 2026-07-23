@@ -20,12 +20,13 @@ duobalance-api/
 │   ├── app.service.ts             Business logic layer
 │   ├── auth/
 │   │   ├── auth.module.ts         Auth module (register, login)
-│   │   ├── auth.controller.ts     POST /auth/register, /auth/login, GET /auth/profile
+│   │   ├── auth.controller.ts     POST /auth/register, /auth/login, GET /auth/profile, PATCH /auth/password
 │   │   ├── auth.service.ts        bcrypt + JWT logic
 │   │   ├── dto/
 │   │   │   ├── register.dto.ts    Validated register DTO
 │   │   │   ├── login.dto.ts       Validated login DTO
 │   │   │   ├── refresh-token.dto.ts  Refresh token DTO
+│   │   │   ├── change-password.dto.ts  Change password DTO (currentPassword, newPassword)
 │   │   │   └── update-profile.dto.ts Profile update DTO (firstName, lastName, email)
 │   │   ├── guards/
 │   │   │   └── jwt-auth.guard.ts  JWT Auth Guard (@UseGuards)
@@ -100,7 +101,7 @@ duobalance-api/
 │   │   └── prisma.service.ts      PrismaClient wrapper (PrismaPg adapter)
 │   └── users/
 │       ├── users.module.ts        Users module (exported)
-│       ├── users.service.ts       findByEmail, findById, create
+│       ├── users.service.ts       findByEmail, findById, create, update (firstName, lastName, email, password, avatarUrl)
 │       └── users.service.spec.ts
 │
 ├── domain/                         (empty — available for future domain models)
@@ -156,6 +157,7 @@ Client (HTTP)
   ├─ POST /auth/logout     → AuthController   → RefreshTokenService → revoke refresh token
   ├─ GET  /auth/profile    → AuthController   → JwtAuthGuard → JwtStrategy → user payload
   ├─ PATCH /auth/profile   → AuthController   → AuthService   → update firstName/lastName/email
+  ├─ PATCH /auth/password  → AuthController   → AuthService   → bcrypt → verify + hash → update user password
   ├─ POST /auth/profile/avatar → AuthController → static file serving → uploads/
   └─ Protected routes      → JwtAuthGuard     → JwtStrategy   → validate payload
 ```
@@ -228,6 +230,7 @@ Client (HTTP)
 | POST | `/auth/logout` | AuthController | ✓ | Revoke refresh token |
 | GET | `/auth/profile` | AuthController | ✓ | Protected — returns user from JWT |
 | PATCH | `/auth/profile` | AuthController | ✓ | Update profile (firstName, lastName, email) |
+| PATCH | `/auth/password` | AuthController | ✓ | Change password (currentPassword, newPassword) — JWT |
 | POST | `/auth/profile/avatar` | AuthController | ✓ | Upload avatar image |
 | POST | `/groups` | GroupsController | ✓ | Create group (JWT) |
 | POST | `/groups/join` | GroupsController | ✓ | Join via invite code (JWT) |
@@ -259,13 +262,13 @@ Client (HTTP)
 AppModule
 ├── ConfigModule         (@nestjs/config + Joi validation)
 ├── AuthModule
-│   ├── AuthController   (POST /auth/register, /auth/login, POST /auth/refresh, POST /auth/logout, GET /auth/profile, PATCH /auth/profile, POST /auth/profile/avatar)
+│   ├── AuthController   (POST /auth/register, /auth/login, POST /auth/refresh, POST /auth/logout, GET /auth/profile, PATCH /auth/profile, PATCH /auth/password, POST /auth/profile/avatar)
 │   ├── AuthService      (bcrypt hash + JWT sign)
 │   ├── RefreshTokenService  (refresh token rotation & management)
 │   ├── JwtStrategy      (Passport strategy — Bearer token validation)
 │   └── JwtAuthGuard     (@UseGuards decorator)
 ├── UsersModule
-│   └── UsersService     (findByEmail, findById, create)
+│   └── UsersService     (findByEmail, findById, create, update)
 ├── GroupsModule                    ← ✓ Implemented
 │   ├── GroupsController (POST /groups, POST /groups/join, GET /groups, GET /groups/:id, PATCH /groups/:id, DELETE /groups/:id, POST /groups/:id/archive, POST /groups/:id/regenerate-invite, DELETE /groups/:id/leave, DELETE /groups/:id/members/:memberId, PATCH /groups/:id/members/:memberId/split)
 │   └── GroupsService    (create, join, get, update, delete, archive, leave group logic)
@@ -299,12 +302,12 @@ Global (registered in main.ts)
 ```
 AppModule
 ├── AuthModule
-│   ├── AuthController   (register, login, profile)
+│   ├── AuthController   (register, login, profile, password)
 │   ├── AuthService      (JWT, bcrypt)
 │   ├── JwtStrategy      (Passport strategy)
 │   └── JwtAuthGuard     (guard decorator)
 ├── UsersModule
-│   └── UsersService     (findByEmail, findById, create)
+│   └── UsersService     (findByEmail, findById, create, update)
 ├── GroupsModule                    ✓ Implemented
 │   ├── GroupsController
 │   └── GroupsService
