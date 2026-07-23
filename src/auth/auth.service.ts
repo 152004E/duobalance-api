@@ -86,6 +86,21 @@ export class AuthService {
     };
   }
 
+  async changePassword(
+    userId: string,
+    data: { currentPassword: string; newPassword: string },
+  ) {
+    const user = await this.usersService.findById(userId);
+    if (!user) throw new NotFoundException('Usuario no encontrado');
+
+    const isMatch = await bcrypt.compare(data.currentPassword, user.password);
+    if (!isMatch) throw new UnauthorizedException('La contraseña actual no es correcta');
+
+    const hashedPassword = await bcrypt.hash(data.newPassword, 10);
+    await this.usersService.update(userId, { password: hashedPassword });
+    return { message: 'Contraseña actualizada correctamente' };
+  }
+
   async logout(plainToken: string) {
     await this.refreshTokenService.revokeRefreshToken(plainToken);
     return { success: true };
