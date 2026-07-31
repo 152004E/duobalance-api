@@ -13,6 +13,14 @@ import { calculateSplitsTotal } from '../common/utils/expense-share';
 export class ExpensesService {
   constructor(private readonly prisma: PrismaService) {}
 
+  private async getUserGroupIds(userId: string): Promise<string[]> {
+    const memberships = await this.prisma.groupMember.findMany({
+      where: { userId },
+      select: { groupId: true },
+    });
+    return memberships.map((m) => m.groupId);
+  }
+
   private async getGroupId(userId: string, preferredGroupId?: string) {
     if (preferredGroupId) {
       const membership = await this.prisma.groupMember.findUnique({
@@ -24,15 +32,13 @@ export class ExpensesService {
       return preferredGroupId;
     }
 
-    const membership = await this.prisma.groupMember.findFirst({
-      where: { userId },
-    });
+    const groupIds = await this.getUserGroupIds(userId);
 
-    if (!membership) {
+    if (groupIds.length === 0) {
       throw new BadRequestException('User does not belong to any group');
     }
 
-    return membership.groupId;
+    return groupIds[0];
   }
 
   async create(userId: string, dto: CreateExpenseDto) {
@@ -98,11 +104,18 @@ export class ExpensesService {
       throw new NotFoundException('User not found');
     }
 
-    const groupId = await this.getGroupId(userId, query?.groupId);
+    let groupIdFilter: { in: string[] } | string;
+    if (query?.groupId) {
+      await this.getGroupId(userId, query.groupId);
+      groupIdFilter = query.groupId;
+    } else {
+      const userGroupIds = await this.getUserGroupIds(userId);
+      groupIdFilter = { in: userGroupIds };
+    }
 
     return this.prisma.expense.findMany({
       where: {
-        groupId,
+        groupId: groupIdFilter,
         deletedAt: null,
         ...(query?.category && { category: query.category }),
         ...(query?.splitType && { splitType: query.splitType }),
@@ -144,12 +157,16 @@ export class ExpensesService {
       throw new NotFoundException('User not found');
     }
 
-    const groupId = await this.getGroupId(userId);
+    const userGroupIds = await this.getUserGroupIds(userId);
+
+    if (userGroupIds.length === 0) {
+      throw new NotFoundException('Expense not found');
+    }
 
     const expense = await this.prisma.expense.findFirst({
       where: {
         id: expenseId,
-        groupId,
+        groupId: { in: userGroupIds },
         deletedAt: null,
       },
       include: { splits: true },
@@ -171,12 +188,16 @@ export class ExpensesService {
       throw new NotFoundException('User not found');
     }
 
-    const groupId = await this.getGroupId(userId);
+    const userGroupIds = await this.getUserGroupIds(userId);
+
+    if (userGroupIds.length === 0) {
+      throw new NotFoundException('Expense not found');
+    }
 
     const expense = await this.prisma.expense.findFirst({
       where: {
         id: expenseId,
-        groupId,
+        groupId: { in: userGroupIds },
         deletedAt: null,
       },
     });
@@ -204,12 +225,16 @@ export class ExpensesService {
       throw new NotFoundException('User not found');
     }
 
-    const groupId = await this.getGroupId(userId);
+    const userGroupIds = await this.getUserGroupIds(userId);
+
+    if (userGroupIds.length === 0) {
+      throw new NotFoundException('Expense not found');
+    }
 
     const expense = await this.prisma.expense.findFirst({
       where: {
         id: expenseId,
-        groupId,
+        groupId: { in: userGroupIds },
         deletedAt: null,
       },
     });
