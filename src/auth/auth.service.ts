@@ -51,7 +51,7 @@ export class AuthService {
     if (!isMatch) throw new UnauthorizedException('Invalid credentials');
 
     const payload = { id: user.id, email: user.email };
-    const accessToken = this.jwtService.sign(payload, { expiresIn: '15m' });
+    const accessToken = this.jwtService.sign(payload, { expiresIn: '2m' });
     const refreshToken = await this.refreshTokenService.createRefreshToken(
       user.id,
     );
@@ -59,7 +59,7 @@ export class AuthService {
     return {
       access_token: accessToken,
       refresh_token: refreshToken,
-      expires_in: 900,
+      expires_in: 120,
     };
   }
 
@@ -71,7 +71,7 @@ export class AuthService {
     }
 
     const payload = { id: tokenRecord.user.id, email: tokenRecord.user.email };
-    const accessToken = this.jwtService.sign(payload, { expiresIn: '15m' });
+    const accessToken = this.jwtService.sign(payload, { expiresIn: '2m' });
     const refreshToken = await this.refreshTokenService.createRefreshToken(
       tokenRecord.user.id,
     );
@@ -82,7 +82,7 @@ export class AuthService {
     return {
       access_token: accessToken,
       refresh_token: refreshToken,
-      expires_in: 900,
+      expires_in: 120,
     };
   }
 

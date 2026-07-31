@@ -20,7 +20,7 @@ import { RefreshTokenService } from './refresh-token.service';
       useFactory: (config: ConfigService) => ({
         secret: config.get<string>('JWT_SECRET'),
         signOptions: {
-          expiresIn: '15m',
+          expiresIn: '2m',
         },
       }),
     }),
