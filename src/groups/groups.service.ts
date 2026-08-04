@@ -42,7 +42,11 @@ export class GroupsService {
         type: dto.type ?? 'COUPLE',
         inviteCode: generateInviteCode(),
         members: {
-          create: { userId, role: 'OWNER' },
+          create: {
+            userId,
+            role: 'OWNER',
+            splitPercentage: dto.splitPercentage ?? null,
+          },
         },
       },
       include: this.groupInclude,
@@ -82,8 +86,19 @@ export class GroupsService {
     const role =
       group.type === 'COUPLE' && group.members.length < 2 ? 'ADMIN' : 'MEMBER';
 
+    const ownerSplit =
+      group.type === 'COUPLE'
+        ? group.members.find((m) => m.role === 'OWNER')?.splitPercentage
+        : null;
+
     await this.prisma.groupMember.create({
-      data: { userId, groupId: group.id, role },
+      data: {
+        userId,
+        groupId: group.id,
+        role,
+        splitPercentage:
+          ownerSplit != null ? 100 - Number(ownerSplit) : null,
+      },
     });
 
     return this.prisma.group.findUnique({
