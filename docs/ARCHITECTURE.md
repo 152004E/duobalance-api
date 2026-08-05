@@ -248,12 +248,12 @@ Client (HTTP)
 | GET | `/expenses/:id` | ExpensesController | ✓ | Get one expense (JWT) |
 | PATCH | `/expenses/:id` | ExpensesController | ✓ | Update expense (PartialType, JWT) |
 | DELETE | `/expenses/:id` | ExpensesController | ✓ | Soft-delete expense (JWT, solo Expense) |
-| GET | `/balances` | BalancesController | ✓ | Balance EQUAL + PERCENTAGE (JWT) |
+| GET | `/balances` | BalancesController | ✓ | Balance EQUAL + PERCENTAGE (JWT, ?groupId=optional) |
 | POST | `/payments` | PaymentsController | ✓ | Create payment (JWT) |
-| GET | `/payments` | PaymentsController | ✓ | Payment history (JWT, DESC by createdAt) |
-| GET | `/settlements` | SettlementsController | ✓ | Net settlement calculation (JWT) |
+| GET | `/payments` | PaymentsController | ✓ | Payment history (JWT, DESC by createdAt, ?groupId=optional) |
+| GET | `/settlements` | SettlementsController | ✓ | Net settlement calculation (JWT, ?groupId=optional) |
 | GET | `/settlements/suggestions` | SettlementsController | ✓ | Settlement suggestions via greedy algorithm (JWT, ?groupId=optional) |
-| GET | `/dashboard` | DashboardController | ✓ | Dashboard summary (JWT) |
+| GET | `/dashboard` | DashboardController | ✓ | Dashboard summary (JWT, ?groupId=optional) |
 | - | `/receipts/*` | — | ❌ | Not implemented yet |
 
 ## Component Architecture

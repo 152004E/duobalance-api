@@ -8,8 +8,8 @@ export class SettlementsController {
 
   @Get()
   @UseGuards(JwtAuthGuard)
-  calculate(@Req() req) {
-    return this.settlementsService.calculate(req.user.id);
+  calculate(@Req() req, @Query('groupId') groupId?: string) {
+    return this.settlementsService.calculate(req.user.id, groupId);
   }
 
   @Get('suggestions')

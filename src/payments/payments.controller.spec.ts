@@ -69,10 +69,10 @@ describe('PaymentsController', () => {
       ];
       mockPaymentsService.findAll.mockResolvedValue(expectedResponse);
 
-      const result = await controller.findAll(mockReq);
+      const result = await controller.findAll(mockReq, undefined);
 
       expect(result).toEqual(expectedResponse);
-      expect(service.findAll).toHaveBeenCalledWith(mockReq.user.id);
+      expect(service.findAll).toHaveBeenCalledWith(mockReq.user.id, undefined);
     });
   });
 });

@@ -1,4 +1,12 @@
-import { Body, Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Post,
+  Query,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import { PaymentsService } from './payments.service';
 import { CreatePaymentDto } from './dto/create-payment.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -15,7 +23,7 @@ export class PaymentsController {
 
   @Get()
   @UseGuards(JwtAuthGuard)
-  findAll(@Req() req) {
-    return this.paymentsService.findAll(req.user.id);
+  findAll(@Req() req, @Query('groupId') groupId?: string) {
+    return this.paymentsService.findAll(req.user.id, groupId);
   }
 }

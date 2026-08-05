@@ -191,6 +191,44 @@ describe('PaymentsService', () => {
       );
     });
 
+    it('should throw ForbiddenException when groupId provided but user is not a member', async () => {
+      mockPrismaService.user.findUnique.mockResolvedValue(mockUser);
+      mockPrismaService.groupMember.findUnique.mockResolvedValue(null);
+
+      await expect(service.findAll('user-1', 'group-999')).rejects.toThrow(
+        ForbiddenException,
+      );
+    });
+
+    it('should filter payments by the provided groupId', async () => {
+      const mockPayments = [
+        {
+          id: 'p-1',
+          amount: 100,
+          fromUser: { id: 'user-1', firstName: 'Juan', lastName: 'Perez' },
+          toUser: { id: 'user-2', firstName: 'Maria', lastName: 'Lopez' },
+        },
+      ];
+
+      mockPrismaService.user.findUnique.mockResolvedValue(mockUser);
+      mockPrismaService.groupMember.findUnique.mockResolvedValue(
+        mockGroupMember,
+      );
+      mockPrismaService.payment.findMany.mockResolvedValue(mockPayments);
+
+      const result = await service.findAll('user-1', groupId);
+
+      expect(result).toEqual(mockPayments);
+      expect(mockPrismaService.payment.findMany).toHaveBeenCalledWith({
+        where: { groupId },
+        include: {
+          fromUser: { select: { id: true, firstName: true, lastName: true } },
+          toUser: { select: { id: true, firstName: true, lastName: true } },
+        },
+        orderBy: { createdAt: 'desc' },
+      });
+    });
+
     it('should return payments for the group ordered by createdAt desc', async () => {
       const mockPayments = [
         {

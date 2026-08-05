@@ -72,7 +72,7 @@ export class PaymentsService {
     });
   }
 
-  async findAll(userId: string) {
+  async findAll(userId: string, groupId?: string) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
     });
@@ -81,11 +81,13 @@ export class PaymentsService {
       throw new NotFoundException('User not found');
     }
 
-    const groupId = await this.getDefaultGroupId(userId);
+    const targetGroupId = groupId
+      ? await this.validateMembership(userId, groupId)
+      : await this.getDefaultGroupId(userId);
 
     return this.prisma.payment.findMany({
       where: {
-        groupId,
+        groupId: targetGroupId,
       },
       include: {
         fromUser: {
@@ -107,5 +109,17 @@ export class PaymentsService {
         createdAt: 'desc',
       },
     });
+  }
+
+  private async validateMembership(userId: string, groupId: string) {
+    const membership = await this.prisma.groupMember.findUnique({
+      where: { userId_groupId: { userId, groupId } },
+    });
+
+    if (!membership) {
+      throw new ForbiddenException('User is not a member of this group');
+    }
+
+    return groupId;
   }
 }

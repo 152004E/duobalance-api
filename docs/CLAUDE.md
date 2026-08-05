@@ -12,10 +12,10 @@ The API is fully functional with auth (register, login, refresh, logout, profile
 - **Profile**: update profile (firstName, lastName, email) + avatar upload with static file serving ✅
 - **Groups**: create group, join via invite code, list my groups, get group details, update group, delete group, archive group, regenerate invite code, leave group, remove member, update member split percentage (GroupType: PERSONAL, COUPLE, GROUP) ✅
 - **Expenses**: full CRUD con soft-delete (solo Expense), filtros por categoría/fecha/monto, EQUAL + PERCENTAGE split ✅
-- **Balances**: endpoint `GET /balances` con cálculo EQUAL + PERCENTAGE, soft-delete filter, memberCount-aware ✅
-- **Payments**: `POST /payments` y `GET /payments` (historial DESC, aislado por grupo) ✅
-- **Settlements**: `GET /settlements` (neto) y `GET /settlements/suggestions` (algoritmo greedy) ✅
-- **Dashboard**: `GET /dashboard` con resumen financiero (gastos, pagos, categorías, comparativa mensual) ✅
+- **Balances**: endpoint `GET /balances` con cálculo EQUAL + PERCENTAGE, soft-delete filter, memberCount-aware, `?groupId=optional` ✅
+- **Payments**: `POST /payments` y `GET /payments` (historial DESC, aislado por grupo, `?groupId=optional`) ✅
+- **Settlements**: `GET /settlements` (neto, `?groupId=optional`) y `GET /settlements/suggestions` (algoritmo greedy, `?groupId=optional`) ✅
+- **Dashboard**: `GET /dashboard` con resumen financiero (gastos, pagos, categorías, comparativa mensual, `?groupId=optional`) ✅
 - **Split Types**: EQUAL + PERCENTAGE + PERSONAL + CUSTOM con ExpenseSplit model ✅
 - **Database**: User + Group + GroupMember + Expense + ExpenseSplit + Payment + RefreshToken models with migration applied ✅
 - **Tests**: 14 spec files covering Auth, Groups, Expenses, Balances, Payments, Settlements, Dashboard, Users ✅
