@@ -1034,6 +1034,8 @@ export type ExpenseSplitScalarFieldEnum = (typeof ExpenseSplitScalarFieldEnum)[k
 export const PaymentScalarFieldEnum = {
   id: 'id',
   amount: 'amount',
+  status: 'status',
+  confirmedAt: 'confirmedAt',
   createdAt: 'createdAt',
   fromUserId: 'fromUserId',
   toUserId: 'toUserId',
@@ -1179,6 +1181,20 @@ export type EnumSplitTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$Prisma
  * Reference to a field of type 'SplitType[]'
  */
 export type ListEnumSplitTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'SplitType[]'>
+    
+
+
+/**
+ * Reference to a field of type 'PaymentStatus'
+ */
+export type EnumPaymentStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PaymentStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'PaymentStatus[]'
+ */
+export type ListEnumPaymentStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PaymentStatus[]'>
     
 
 

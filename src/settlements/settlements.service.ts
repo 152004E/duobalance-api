@@ -112,7 +112,7 @@ export class SettlementsService {
     }
 
     const payments = await this.prisma.payment.findMany({
-      where: { groupId: targetGroupId },
+      where: { groupId: targetGroupId, status: 'CONFIRMED' },
     });
 
     let paymentsMade = 0;
@@ -221,6 +221,30 @@ export class SettlementsService {
         balance: Math.round((paid - share) * 100) / 100,
       };
     });
+
+    const confirmedPayments = await this.prisma.payment.findMany({
+      where: { groupId: targetGroupId, status: 'CONFIRMED' },
+    });
+
+    const balanceByMember = new Map(
+      memberBalances.map((m) => [m.user.id, m.balance]),
+    );
+
+    for (const payment of confirmedPayments) {
+      const amount = Number(payment.amount);
+      balanceByMember.set(
+        payment.fromUserId,
+        (balanceByMember.get(payment.fromUserId) ?? 0) + amount,
+      );
+      balanceByMember.set(
+        payment.toUserId,
+        (balanceByMember.get(payment.toUserId) ?? 0) - amount,
+      );
+    }
+
+    for (const m of memberBalances) {
+      m.balance = Math.round((balanceByMember.get(m.user.id) ?? 0) * 100) / 100;
+    }
 
     const workingBalances = memberBalances.map((m) => ({
       ...m,

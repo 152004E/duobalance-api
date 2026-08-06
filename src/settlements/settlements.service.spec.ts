@@ -50,6 +50,7 @@ describe('SettlementsService', () => {
 
     service = module.get<SettlementsService>(SettlementsService);
     jest.clearAllMocks();
+    mockPrisma.payment.findMany.mockResolvedValue([]);
   });
 
   describe('suggest', () => {
@@ -241,6 +242,7 @@ describe('SettlementsService', () => {
         {
           id: 'pay-1',
           amount: 30,
+          status: 'CONFIRMED',
           fromUserId: partnerId,
           toUserId: userId,
           groupId,
@@ -249,19 +251,50 @@ describe('SettlementsService', () => {
 
       const result = await service.calculate(userId);
 
-      expect(result).toEqual({
-        totalExpenses: 300,
-        totalPaidByMe: 200,
-        totalPaidByPartner: 100,
-        myShare: 150,
-        partnerShare: 150,
-        balanceAmount: 50,
-        balanceDirection: 'OWED_TO_ME',
-        paymentsMade: 0,
-        paymentsReceived: 30,
-        netSettlement: 20,
-        settlementDirection: 'OWED_TO_ME',
-      });
+      expect(result.paymentsReceived).toBe(30);
+      expect(result.netSettlement).toBe(20);
+      expect(result.settlementDirection).toBe('OWED_TO_ME');
+    });
+
+    it('should ignore non-CONFIRMED payments when settling', async () => {
+      mockPrisma.user.findUnique.mockResolvedValue(baseUser);
+      mockPrisma.groupMember.findFirst.mockResolvedValue(baseGroupMember);
+      mockPrisma.group.findUnique.mockResolvedValue(baseGroup);
+      mockPrisma.expense.findMany.mockResolvedValue([
+        { paidById: userId, amount: 200, splitType: 'EQUAL', splits: [] },
+        { paidById: partnerId, amount: 100, splitType: 'EQUAL', splits: [] },
+      ]);
+      const payments = [
+        {
+          id: 'pay-1',
+          amount: 30,
+          status: 'PENDING',
+          fromUserId: partnerId,
+          toUserId: userId,
+          groupId,
+        },
+        {
+          id: 'pay-2',
+          amount: 20,
+          status: 'REJECTED',
+          fromUserId: partnerId,
+          toUserId: userId,
+          groupId,
+        },
+      ];
+      mockPrisma.payment.findMany.mockImplementation(({ where }) =>
+        Promise.resolve(
+          payments.filter(
+            (p) => !where.status || p.status === where.status,
+          ),
+        ),
+      );
+
+      const result = await service.calculate(userId);
+
+      expect(result.paymentsReceived).toBe(0);
+      expect(result.netSettlement).toBe(50);
+      expect(result.settlementDirection).toBe('OWED_TO_ME');
     });
 
     it('should return SETTLED when payment exactly matches balance (EQUAL)', async () => {

@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  Param,
   Post,
   Query,
   Req,
@@ -25,5 +26,17 @@ export class PaymentsController {
   @UseGuards(JwtAuthGuard)
   findAll(@Req() req, @Query('groupId') groupId?: string) {
     return this.paymentsService.findAll(req.user.id, groupId);
+  }
+
+  @Post(':id/confirm')
+  @UseGuards(JwtAuthGuard)
+  confirm(@Req() req, @Param('id') id: string) {
+    return this.paymentsService.confirm(req.user.id, id);
+  }
+
+  @Post(':id/reject')
+  @UseGuards(JwtAuthGuard)
+  reject(@Req() req, @Param('id') id: string) {
+    return this.paymentsService.reject(req.user.id, id);
   }
 }

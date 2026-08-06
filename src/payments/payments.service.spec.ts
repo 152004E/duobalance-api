@@ -49,6 +49,8 @@ describe('PaymentsService', () => {
     payment: {
       create: jest.fn(),
       findMany: jest.fn(),
+      findUnique: jest.fn(),
+      update: jest.fn(),
     },
   };
 
@@ -163,6 +165,7 @@ describe('PaymentsService', () => {
       expect(mockPrismaService.payment.create).toHaveBeenCalledWith({
         data: {
           amount: 100,
+          status: 'PENDING',
           fromUserId: 'user-1',
           toUserId: 'user-2',
           groupId,
@@ -262,6 +265,118 @@ describe('PaymentsService', () => {
         },
         orderBy: { createdAt: 'desc' },
       });
+    });
+  });
+
+  describe('confirm', () => {
+    it('should throw NotFoundException if payment does not exist', async () => {
+      mockPrismaService.payment.findUnique.mockResolvedValue(null);
+
+      await expect(service.confirm('user-1', 'pay-999')).rejects.toThrow(
+        NotFoundException,
+      );
+    });
+
+    it('should throw ForbiddenException if user is not the recipient', async () => {
+      mockPrismaService.payment.findUnique.mockResolvedValue({
+        id: 'pay-1',
+        toUserId: 'user-2',
+        status: 'PENDING',
+      });
+
+      await expect(service.confirm('user-1', 'pay-1')).rejects.toThrow(
+        ForbiddenException,
+      );
+    });
+
+    it('should throw BadRequestException if payment is not pending', async () => {
+      mockPrismaService.payment.findUnique.mockResolvedValue({
+        id: 'pay-1',
+        toUserId: 'user-1',
+        status: 'CONFIRMED',
+      });
+
+      await expect(service.confirm('user-1', 'pay-1')).rejects.toThrow(
+        BadRequestException,
+      );
+    });
+
+    it('should set status to CONFIRMED with confirmedAt', async () => {
+      mockPrismaService.payment.findUnique.mockResolvedValue({
+        id: 'pay-1',
+        toUserId: 'user-1',
+        status: 'PENDING',
+      });
+      mockPrismaService.payment.update.mockResolvedValue({
+        id: 'pay-1',
+        toUserId: 'user-1',
+        status: 'CONFIRMED',
+        confirmedAt: new Date(),
+      });
+
+      const result = await service.confirm('user-1', 'pay-1');
+
+      expect(mockPrismaService.payment.update).toHaveBeenCalledWith({
+        where: { id: 'pay-1' },
+        data: { status: 'CONFIRMED', confirmedAt: expect.any(Date) },
+      });
+      expect(result.status).toBe('CONFIRMED');
+    });
+  });
+
+  describe('reject', () => {
+    it('should throw NotFoundException if payment does not exist', async () => {
+      mockPrismaService.payment.findUnique.mockResolvedValue(null);
+
+      await expect(service.reject('user-1', 'pay-999')).rejects.toThrow(
+        NotFoundException,
+      );
+    });
+
+    it('should throw ForbiddenException if user is not the recipient', async () => {
+      mockPrismaService.payment.findUnique.mockResolvedValue({
+        id: 'pay-1',
+        toUserId: 'user-2',
+        status: 'PENDING',
+      });
+
+      await expect(service.reject('user-1', 'pay-1')).rejects.toThrow(
+        ForbiddenException,
+      );
+    });
+
+    it('should throw BadRequestException if payment is not pending', async () => {
+      mockPrismaService.payment.findUnique.mockResolvedValue({
+        id: 'pay-1',
+        toUserId: 'user-1',
+        status: 'REJECTED',
+      });
+
+      await expect(service.reject('user-1', 'pay-1')).rejects.toThrow(
+        BadRequestException,
+      );
+    });
+
+    it('should set status to REJECTED with confirmedAt', async () => {
+      mockPrismaService.payment.findUnique.mockResolvedValue({
+        id: 'pay-1',
+        toUserId: 'user-1',
+        status: 'PENDING',
+      });
+      mockPrismaService.payment.update.mockResolvedValue({
+        id: 'pay-1',
+        toUserId: 'user-1',
+        status: 'REJECTED',
+        confirmedAt: new Date(),
+      });
+
+      const result = await service.reject('user-1', 'pay-1');
+
+      expect(mockPrismaService.payment.update).toHaveBeenCalledWith({
+        where: { id: 'pay-1' },
+        data: { status: 'REJECTED', confirmedAt: expect.any(Date) },
+      });
+      expect(result.status).toBe('REJECTED');
     });
   });
 });

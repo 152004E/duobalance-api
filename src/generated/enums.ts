@@ -54,3 +54,12 @@ export const MemberRole = {
 } as const
 
 export type MemberRole = (typeof MemberRole)[keyof typeof MemberRole]
+
+
+export const PaymentStatus = {
+  PENDING: 'PENDING',
+  CONFIRMED: 'CONFIRMED',
+  REJECTED: 'REJECTED'
+} as const
+
+export type PaymentStatus = (typeof PaymentStatus)[keyof typeof PaymentStatus]

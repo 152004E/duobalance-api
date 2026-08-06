@@ -340,12 +340,31 @@ echo "balanceAmount=$BA balanceDirection=$BD paymentsMade=$PMD paymentsReceived=
   && echo "✅ PASS" || { echo "❌ FAIL"; exit 1; }
 
 echo ""
-echo '=== Test 17: Settlement despues de pago parcial (Pedro → Ana $50) ==='
-curl -s -X POST "$API/payments" \
+echo '=== Test 16b: Pago PENDING NO descuenta del settlement ==='
+echo "Creamos el pago (queda PENDING) y verificamos que netSettlement NO cambia hasta confirmar."
+
+PAY_RESP=$(curl -s -X POST "$API/payments" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $TOKEN_PEDRO" \
-  -d "{\"amount\":50,\"toUserId\":\"$ANA_ID\"}" > /dev/null
-echo "Pago creado ✓"
+  -d "{\"amount\":50,\"toUserId\":\"$ANA_ID\"}")
+PAY_ID=$(jq -r '.id' <<< "$PAY_RESP")
+PAY_STATUS=$(jq -r '.status' <<< "$PAY_RESP")
+echo "Pago creado: $PAY_ID (status=$PAY_STATUS)"
+
+SETTLE=$(curl -s -X GET "$API/settlements" -H "Authorization: Bearer $TOKEN_PEDRO")
+NS=$(jq -r '.netSettlement' <<< "$SETTLE")
+echo "netSettlement con pago PENDING: $NS (esperado: 150 — el PENDING no descuenta)"
+[ "$NS" = "150" ] \
+  && echo "✅ PASS (PENDING ignorado en settlement)" || { echo "❌ FAIL"; exit 1; }
+
+echo ""
+echo '=== Test 17: Settlement despues de CONFIRMAR el pago parcial (Pedro → Ana 50) ==='
+echo "Ana confirma el pago $PAY_ID..."
+HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" -X POST "$API/payments/$PAY_ID/confirm" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $TOKEN_ANA")
+echo "Confirm HTTP $HTTP_CODE (esperado: 200 o 201)"
+[ "$HTTP_CODE" = "200" ] || [ "$HTTP_CODE" = "201" ] || { echo "❌ FAIL"; exit 1; }
 
 echo "Esperado: paymentsMade=50, netSettlement=100, settlementDirection=I_OWE"
 SETTLE=$(curl -s -X GET "$API/settlements" -H "Authorization: Bearer $TOKEN_PEDRO")
@@ -360,12 +379,18 @@ echo "paymentsMade=$PMD netSettlement=$NS settlementDirection=$SD"
   && echo "✅ PASS" || { echo "❌ FAIL"; exit 1; }
 
 echo ""
-echo '=== Test 18: Settlement despues de pago exacto (Pedro → Ana $100) ==='
-curl -s -X POST "$API/payments" \
+echo '=== Test 18: Settlement despues de pago exacto CONFIRMADO (Pedro → Ana $100) ==='
+PAY_RESP=$(curl -s -X POST "$API/payments" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $TOKEN_PEDRO" \
-  -d "{\"amount\":100,\"toUserId\":\"$ANA_ID\"}" > /dev/null
-echo "Pago creado ✓"
+  -d "{\"amount\":100,\"toUserId\":\"$ANA_ID\"}")
+PAY_ID=$(jq -r '.id' <<< "$PAY_RESP")
+echo "Pago creado: $PAY_ID — Ana confirma..."
+HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" -X POST "$API/payments/$PAY_ID/confirm" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $TOKEN_ANA")
+echo "Confirm HTTP $HTTP_CODE (esperado: 200 o 201)"
+[ "$HTTP_CODE" = "200" ] || [ "$HTTP_CODE" = "201" ] || { echo "❌ FAIL"; exit 1; }
 
 echo "Esperado: netSettlement=0, settlementDirection=SETTLED"
 SETTLE=$(curl -s -X GET "$API/settlements" -H "Authorization: Bearer $TOKEN_PEDRO")

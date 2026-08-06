@@ -65,9 +65,62 @@ export class PaymentsService {
     return this.prisma.payment.create({
       data: {
         amount: dto.amount,
+        status: 'PENDING',
         fromUserId: userId,
         toUserId: dto.toUserId,
         groupId,
+      },
+    });
+  }
+
+  async confirm(userId: string, paymentId: string) {
+    const payment = await this.prisma.payment.findUnique({
+      where: { id: paymentId },
+    });
+
+    if (!payment) {
+      throw new NotFoundException('Payment not found');
+    }
+
+    if (payment.toUserId !== userId) {
+      throw new ForbiddenException('Only the recipient can confirm this payment');
+    }
+
+    if (payment.status !== 'PENDING') {
+      throw new BadRequestException('Payment is not pending');
+    }
+
+    return this.prisma.payment.update({
+      where: { id: paymentId },
+      data: {
+        status: 'CONFIRMED',
+        confirmedAt: new Date(),
+      },
+    });
+  }
+
+  async reject(userId: string, paymentId: string) {
+    const payment = await this.prisma.payment.findUnique({
+      where: { id: paymentId },
+    });
+
+    if (!payment) {
+      throw new NotFoundException('Payment not found');
+    }
+
+    if (payment.toUserId !== userId) {
+      throw new ForbiddenException('Only the recipient can reject this payment');
+    }
+
+    if (payment.status !== 'PENDING') {
+      throw new BadRequestException('Payment is not pending');
+    }
+
+    return this.prisma.payment.update({
+      where: { id: paymentId },
+      data: {
+        status: 'REJECTED',
+        confirmedAt: new Date(),
       },
     });
   }

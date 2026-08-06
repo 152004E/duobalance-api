@@ -143,6 +143,8 @@ export type ExpenseSplitScalarFieldEnum = (typeof ExpenseSplitScalarFieldEnum)[k
 export const PaymentScalarFieldEnum = {
   id: 'id',
   amount: 'amount',
+  status: 'status',
+  confirmedAt: 'confirmedAt',
   createdAt: 'createdAt',
   fromUserId: 'fromUserId',
   toUserId: 'toUserId',
