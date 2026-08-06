@@ -71,6 +71,9 @@ npx prisma db push        # Push schema (dev)
 | `DATABASE_URL` | PostgreSQL connection string |
 | `JWT_SECRET` | Secret key for JWT signing |
 | `PORT` | Server port (default: 3001) |
+| `RESEND_API_KEY` | API key de Resend (transaccional email). Sin ella, los correos no se envían |
+| `MAIL_FROM` | Remitente de los correos (default: `onboarding@resend.dev`) |
+| `FRONTEND_URL` | URL del frontend para links en correos (default: `http://localhost:8081`) |
 
 ## API Overview
 

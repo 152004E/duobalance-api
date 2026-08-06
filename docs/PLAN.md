@@ -80,11 +80,70 @@
 - [✓] `calculateExpenseShare()` memberCount support (was hardcoded `/2` for couples)
 - [✓] Tests (payments.controller.spec.ts, payments.service.spec.ts, settlements.service.spec.ts)
 
-## Phase 8: Polish
+## Phase 8: Mail Module (Resend) — MVP Correos
+
+> **Decisión de arquitectura:** ningún módulo envía correos directamente. Todo pasa por `MailService` (único `MailModule`). Cambiar de proveedor (Resend → Brevo/otro) solo toca `src/mail/providers/`.
+
+**Cuenta:** `doubalanceinfo@gmail.com` (crear en [resend.com](https://resend.com) → API Key). Sin comprar dominio todavía.
+
+**Correos del MVP (solo estos 4):**
+1. Verificación de correo al registrarse
+2. Bienvenida
+3. Liquidación mensual (cada mes — resumen de balances/liquidaciones pendientes)
+4. Forgot password
+
+### Sprint 1 — Base: MailModule + Resend
+- [ ] Crear cuenta Resend con `doubalanceinfo@gmail.com` → API Key (`RESEND_API_KEY`)
+- [ ] `pnpm add resend`
+- [ ] Crear estructura `src/mail/`:
+  ```
+  src/mail/
+  ├── mail.module.ts          ← exporta MailService (global)
+  ├── mail.service.ts         ← mailService.send(...) — única puerta de salida
+  ├── providers/
+  │   └── resend.provider.ts  ← único archivo que importa el SDK 'resend'
+  ├── templates/              ← HTML con {{variables}}, sin HTML en código
+  │   ├── welcome.html
+  │   ├── verification.html
+  │   ├── forgot-password.html
+  │   └── monthly-settlement.html
+  └── interfaces/
+      └── mail.interface.ts   ← MailPayload { to, subject, template, data }
+  ```
+- [ ] Env vars (`.env` + Joi en `env.config.ts`):
+  - `RESEND_API_KEY=...`
+  - `MAIL_FROM=onboarding@resend.dev` (remitente temporal de Resend; al tener dominio propio solo se cambia este valor)
+  - `FRONTEND_URL=http://localhost:8081`
+- [ ] Endpoint temporal `POST /mail/test` → "Hola {{name}}, DuoBalance quedó configurado correctamente"
+- [ ] Verificar recepción en el inbox → **eliminar endpoint**
+
+### Sprint 2 — Forgot Password
+- [ ] Prisma: modelo `PasswordResetToken` (tokenHash único, userId, expiresAt, usedAt) + migración
+- [ ] `POST /auth/forgot-password` `{ email }` → genera token (1h), guarda hash, `mailService.sendForgotPassword()` con link `FRONTEND_URL/reset-password?token=...`
+- [ ] `POST /auth/reset-password` `{ token, newPassword }` → valida token (vigente, sin usar) → actualiza hash → revoca token + refresh tokens
+- [ ] Seguridad: mismo mensaje de respuesta si el email no existe (evitar enumeración de usuarios)
+- [ ] Frontend: conectar `forgot-password.tsx` (ya tiene UI) + nueva pantalla `reset-password.tsx`
+
+### Sprint 3 — Verificación de correo + Bienvenida
+- [ ] Prisma: `User.emailVerifiedAt DateTime?` + modelo `EmailVerificationToken` + migración
+- [ ] Al registrarse: crear token de verificación, `mailService.sendVerification()` + `mailService.sendWelcome()`
+- [ ] `POST /auth/verify-email` `{ token }` → marca `emailVerifiedAt = now()`
+- [ ] Decisión de producto: permitir login sin verificar + banner "verifica tu email" (recomendado para MVP)
+
+### Sprint 4 — Liquidación mensual
+- [ ] `pnpm add @nestjs/schedule` + `ScheduleModule.forRoot()` en AppModule
+- [ ] Cron mensual: agrupar balances/liquidaciones pendientes por usuario → `mailService.sendMonthlySettlement()` (resumen "Debes X a Y / Te deben X")
+
+### Fuera de alcance (post-MVP, no hacer todavía)
+- [ ] Invitaciones a parejas/grupos (`mailService.sendInvitation`)
+- [ ] Compra de dominio verificado, Google Workspace, SMTP custom
+- [ ] Notificaciones push, emails de marketing, newsletters
+
+## Phase 9: Polish
 - [❌] Push notifications
 - [❌] Performance optimization
 
-## Phase 9: Deployment — Beta
+## Phase 10: Deployment — Beta
 > Todo el desarrollo previo corre en localhost. Solo al llegar a beta se despliega.
 - [❌] Crear proyecto Supabase (PostgreSQL + Storage plan gratis)
 - [❌] Configurar Prisma con conexión a Supabase PostgreSQL

@@ -73,7 +73,26 @@
 
 ---
 
-## Phase 6: Production Readiness (v1.0)
+## Phase 6: Emails & Mail Module (v0.7) — MVP
+**Goal**: Transactional emails via a single MailModule (Resend provider). Ningún módulo envía correos directamente — todo pasa por `mailService.send(...)`.
+
+**Cuenta Resend**: `doubalanceinfo@gmail.com` → API Key (`RESEND_API_KEY`). Remitente temporal `MAIL_FROM=onboarding@resend.dev` (sin comprar dominio).
+
+**Correos MVP**: verificación de correo · bienvenida · liquidación mensual · forgot password
+
+- [ ] MailModule + ResendProvider (única puerta `mailService.send`)
+- [ ] Env vars: `RESEND_API_KEY`, `MAIL_FROM` (temporal `onboarding@resend.dev`), `FRONTEND_URL`
+- [ ] `POST /mail/test` (endpoint temporal — se elimina al verificar recepción)
+- [ ] Forgot password completo: `POST /auth/forgot-password` + `POST /auth/reset-password` (+ modelo `PasswordResetToken`)
+- [ ] Verificación de correo al registrarse: `User.emailVerifiedAt` + `EmailVerificationToken` + `POST /auth/verify-email` + correo de bienvenida
+- [ ] Liquidación mensual: cron `@nestjs/schedule` → resumen de balances por usuario (`sendMonthlySettlement`)
+- [ ] Plantillas HTML en `src/mail/templates/` con `{{variables}}` (sin HTML en código)
+
+**Estimated**: 1-2 semanas
+
+---
+
+## Phase 7: Production Readiness (v1.0)
 **Goal**: API is stable, secure, and production-ready
 - Push notifications
 - CI/CD (GitHub Actions)
@@ -84,13 +103,14 @@
 
 ---
 
-## Phase 7: Post-Launch (v1.x)
+## Phase 8: Post-Launch (v1.x)
 **Goal**: Iterate based on feedback
 - Recurring expenses
 - Budget limits
 - Export to CSV/PDF
 - Split reminders
 - Group expenses (3+ people)
+- Invitaciones por correo a parejas/grupos (`mailService.sendInvitation`)
 
 **Estimated**: Ongoing
 
@@ -105,6 +125,7 @@ v0.3  ████████████████████████�
 v0.4  ██████████████████████████████████  (Balances + Dashboard + Settlement Suggestions — done)
 v0.5  ██████████████████████████████████  (Payments + Settlement + Groups full CRUD — done)
 v0.6  ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░  (Receipts)
+v0.7  ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░  (Emails: Resend + forgot password + verificación + liquidación mensual)
 v1.0  ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░  (Production)
 ```
 
