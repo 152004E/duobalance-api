@@ -83,7 +83,9 @@ export class PaymentsService {
     }
 
     if (payment.toUserId !== userId) {
-      throw new ForbiddenException('Only the recipient can confirm this payment');
+      throw new ForbiddenException(
+        'Only the recipient can confirm this payment',
+      );
     }
 
     if (payment.status !== 'PENDING') {
@@ -109,7 +111,9 @@ export class PaymentsService {
     }
 
     if (payment.toUserId !== userId) {
-      throw new ForbiddenException('Only the recipient can reject this payment');
+      throw new ForbiddenException(
+        'Only the recipient can reject this payment',
+      );
     }
 
     if (payment.status !== 'PENDING') {

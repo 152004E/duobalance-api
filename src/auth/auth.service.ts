@@ -94,7 +94,8 @@ export class AuthService {
     if (!user) throw new NotFoundException('Usuario no encontrado');
 
     const isMatch = await bcrypt.compare(data.currentPassword, user.password);
-    if (!isMatch) throw new UnauthorizedException('La contraseña actual no es correcta');
+    if (!isMatch)
+      throw new UnauthorizedException('La contraseña actual no es correcta');
 
     const hashedPassword = await bcrypt.hash(data.newPassword, 10);
     await this.usersService.update(userId, { password: hashedPassword });

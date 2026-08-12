@@ -284,9 +284,7 @@ describe('SettlementsService', () => {
       ];
       mockPrisma.payment.findMany.mockImplementation(({ where }) =>
         Promise.resolve(
-          payments.filter(
-            (p) => !where.status || p.status === where.status,
-          ),
+          payments.filter((p) => !where.status || p.status === where.status),
         ),
       );
 

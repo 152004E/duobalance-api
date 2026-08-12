@@ -102,3 +102,12 @@ npx prisma db push        # Push schema (dev)
 ## Project Status
 
 Active development. See [docs/PLAN.md](docs/PLAN.md) and [docs/ROADMAP.md](docs/ROADMAP.md) for details.
+
+
+
+DATABASE_URL="postgresql://duobalance:Room911123*@localhost:5432/duobalance"
+PORT=3000
+JWT_SECRET=duobalance-super-secret-key-dev
+RESEND_API_KEY=
+MAIL_FROM=onboarding@resend.dev
+FRONTEND_URL=http://localhost:8081

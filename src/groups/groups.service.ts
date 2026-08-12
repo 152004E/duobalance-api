@@ -96,8 +96,7 @@ export class GroupsService {
         userId,
         groupId: group.id,
         role,
-        splitPercentage:
-          ownerSplit != null ? 100 - Number(ownerSplit) : null,
+        splitPercentage: ownerSplit != null ? 100 - Number(ownerSplit) : null,
       },
     });
 
