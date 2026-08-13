@@ -1,20 +1,28 @@
 import {
   Injectable,
+  Logger,
   UnauthorizedException,
   ConflictException,
+  ForbiddenException,
   NotFoundException,
 } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { RefreshTokenService } from './refresh-token.service';
+import { EmailVerificationService } from './email-verification.service';
+import { MailService } from '../mail/mail.service';
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
+
   constructor(
     private readonly usersService: UsersService,
     private readonly jwtService: JwtService,
     private readonly refreshTokenService: RefreshTokenService,
+    private readonly emailVerificationService: EmailVerificationService,
+    private readonly mailService: MailService,
   ) {}
 
   async register(data: {
@@ -38,6 +46,8 @@ export class AuthService {
       password: hashedPassword,
     });
 
+    await this.sendVerificationEmail(createdUser.id, createdUser);
+
     const { password, ...result } = createdUser;
 
     return result;
@@ -50,6 +60,12 @@ export class AuthService {
     const isMatch = await bcrypt.compare(data.password, user.password);
     if (!isMatch) throw new UnauthorizedException('Invalid credentials');
 
+    if (!user.emailVerifiedAt) {
+      throw new ForbiddenException(
+        'Debes verificar tu correo antes de iniciar sesión. Revisa tu bandeja de entrada.',
+      );
+    }
+
     const payload = { id: user.id, email: user.email };
     const accessToken = this.jwtService.sign(payload, { expiresIn: '2m' });
     const refreshToken = await this.refreshTokenService.createRefreshToken(
@@ -61,6 +77,68 @@ export class AuthService {
       refresh_token: refreshToken,
       expires_in: 120,
     };
+  }
+
+  /**
+   * Verifica el correo de un usuario con un token de un solo uso.
+   */
+  async verifyEmail(plainToken: string) {
+    const record =
+      await this.emailVerificationService.validateVerificationToken(plainToken);
+    if (!record) {
+      throw new UnauthorizedException(
+        'El enlace de verificación es inválido o ya expiró.',
+      );
+    }
+
+    await this.emailVerificationService.markUsed(record.id);
+    await this.emailVerificationService.invalidateForUser(record.userId);
+
+    const updated = await this.usersService.update(record.userId, {
+      emailVerifiedAt: new Date(),
+    });
+    const { password, ...result } = updated;
+
+    return result;
+  }
+
+  /**
+   * Reenvía el correo de verificación. Respuesta genérica para no enumerar usuarios.
+   */
+  async resendVerification(email: string) {
+    const user = await this.usersService.findByEmail(email);
+
+    if (user && !user.emailVerifiedAt) {
+      await this.emailVerificationService.invalidateForUser(user.id);
+      await this.sendVerificationEmail(user.id, user);
+    }
+
+    return {
+      message:
+        'Si el correo existe y no está verificado, te enviamos un nuevo enlace.',
+    };
+  }
+
+  /** Genera token y envía el correo combinado (bienvenida + verificación). No rompe el flujo si el mail falla. */
+  private async sendVerificationEmail(
+    userId: string,
+    user: { email: string; firstName: string; lastName: string },
+  ): Promise<void> {
+    try {
+      const token =
+        await this.emailVerificationService.createVerificationToken(userId);
+      await this.mailService.sendWelcomeAndVerification(
+        user.email,
+        `${user.firstName} ${user.lastName}`,
+        token,
+      );
+    } catch (error) {
+      this.logger.warn(
+        `No se pudo enviar el correo de verificación a ${user.email}: ${
+          (error as Error).message
+        }`,
+      );
+    }
   }
 
   async refresh(plainToken: string) {

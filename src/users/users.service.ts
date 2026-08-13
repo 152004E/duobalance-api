@@ -36,6 +36,7 @@ export class UsersService {
       email?: string;
       password?: string;
       avatarUrl?: string | null;
+      emailVerifiedAt?: Date | null;
     },
   ) {
     return this.prisma.user.update({

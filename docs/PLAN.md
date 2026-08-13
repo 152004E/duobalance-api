@@ -125,10 +125,12 @@
 - [ ] Frontend: conectar `forgot-password.tsx` (ya tiene UI) + nueva pantalla `reset-password.tsx`
 
 ### Sprint 3 — Verificación de correo + Bienvenida
-- [ ] Prisma: `User.emailVerifiedAt DateTime?` + modelo `EmailVerificationToken` + migración
-- [ ] Al registrarse: crear token de verificación, `mailService.sendVerification()` + `mailService.sendWelcome()`
-- [ ] `POST /auth/verify-email` `{ token }` → marca `emailVerifiedAt = now()`
-- [ ] Decisión de producto: permitir login sin verificar + banner "verifica tu email" (recomendado para MVP)
+- [x] Prisma: `User.emailVerifiedAt DateTime?` + modelo `EmailVerificationToken` + migración `20260813191657_add_email_verification`
+- [x] Al registrarse: crear token de verificación (24h, SHA-256 en `EmailVerificationService`) y un **correo combinado** `sendWelcomeAndVerification()` (template `welcome.html` con botón "Confirmar tu correo" → `FRONTEND_URL/verify-email?token=...`)
+- [x] `POST /auth/verify-email` `{ token }` → valida token (vigente, sin usar), marca `emailVerifiedAt = now()` y revoca el token
+- [x] `POST /auth/resend-verification` `{ email }` → reenvía el correo (respuesta genérica para no enumerar usuarios)
+- [x] **Decisión de producto: verificación ESTRICTA** — `register` **no** auto-login; `login` bloquea con `ForbiddenException` si `emailVerifiedAt` es null (el cliente muestra banner/pantalla "verifica tu correo")
+- [x] **Nota**: el envío de mail va en `try/catch` — si falta `RESEND_API_KEY` el registro/verificación no fallan (solo log warn)
 
 ### Sprint 4 — Liquidación mensual
 - [ ] `pnpm add @nestjs/schedule` + `ScheduleModule.forRoot()` en AppModule

@@ -49,20 +49,33 @@ enum PaymentStatus {
 }
 
 model User {
+  id              String    @id @default(uuid())
+  firstName       String
+  lastName        String
+  email           String    @unique
+  password        String
+  avatarUrl       String?
+  emailVerifiedAt DateTime?
+  createdAt       DateTime  @default(now())
+
+  members               GroupMember[]
+  expenses              Expense[]
+  expenseSplits         ExpenseSplit[]
+  paymentsSent          Payment[] @relation("SentPayments")
+  paymentsReceived      Payment[] @relation("ReceivedPayments")
+  refreshTokens         RefreshToken[]
+  emailVerificationTokens EmailVerificationToken[]
+}
+
+model EmailVerificationToken {
   id        String   @id @default(uuid())
-  firstName String
-  lastName  String
-  email     String   @unique
-  password  String
-  avatarUrl String?
+  tokenHash String   @unique
+  userId    String
+  expiresAt DateTime
+  usedAt    DateTime?
   createdAt DateTime @default(now())
 
-  members           GroupMember[]
-  expenses          Expense[]
-  expenseSplits     ExpenseSplit[]
-  paymentsSent      Payment[] @relation("SentPayments")
-  paymentsReceived  Payment[] @relation("ReceivedPayments")
-  refreshTokens     RefreshToken[]
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Group {

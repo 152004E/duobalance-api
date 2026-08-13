@@ -22,6 +22,8 @@ import { LoginDto } from './dto/login.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
+import { VerifyEmailDto } from './dto/verify-email.dto';
+import { ResendVerificationDto } from './dto/resend-verification.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { UsersService } from '../users/users.service';
 
@@ -35,6 +37,18 @@ export class AuthController {
   @Post('register')
   register(@Body() data: RegisterDto) {
     return this.authService.register(data);
+  }
+
+  @Post('verify-email')
+  @HttpCode(HttpStatus.OK)
+  verifyEmail(@Body() data: VerifyEmailDto) {
+    return this.authService.verifyEmail(data.token);
+  }
+
+  @Post('resend-verification')
+  @HttpCode(HttpStatus.OK)
+  resendVerification(@Body() data: ResendVerificationDto) {
+    return this.authService.resendVerification(data.email);
   }
 
   @Post('login')

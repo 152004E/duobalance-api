@@ -80,13 +80,13 @@
 
 **Correos MVP**: verificación de correo · bienvenida · liquidación mensual · forgot password
 
-- [ ] MailModule + ResendProvider (única puerta `mailService.send`)
-- [ ] Env vars: `RESEND_API_KEY`, `MAIL_FROM` (temporal `onboarding@resend.dev`), `FRONTEND_URL`
-- [ ] `POST /mail/test` (endpoint temporal — se elimina al verificar recepción)
+- [x] MailModule + ResendProvider (única puerta `mailService.send`)
+- [x] Env vars: `RESEND_API_KEY`, `MAIL_FROM` (temporal `onboarding@resend.dev`), `FRONTEND_URL`
+- [x] `POST /mail/test` (endpoint temporal — se elimina al verificar recepción)
 - [ ] Forgot password completo: `POST /auth/forgot-password` + `POST /auth/reset-password` (+ modelo `PasswordResetToken`)
-- [ ] Verificación de correo al registrarse: `User.emailVerifiedAt` + `EmailVerificationToken` + `POST /auth/verify-email` + correo de bienvenida
+- [x] Verificación de correo al registrarse (estricta): `User.emailVerifiedAt` + `EmailVerificationToken` + `POST /auth/verify-email` + `POST /auth/resend-verification` + correo **combinado** de bienvenida+verificación (template `welcome.html`); login bloquea hasta verificar
 - [ ] Liquidación mensual: cron `@nestjs/schedule` → resumen de balances por usuario (`sendMonthlySettlement`)
-- [ ] Plantillas HTML en `src/mail/templates/` con `{{variables}}` (sin HTML en código)
+- [x] Plantillas HTML en `src/mail/templates/` con `{{variables}}` (sin HTML en código)
 
 **Estimated**: 1-2 semanas
 

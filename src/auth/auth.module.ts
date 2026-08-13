@@ -8,6 +8,7 @@ import { AuthService } from './auth.service';
 import { UsersModule } from '../users/users.module';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { RefreshTokenService } from './refresh-token.service';
+import { EmailVerificationService } from './email-verification.service';
 
 @Module({
   imports: [
@@ -26,7 +27,12 @@ import { RefreshTokenService } from './refresh-token.service';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy, RefreshTokenService],
+  providers: [
+    AuthService,
+    JwtStrategy,
+    RefreshTokenService,
+    EmailVerificationService,
+  ],
   exports: [JwtModule],
 })
 export class AuthModule {}

@@ -37,10 +37,31 @@ export class MailService {
   sendTest(to: string, name: string): Promise<SentMailResult> {
     return this.send({
       to,
-      subject: 'DuoBalance — Configuración correcta',
+      subject: 'DuoBalance — Bienvenido y activación de tu cuenta',
       template: 'welcome',
-      data: { name, url: this.frontendUrl },
+      data: { name, url: this.verificationUrl('/') },
     });
+  }
+
+  /**
+   * Correo combinado de bienvenida + verificación de correo.
+   * Lleva el botón "Confirmar tu correo" que apunta a /verify-email?token=...
+   */
+  sendWelcomeAndVerification(
+    to: string,
+    name: string,
+    token: string,
+  ): Promise<SentMailResult> {
+    return this.send({
+      to,
+      subject: 'DuoBalance — Confirma tu correo',
+      template: 'welcome',
+      data: { name, url: this.verificationUrl(token) },
+    });
+  }
+
+  private verificationUrl(token: string): string {
+    return `${this.frontendUrl}/verify-email?token=${token}`;
   }
 
   private async renderTemplate(

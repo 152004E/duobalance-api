@@ -356,10 +356,6 @@ export type EnumGroupTypeFieldUpdateOperationsInput = {
   set?: $Enums.GroupType
 }
 
-export type NullableDateTimeFieldUpdateOperationsInput = {
-  set?: Date | string | null
-}
-
 export type GroupCreateNestedOneWithoutMembersInput = {
   create?: Prisma.XOR<Prisma.GroupCreateWithoutMembersInput, Prisma.GroupUncheckedCreateWithoutMembersInput>
   connectOrCreate?: Prisma.GroupCreateOrConnectWithoutMembersInput
