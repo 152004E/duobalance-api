@@ -1,7 +1,7 @@
 import { Test } from '@nestjs/testing';
 import { ConfigService } from '@nestjs/config';
 import { MailService } from './mail.service';
-import { ResendProvider } from './providers/resend.provider';
+import { MAIL_PROVIDER_TOKEN } from './interfaces/mail-provider.interface';
 
 describe('MailService', () => {
   let service: MailService;
@@ -12,7 +12,7 @@ describe('MailService', () => {
     const module = await Test.createTestingModule({
       providers: [
         MailService,
-        { provide: ResendProvider, useValue: provider },
+        { provide: MAIL_PROVIDER_TOKEN, useValue: provider },
         {
           provide: ConfigService,
           useValue: new ConfigService({

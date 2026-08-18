@@ -1,9 +1,12 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { readFile } from 'fs/promises';
 import { join } from 'path';
 import { MailPayload, SentMailResult } from './interfaces/mail.interface';
-import { ResendProvider } from './providers/resend.provider';
+import {
+  MAIL_PROVIDER_TOKEN,
+  MailProvider,
+} from './interfaces/mail-provider.interface';
 
 /**
  * Única puerta de salida de correos. Ningún otro módulo envía correos directamente.
@@ -11,7 +14,8 @@ import { ResendProvider } from './providers/resend.provider';
 @Injectable()
 export class MailService {
   constructor(
-    private readonly provider: ResendProvider,
+    @Inject(MAIL_PROVIDER_TOKEN)
+    private readonly provider: MailProvider,
     private readonly config: ConfigService,
   ) {}
 

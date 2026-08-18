@@ -5,20 +5,17 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Resend } from 'resend';
-
-export interface ResendSendPayload {
-  from: string;
-  to: string;
-  subject: string;
-  html: string;
-}
+import {
+  MailProvider,
+  MailSendOptions,
+} from '../interfaces/mail-provider.interface';
 
 /**
  * Único archivo que importa el SDK de Resend.
  * Si en el futuro se cambia de proveedor (Brevo, SMTP...), solo se toca esta clase.
  */
 @Injectable()
-export class ResendProvider {
+export class ResendProvider implements MailProvider {
   private readonly logger = new Logger(ResendProvider.name);
   private readonly client: Resend | null;
 
@@ -34,7 +31,7 @@ export class ResendProvider {
     }
   }
 
-  async send(payload: ResendSendPayload): Promise<{ id?: string }> {
+  async send(payload: MailSendOptions): Promise<{ id?: string }> {
     if (!this.client) {
       throw new ServiceUnavailableException(
         'Mail no configurado: falta RESEND_API_KEY',
