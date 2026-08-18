@@ -71,4 +71,11 @@ export class RefreshTokenService {
       where: { tokenHash },
     });
   }
+
+  /** Revoca todos los refresh tokens de un usuario (p. ej. tras restablecer la contraseña). */
+  async revokeAllForUser(userId: string): Promise<void> {
+    await this.prisma.refreshToken.deleteMany({
+      where: { userId },
+    });
+  }
 }

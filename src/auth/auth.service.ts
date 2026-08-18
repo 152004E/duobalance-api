@@ -11,6 +11,7 @@ import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { RefreshTokenService } from './refresh-token.service';
 import { EmailVerificationService } from './email-verification.service';
+import { PasswordResetService } from './password-reset.service';
 import { MailService } from '../mail/mail.service';
 
 @Injectable()
@@ -22,6 +23,7 @@ export class AuthService {
     private readonly jwtService: JwtService,
     private readonly refreshTokenService: RefreshTokenService,
     private readonly emailVerificationService: EmailVerificationService,
+    private readonly passwordResetService: PasswordResetService,
     private readonly mailService: MailService,
   ) {}
 
@@ -119,6 +121,49 @@ export class AuthService {
     };
   }
 
+  /**
+   * Solicita un enlace de restablecimiento de contraseña.
+   * Respuesta genérica para no enumerar usuarios.
+   */
+  async requestPasswordReset(email: string) {
+    const user = await this.usersService.findByEmail(email);
+
+    if (user) {
+      await this.passwordResetService.invalidateForUser(user.id);
+      await this.sendPasswordResetEmail(user.id, user);
+    }
+
+    return {
+      message:
+        'Si el correo existe, te enviamos un enlace para restablecer tu contraseña.',
+    };
+  }
+
+  /**
+   * Restablece la contraseña usando un token de un solo uso.
+   */
+  async resetPassword(plainToken: string, newPassword: string) {
+    const record = await this.passwordResetService.validateResetToken(
+      plainToken,
+    );
+    if (!record) {
+      throw new UnauthorizedException(
+        'El enlace es inválido o ya expiró. Solicita uno nuevo.',
+      );
+    }
+
+    await this.passwordResetService.markUsed(record.id);
+    await this.passwordResetService.invalidateForUser(record.userId);
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    await this.usersService.update(record.userId, {
+      password: hashedPassword,
+    });
+    await this.refreshTokenService.revokeAllForUser(record.userId);
+
+    return { message: 'Contraseña restablecida correctamente.' };
+  }
+
   /** Genera token y envía el correo combinado (bienvenida + verificación). No rompe el flujo si el mail falla. */
   private async sendVerificationEmail(
     userId: string,
@@ -135,6 +180,27 @@ export class AuthService {
     } catch (error) {
       this.logger.warn(
         `No se pudo enviar el correo de verificación a ${user.email}: ${
+          (error as Error).message
+        }`,
+      );
+    }
+  }
+
+  /** Genera token y envía el correo de restablecimiento. No rompe el flujo si el mail falla. */
+  private async sendPasswordResetEmail(
+    userId: string,
+    user: { email: string; firstName: string; lastName: string },
+  ): Promise<void> {
+    try {
+      const token = await this.passwordResetService.createResetToken(userId);
+      await this.mailService.sendPasswordReset(
+        user.email,
+        `${user.firstName} ${user.lastName}`,
+        token,
+      );
+    } catch (error) {
+      this.logger.warn(
+        `No se pudo enviar el correo de restablecimiento a ${user.email}: ${
           (error as Error).message
         }`,
       );

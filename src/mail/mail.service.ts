@@ -64,8 +64,29 @@ export class MailService {
     });
   }
 
+  /**
+   * Correo para restablecer la contraseña.
+   * Lleva el botón "Restablecer contraseña" que apunta a /restablecer-contrasena?token=...
+   */
+  sendPasswordReset(
+    to: string,
+    name: string,
+    token: string,
+  ): Promise<SentMailResult> {
+    return this.send({
+      to,
+      subject: 'DuoBalance — Restablece tu contraseña',
+      template: 'password-reset',
+      data: { name, url: this.resetPasswordUrl(token) },
+    });
+  }
+
   private verificationUrl(token: string): string {
     return `${this.frontendUrl}/verify-email?token=${token}`;
+  }
+
+  private resetPasswordUrl(token: string): string {
+    return `${this.frontendUrl}/restablecer-contrasena?token=${token}`;
   }
 
   private async renderTemplate(

@@ -24,6 +24,8 @@ import { UpdateProfileDto } from './dto/update-profile.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { VerifyEmailDto } from './dto/verify-email.dto';
 import { ResendVerificationDto } from './dto/resend-verification.dto';
+import { RequestPasswordResetDto } from './dto/request-password-reset.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { UsersService } from '../users/users.service';
 
@@ -49,6 +51,18 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   resendVerification(@Body() data: ResendVerificationDto) {
     return this.authService.resendVerification(data.email);
+  }
+
+  @Post('forgot-password')
+  @HttpCode(HttpStatus.OK)
+  forgotPassword(@Body() data: RequestPasswordResetDto) {
+    return this.authService.requestPasswordReset(data.email);
+  }
+
+  @Post('reset-password')
+  @HttpCode(HttpStatus.OK)
+  resetPassword(@Body() data: ResetPasswordDto) {
+    return this.authService.resetPassword(data.token, data.newPassword);
   }
 
   @Post('login')
