@@ -5,7 +5,7 @@ DuoBalance is a shared expense tracking app for groups (couples, roommates, frie
 - **duobalance-api**: NestJS backend (TypeScript, Prisma, PostgreSQL)
 - **DuoBalance-app**: React Native + Expo mobile client
 
-The API is fully functional with auth (register, login, refresh, logout, profile update, avatar upload, password change), group management, expenses CRUD, balances, payments, settlements, and dashboard.
+The API is fully functional with auth (register, login, refresh, logout, profile update, avatar upload, password change, **email verification estricta, forgot/reset password**), group management, expenses CRUD, balances, payments, settlements, dashboard, and transactional emails (MailModule).
 
 ## Current State
 - **Auth**: register + login + refresh + logout with bcrypt + JWT, Passport strategy + guard, refresh token rotation ✅
@@ -17,7 +17,10 @@ The API is fully functional with auth (register, login, refresh, logout, profile
 - **Settlements**: `GET /settlements` (neto, `?groupId=optional`) y `GET /settlements/suggestions` (algoritmo greedy, `?groupId=optional`) ✅
 - **Dashboard**: `GET /dashboard` con resumen financiero (gastos, pagos, categorías, comparativa mensual, `?groupId=optional`) ✅
 - **Split Types**: EQUAL + PERCENTAGE + PERSONAL + CUSTOM con ExpenseSplit model ✅
-- **Database**: User + Group + GroupMember + Expense + ExpenseSplit + Payment + RefreshToken models with migration applied ✅
+- **Verificación de correo (estricta)**: `User.emailVerifiedAt` + `EmailVerificationToken` (SHA-256, TTL 24h) + `POST /auth/verify-email` + `POST /auth/resend-verification`; `login` bloquea con `ForbiddenException` si el correo no está verificado; correo combinado de bienvenida+verificación ✅
+- **Password reset**: `PasswordResetToken` (SHA-256, TTL 60 min) + `POST /auth/forgot-password` + `POST /auth/reset-password`; respuesta genérica si el email no existe (evita enumeración de usuarios); al reset se revocan token + refresh tokens ✅
+- **MailModule**: global, única puerta de salida `MailService.send(...)` con proveedores intercambiables `ResendProvider`/`BrevoProvider` (`MAIL_PROVIDER`); plantillas HTML con `{{variables}}`; endpoint `POST /mail/test` **temporal** (pendiente de eliminar) ✅
+- **Database**: User + Group + GroupMember + Expense + ExpenseSplit + Payment + RefreshToken + PasswordResetToken + EmailVerificationToken models with migration applied ✅
 - **Tests**: 14 spec files covering Auth, Groups, Expenses, Balances, Payments, Settlements, Dashboard, Users ✅
 - PrismaService module (DI wrapper for PrismaClient + PrismaPg adapter) ✅
 - Global validation pipe (whitelist + forbidNonWhitelisted + transform) ✅
@@ -39,6 +42,8 @@ The API is fully functional with auth (register, login, refresh, logout, profile
 1. CUSTOM split support
 2. Receipt upload with OCR
 3. Rate limiting on login
+4. Cron de liquidación mensual (Phase 8 Sprint 4 — `@nestjs/schedule` → `mailService.sendMonthlySettlement()`)
+5. Eliminar el endpoint temporal `POST /mail/test` (tras validar la integración de correos)
 
 ## Coding Style
 - TypeScript strict, no `any`
@@ -74,25 +79,38 @@ npx prisma db push        # Push schema (dev)
 |------|---------|
 | `duobalance-api/src/main.ts` | Entry point (CORS, static files, port) |
 | `duobalance-api/src/app.module.ts` | Root module |
-| `duobalance-api/prisma/schema.prisma` | Database schema (User, Group, GroupMember, Expense, ExpenseSplit, Payment, RefreshToken) |
+| `duobalance-api/prisma/schema.prisma` | Database schema (User, Group, GroupMember, Expense, ExpenseSplit, Payment, RefreshToken, PasswordResetToken, EmailVerificationToken) |
 | `duobalance-api/.env` | Environment variables |
-| `duobalance-api/src/config/env.config.ts` | Joi validation schema |
+| `duobalance-api/src/config/env.config.ts` | Joi validation schema (PORT, DATABASE_URL, JWT_SECRET, MAIL_PROVIDER, RESEND_API_KEY, BREVO_API_KEY, MAIL_FROM, FRONTEND_URL) |
 | `duobalance-api/src/common/pipes/validation.pipe.ts` | Global validation pipe |
 | `duobalance-api/src/common/filters/http-exception.filter.ts` | Global exception filter |
 | `duobalance-api/src/common/utils/expense-share.ts` | Expense share calculation (EQUAL + PERCENTAGE, memberCount-aware) |
 | `duobalance-api/src/common/utils/invite-code.ts` | Invite code generation (6 hex chars) |
+| `duobalance-api/src/common/validators/is-real-email.ts` | `@IsRealEmail` — valida dominio con MX records (usado en register/forgot/resend) |
 | `duobalance-api/src/prisma/prisma.service.ts` | PrismaClient DI wrapper |
 | `duobalance-api/src/prisma/prisma.module.ts` | Global Prisma module |
-| `duobalance-api/src/auth/auth.controller.ts` | Auth routes (register, login, refresh, logout, profile, profile/avatar, password) |
-| `duobalance-api/src/auth/auth.service.ts` | Auth business logic (register, login, changePassword, updateProfile, updateAvatar) |
+| `duobalance-api/src/auth/auth.controller.ts` | Auth routes (register, verify-email, resend-verification, forgot-password, reset-password, login, refresh, logout, profile, profile/avatar, password) |
+| `duobalance-api/src/auth/auth.service.ts` | Auth business logic (register, login, changePassword, updateProfile, updateAvatar, verifyEmail, resendVerification, requestPasswordReset, resetPassword) |
 | `duobalance-api/src/auth/refresh-token.service.ts` | Refresh token rotation & management |
+| `duobalance-api/src/auth/email-verification.service.ts` | Email verification tokens (SHA-256, TTL 24h — create/validate/markUsed/invalidateForUser) |
+| `duobalance-api/src/auth/password-reset.service.ts` | Password reset tokens (SHA-256, TTL 60 min — create/validate/markUsed/invalidateForUser) |
 | `duobalance-api/src/auth/strategies/jwt.strategy.ts` | Passport JWT strategy |
 | `duobalance-api/src/auth/guards/jwt-auth.guard.ts` | JWT Auth Guard |
-| `duobalance-api/src/auth/dto/register.dto.ts` | Register validation |
+| `duobalance-api/src/auth/dto/register.dto.ts` | Register validation (@IsRealEmail + @IsNotDisposableEmail) |
 | `duobalance-api/src/auth/dto/login.dto.ts` | Login validation |
 | `duobalance-api/src/auth/dto/refresh-token.dto.ts` | Refresh token validation |
 | `duobalance-api/src/auth/dto/update-profile.dto.ts` | Profile update validation |
 | `duobalance-api/src/auth/dto/change-password.dto.ts` | Change password validation (currentPassword, newPassword) |
+| `duobalance-api/src/auth/dto/verify-email.dto.ts` | Verify email validation (token) |
+| `duobalance-api/src/auth/dto/resend-verification.dto.ts` | Resend verification validation (email) |
+| `duobalance-api/src/auth/dto/request-password-reset.dto.ts` | Forgot password validation (email) |
+| `duobalance-api/src/auth/dto/reset-password.dto.ts` | Reset password validation (token, newPassword) |
+| `duobalance-api/src/mail/mail.module.ts` | Global Mail module — elige proveedor vía `MAIL_PROVIDER` (resend | brevo) |
+| `duobalance-api/src/mail/mail.service.ts` | Única puerta de salida de correos (send, sendTest, sendWelcomeAndVerification, sendPasswordReset) |
+| `duobalance-api/src/mail/providers/resend.provider.ts` | Proveedor Resend (por defecto — SDK 'resend') |
+| `duobalance-api/src/mail/providers/brevo.provider.ts` | Proveedor Brevo (alternativo — MAIL_PROVIDER=brevo) |
+| `duobalance-api/src/mail/mail.controller.ts` | `POST /mail/test` (endpoint TEMPORAL — a eliminar tras validar) |
+| `duobalance-api/src/mail/interfaces/mail-provider.interface.ts` | Contrato MailProvider + MAIL_PROVIDER_TOKEN |
 | `duobalance-api/src/users/users.service.ts` | User queries |
 | `duobalance-api/src/groups/groups.controller.ts` | Group routes (create, join, list, get, update, delete, archive, regenerate invite, leave, remove member, update member split) |
 | `duobalance-api/src/groups/groups.service.ts` | Group business logic |

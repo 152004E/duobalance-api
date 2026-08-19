@@ -93,36 +93,41 @@
 4. Forgot password
 
 ### Sprint 1 — Base: MailModule + Resend
-- [ ] Crear cuenta Resend con `doubalanceinfo@gmail.com` → API Key (`RESEND_API_KEY`)
-- [ ] `pnpm add resend`
-- [ ] Crear estructura `src/mail/`:
+- [✓] Crear cuenta Resend con `doubalanceinfo@gmail.com` → API Key (`RESEND_API_KEY`)
+- [✓] `pnpm add resend`
+- [✓] Crear estructura `src/mail/`:
   ```
   src/mail/
-  ├── mail.module.ts          ← exporta MailService (global)
+  ├── mail.module.ts          ← exporta MailService (global); elige proveedor vía MAIL_PROVIDER
   ├── mail.service.ts         ← mailService.send(...) — única puerta de salida
+  ├── mail.controller.ts      ← POST /mail/test (temporal)
   ├── providers/
-  │   └── resend.provider.ts  ← único archivo que importa el SDK 'resend'
+  │   ├── resend.provider.ts  ← proveedor Resend (por defecto — SDK 'resend')
+  │   └── brevo.provider.ts   ← proveedor Brevo (alternativo — MAIL_PROVIDER=brevo)
   ├── templates/              ← HTML con {{variables}}, sin HTML en código
-  │   ├── welcome.html
-  │   ├── verification.html
-  │   ├── forgot-password.html
-  │   └── monthly-settlement.html
+  │   ├── welcome.html        ← bienvenida + verificación combinadas
+  │   └── password-reset.html ← forgot/reset password
+  ├── dto/
+  │   └── test-mail.dto.ts
   └── interfaces/
-      └── mail.interface.ts   ← MailPayload { to, subject, template, data }
+      ├── mail.interface.ts         ← MailPayload { to, subject, template, data }
+      └── mail-provider.interface.ts ← contrato MailProvider + MAIL_PROVIDER_TOKEN
   ```
-- [ ] Env vars (`.env` + Joi en `env.config.ts`):
+- [✓] Env vars (`.env` + Joi en `env.config.ts`):
   - `RESEND_API_KEY=...`
+  - `BREVO_API_KEY=...` (requerida si `MAIL_PROVIDER=brevo`)
+  - `MAIL_PROVIDER=resend` (valores: `resend` | `brevo`)
   - `MAIL_FROM=onboarding@resend.dev` (remitente temporal de Resend; al tener dominio propio solo se cambia este valor)
   - `FRONTEND_URL=http://localhost:8081`
-- [ ] Endpoint temporal `POST /mail/test` → "Hola {{name}}, DuoBalance quedó configurado correctamente"
-- [ ] Verificar recepción en el inbox → **eliminar endpoint**
+- [✓] Endpoint temporal `POST /mail/test` → "Hola {{name}}, DuoBalance quedó configurado correctamente"
+- [✓] Verificar recepción en el inbox — ⚠️ el endpoint `POST /mail/test` **AÚN no se ha eliminado** (pendiente de quitar tras validar)
 
 ### Sprint 2 — Forgot Password
-- [ ] Prisma: modelo `PasswordResetToken` (tokenHash único, userId, expiresAt, usedAt) + migración
-- [ ] `POST /auth/forgot-password` `{ email }` → genera token (1h), guarda hash, `mailService.sendForgotPassword()` con link `FRONTEND_URL/reset-password?token=...`
-- [ ] `POST /auth/reset-password` `{ token, newPassword }` → valida token (vigente, sin usar) → actualiza hash → revoca token + refresh tokens
-- [ ] Seguridad: mismo mensaje de respuesta si el email no existe (evitar enumeración de usuarios)
-- [ ] Frontend: conectar `forgot-password.tsx` (ya tiene UI) + nueva pantalla `reset-password.tsx`
+- [✓] Prisma: modelo `PasswordResetToken` (tokenHash único, userId, expiresAt, usedAt) + migración `20260818162051_add_password_reset_token`
+- [✓] `POST /auth/forgot-password` `{ email }` → genera token (60 min), guarda hash SHA-256, `mailService.sendPasswordReset()` con link `FRONTEND_URL/restablecer-contrasena?token=...`
+- [✓] `POST /auth/reset-password` `{ token, newPassword }` → valida token (vigente, sin usar) → actualiza hash → revoca token + refresh tokens
+- [✓] Seguridad: mismo mensaje de respuesta si el email no existe (evitar enumeración de usuarios)
+- [✓] Frontend: conectar `forgot-password.tsx` + nueva pantalla `reset-password.tsx` (frontend — hecho)
 
 ### Sprint 3 — Verificación de correo + Bienvenida
 - [x] Prisma: `User.emailVerifiedAt DateTime?` + modelo `EmailVerificationToken` + migración `20260813191657_add_email_verification`

@@ -74,16 +74,16 @@
 ---
 
 ## Phase 6: Emails & Mail Module (v0.7) — MVP
-**Goal**: Transactional emails via a single MailModule (Resend provider). Ningún módulo envía correos directamente — todo pasa por `mailService.send(...)`.
+**Goal**: Transactional emails via a single MailModule (proveedores Resend + Brevo, elegidos con `MAIL_PROVIDER`). Ningún módulo envía correos directamente — todo pasa por `mailService.send(...)`.
 
 **Cuenta Resend**: `doubalanceinfo@gmail.com` → API Key (`RESEND_API_KEY`). Remitente temporal `MAIL_FROM=onboarding@resend.dev` (sin comprar dominio).
 
 **Correos MVP**: verificación de correo · bienvenida · liquidación mensual · forgot password
 
-- [x] MailModule + ResendProvider (única puerta `mailService.send`)
-- [x] Env vars: `RESEND_API_KEY`, `MAIL_FROM` (temporal `onboarding@resend.dev`), `FRONTEND_URL`
-- [x] `POST /mail/test` (endpoint temporal — se elimina al verificar recepción)
-- [ ] Forgot password completo: `POST /auth/forgot-password` + `POST /auth/reset-password` (+ modelo `PasswordResetToken`)
+- [x] MailModule + ResendProvider/BrevoProvider (única puerta `mailService.send`)
+- [x] Env vars: `RESEND_API_KEY`, `BREVO_API_KEY`, `MAIL_PROVIDER` (`resend`|`brevo`), `MAIL_FROM` (temporal `onboarding@resend.dev`), `FRONTEND_URL`
+- [x] `POST /mail/test` (endpoint temporal — **AÚN existente**, pendiente de eliminar tras validar)
+- [x] Forgot password completo: `POST /auth/forgot-password` + `POST /auth/reset-password` (+ modelo `PasswordResetToken`)
 - [x] Verificación de correo al registrarse (estricta): `User.emailVerifiedAt` + `EmailVerificationToken` + `POST /auth/verify-email` + `POST /auth/resend-verification` + correo **combinado** de bienvenida+verificación (template `welcome.html`); login bloquea hasta verificar
 - [ ] Liquidación mensual: cron `@nestjs/schedule` → resumen de balances por usuario (`sendMonthlySettlement`)
 - [x] Plantillas HTML en `src/mail/templates/` con `{{variables}}` (sin HTML en código)
@@ -125,7 +125,7 @@ v0.3  ████████████████████████�
 v0.4  ██████████████████████████████████  (Balances + Dashboard + Settlement Suggestions — done)
 v0.5  ██████████████████████████████████  (Payments + Settlement + Groups full CRUD — done)
 v0.6  ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░  (Receipts)
-v0.7  ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░  (Emails: Resend + forgot password + verificación + liquidación mensual)
+v0.7  ██████████████████████████░░░░░░  (Emails: MailModule Resend+Brevo, verificación estricta, forgot/reset password — hecho; falta liquidación mensual)
 v1.0  ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░  (Production)
 ```
 

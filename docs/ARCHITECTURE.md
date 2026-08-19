@@ -19,15 +19,19 @@ duobalance-api/
 │   ├── app.controller.spec.ts     Unit test for controller
 │   ├── app.service.ts             Business logic layer
 │   ├── auth/
-│   │   ├── auth.module.ts         Auth module (register, login)
-│   │   ├── auth.controller.ts     POST /auth/register, /auth/login, GET /auth/profile, PATCH /auth/password
-│   │   ├── auth.service.ts        bcrypt + JWT logic
+│   │   ├── auth.module.ts         Auth module (register, login, verify-email, forgot/reset password)
+│   │   ├── auth.controller.ts     POST /auth/register, /auth/verify-email, /auth/resend-verification, /auth/forgot-password, /auth/reset-password, /auth/login, /auth/refresh, /auth/logout, GET /auth/profile, PATCH /auth/profile, PATCH /auth/password, POST /auth/profile/avatar
+│   │   ├── auth.service.ts        bcrypt + JWT logic + verificación/reset (emailVerifiedAt, ForbiddenException)
 │   │   ├── dto/
-│   │   │   ├── register.dto.ts    Validated register DTO
+│   │   │   ├── register.dto.ts    Validated register DTO (@IsRealEmail + @IsNotDisposableEmail)
 │   │   │   ├── login.dto.ts       Validated login DTO
 │   │   │   ├── refresh-token.dto.ts  Refresh token DTO
 │   │   │   ├── change-password.dto.ts  Change password DTO (currentPassword, newPassword)
-│   │   │   └── update-profile.dto.ts Profile update DTO (firstName, lastName, email)
+│   │   │   ├── update-profile.dto.ts Profile update DTO (firstName, lastName, email)
+│   │   │   ├── verify-email.dto.ts  Verify email DTO (token)
+│   │   │   ├── resend-verification.dto.ts  Resend verification DTO (email)
+│   │   │   ├── request-password-reset.dto.ts  Forgot password DTO (email)
+│   │   │   └── reset-password.dto.ts  Reset password DTO (token, newPassword)
 │   │   ├── guards/
 │   │   │   └── jwt-auth.guard.ts  JWT Auth Guard (@UseGuards)
 │   │   └── strategies/
@@ -35,8 +39,11 @@ duobalance-api/
 │   ├── auth/
 │   │   ├── auth.controller.spec.ts  Auth controller tests
 │   │   ├── auth.service.spec.ts     Auth service tests
-│   │   └── refresh-token.service.ts  Refresh token rotation & management
-│   │   └── refresh-token.service.spec.ts  Refresh token tests
+│   │   ├── refresh-token.service.ts  Refresh token rotation & management
+│   │   ├── refresh-token.service.spec.ts  Refresh token tests
+│   │   ├── email-verification.service.ts  Tokens de verificación (SHA-256, TTL 24h, markUsed/invalidateForUser)
+│   │   ├── password-reset.service.ts  Tokens de reset (SHA-256, TTL 60 min, markUsed/invalidateForUser)
+│   │   └── password-reset.service.spec.ts  Password reset service tests
 │   ├── config/
 │   │   └── env.config.ts          Environment validation (Joi schema)
 │   ├── common/
@@ -45,9 +52,11 @@ duobalance-api/
 │   │   ├── guards/                        (empty)
 │   │   ├── pipes/
 │   │   │   └── validation.pipe.ts         Global validation pipe
-│   │   └── utils/
-│   │       ├── expense-share.ts            Expense share calculation (EQUAL + PERCENTAGE, memberCount-aware)
-│   │       └── invite-code.ts             Invite code generator (6 hex chars)
+│   │   ├── utils/
+│   │   │   ├── expense-share.ts            Expense share calculation (EQUAL + PERCENTAGE, memberCount-aware)
+│   │   │   └── invite-code.ts             Invite code generator (6 hex chars)
+│   │   └── validators/
+│   │       └── is-real-email.ts           @IsRealEmail — valida dominio con MX records (registro/forgot/resend)
 │   ├── groups/
 │   │   ├── groups.module.ts        Groups module
 │   │   ├── groups.controller.ts    POST /groups, POST /groups/join, GET /groups, GET /groups/:id, PATCH /groups/:id, DELETE /groups/:id, POST /groups/:id/archive, POST /groups/:id/regenerate-invite, DELETE /groups/:id/leave, DELETE /groups/:id/members/:memberId, PATCH /groups/:id/members/:memberId/split
@@ -103,11 +112,27 @@ duobalance-api/
 │       ├── users.module.ts        Users module (exported)
 │       ├── users.service.ts       findByEmail, findById, create, update (firstName, lastName, email, password, avatarUrl)
 │       └── users.service.spec.ts
+│   ├── mail/                            Mail module ✓ (global)
+│   │   ├── mail.module.ts      Global module — exporta MailService; elige proveedor vía MAIL_PROVIDER
+│   │   ├── mail.service.ts     mailService.send(...) — única puerta de salida de correos (send, sendTest, sendWelcomeAndVerification, sendPasswordReset)
+│   │   ├── mail.controller.ts  POST /mail/test (temporal — a eliminar tras validar)
+│   │   ├── mail.service.spec.ts
+│   │   ├── providers/
+│   │   │   ├── resend.provider.ts  Proveedor Resend (por defecto — SDK 'resend')
+│   │   │   └── brevo.provider.ts   Proveedor Brevo (alternativo — MAIL_PROVIDER=brevo)
+│   │   ├── interfaces/
+│   │   │   ├── mail.interface.ts        MailPayload { to, subject, template, data } + SentMailResult
+│   │   │   └── mail-provider.interface.ts  Contrato MailProvider + MAIL_PROVIDER_TOKEN
+│   │   ├── dto/
+│   │   │   └── test-mail.dto.ts   Validated test mail DTO (to, name?)
+│   │   └── templates/           HTML con {{variables}}, sin HTML en código
+│   │       ├── welcome.html     Bienvenida + verificación combinadas
+│   │       └── password-reset.html  Restablecer contraseña
 │
 ├── domain/                         (empty — available for future domain models)
 │
 ├── prisma/
-│   ├── schema.prisma              Database schema (User + Group + GroupMember + Expense + ExpenseSplit + Payment + RefreshToken models)
+│   ├── schema.prisma              Database schema (User + Group + GroupMember + Expense + ExpenseSplit + Payment + RefreshToken + PasswordResetToken + EmailVerificationToken models)
 │   ├── migrations/                Prisma migrations
 │   │   ├── 20260611204224_init/   Initial migration (User table)
 │   │   ├── 20260612165726_add_couple_model/  Couple model + relation (migrated to Group)
@@ -115,7 +140,11 @@ duobalance-api/
 │   │   ├── 20260715173532_remove_couple_model/  Couple model removed
 │   │   ├── *split_percentage/     splitPercentage field on GroupMember
 │   │   ├── *avatar_url/           avatarUrl field on User
-│   │   └── *archived_at/          archivedAt field on Group
+│   │   ├── *archived_at/          archivedAt field on Group
+│   │   ├── 20260804194234_add_expense_categories/  ExpenseCategory enum
+│   │   ├── 20260805162604_add_payment_status/      Payment.status (PENDING/CONFIRMED/REJECTED) + confirmedAt
+│   │   ├── 20260813191657_add_email_verification/  User.emailVerifiedAt + EmailVerificationToken
+│   │   └── 20260818162051_add_password_reset_token/  PasswordResetToken model
 │   └── prisma.config.ts           Prisma configuration
 │
 ├── test/
@@ -152,7 +181,11 @@ Client (HTTP)
 ```
 Client (HTTP)
   ├─ POST /auth/register   → AuthController   → AuthService   → bcrypt → Prisma → users table
-  ├─ POST /auth/login      → AuthController   → AuthService   → bcrypt → JWT token
+  ├─ POST /auth/verify-email → AuthController → EmailVerificationService → valida token (24h) → emailVerifiedAt = now()
+  ├─ POST /auth/resend-verification → AuthController → EmailVerificationService → reenvía correo (respuesta genérica)
+  ├─ POST /auth/forgot-password → AuthController → PasswordResetService → token SHA-256 (60 min) → MailService.sendPasswordReset()
+  ├─ POST /auth/reset-password → AuthController → PasswordResetService → valida token → bcrypt → revoca token + refresh tokens
+  ├─ POST /auth/login      → AuthController   → AuthService   → bcrypt → JWT token (bloqueado con ForbiddenException si email no verificado)
   ├─ POST /auth/refresh    → AuthController   → RefreshTokenService → rotate refresh token
   ├─ POST /auth/logout     → AuthController   → RefreshTokenService → revoke refresh token
   ├─ GET  /auth/profile    → AuthController   → JwtAuthGuard → JwtStrategy → user payload
@@ -212,6 +245,14 @@ Client (HTTP)
 ```
 > El endpoint `GET /settlements/suggestions?groupId=optional` calcula sugerencias de liquidación usando un algoritmo greedy que empareja deudores con acreedores para minimizar transacciones. Reutiliza `calculateExpenseShare()` con memberCount del grupo.
 
+### MailModule (Implemented — correos)
+```
+Client (HTTP)
+  ├─ POST /mail/test (temporal) → MailController → MailService.sendTest → provider activo → inbox
+  └─ AuthService (verificación / forgot-password) → MailService.send(...) → ResendProvider | BrevoProvider → inbox
+```
+> `MailModule` es global: ningún módulo envía correos directamente, todo pasa por `MailService`. El proveedor activo se elige con `MAIL_PROVIDER` (`resend` por defecto | `brevo`). `POST /mail/test` es un endpoint TEMPORAL pendiente de eliminar.
+
 ### Phase 8 (Planned — Receipts)
 ```
 Client (HTTP)
@@ -224,8 +265,12 @@ Client (HTTP)
 | Method | Route | Controller | Status | Details |
 |--------|-------|-----------|--------|---------|
 | GET | `/` | AppController | ✓ | Returns "Hello World!" |
-| POST | `/auth/register` | AuthController | ✓ | Register with bcrypt |
-| POST | `/auth/login` | AuthController | ✓ | Returns JWT access_token |
+| POST | `/auth/register` | AuthController | ✓ | Register with bcrypt (@IsRealEmail + @IsNotDisposableEmail) |
+| POST | `/auth/verify-email` | AuthController | ✓ | Verify email token (public) |
+| POST | `/auth/resend-verification` | AuthController | ✓ | Resend verification email (public, respuesta genérica) |
+| POST | `/auth/forgot-password` | AuthController | ✓ | Request password reset (public, respuesta genérica) |
+| POST | `/auth/reset-password` | AuthController | ✓ | Reset password with token (public) |
+| POST | `/auth/login` | AuthController | ✓ | Returns JWT access_token (bloquea si email no verificado) |
 | POST | `/auth/refresh` | AuthController | ✓ | Refresh access token |
 | POST | `/auth/logout` | AuthController | ✓ | Revoke refresh token |
 | GET | `/auth/profile` | AuthController | ✓ | Protected — returns user from JWT |
@@ -254,6 +299,7 @@ Client (HTTP)
 | GET | `/settlements` | SettlementsController | ✓ | Net settlement calculation (JWT, ?groupId=optional) |
 | GET | `/settlements/suggestions` | SettlementsController | ✓ | Settlement suggestions via greedy algorithm (JWT, ?groupId=optional) |
 | GET | `/dashboard` | DashboardController | ✓ | Dashboard summary (JWT, ?groupId=optional) |
+| POST | `/mail/test` | MailController | ✓ (temporal) | Test email — endpoint TEMPORAL, eliminar tras validar |
 | - | `/receipts/*` | — | ❌ | Not implemented yet |
 
 ## Component Architecture
@@ -262,9 +308,11 @@ Client (HTTP)
 AppModule
 ├── ConfigModule         (@nestjs/config + Joi validation)
 ├── AuthModule
-│   ├── AuthController   (POST /auth/register, /auth/login, POST /auth/refresh, POST /auth/logout, GET /auth/profile, PATCH /auth/profile, PATCH /auth/password, POST /auth/profile/avatar)
-│   ├── AuthService      (bcrypt hash + JWT sign)
+│   ├── AuthController   (POST /auth/register, /auth/verify-email, /auth/resend-verification, /auth/forgot-password, /auth/reset-password, POST /auth/login, POST /auth/refresh, POST /auth/logout, GET /auth/profile, PATCH /auth/profile, PATCH /auth/password, POST /auth/profile/avatar)
+│   ├── AuthService      (bcrypt hash + JWT sign + verificación/reset: emailVerifiedAt, ForbiddenException)
 │   ├── RefreshTokenService  (refresh token rotation & management)
+│   ├── EmailVerificationService  (tokens SHA-256, TTL 24h — create/validate/markUsed/invalidateForUser)
+│   ├── PasswordResetService     (tokens SHA-256, TTL 60 min — create/validate/markUsed/invalidateForUser)
 │   ├── JwtStrategy      (Passport strategy — Bearer token validation)
 │   └── JwtAuthGuard     (@UseGuards decorator)
 ├── UsersModule
@@ -287,6 +335,11 @@ AppModule
 ├── DashboardModule                  ← ✓ Implemented
 │   ├── DashboardController (GET /dashboard)
 │   └── DashboardService    (aggregated summaries)
+├── MailModule (global)               ← ✓ Implemented
+│   ├── MailController   (POST /mail/test — temporal, a eliminar)
+│   ├── MailService      (única puerta de salida de correos — send, sendTest, sendWelcomeAndVerification, sendPasswordReset)
+│   ├── ResendProvider   (proveedor por defecto — SDK 'resend')
+│   └── BrevoProvider    (alternativo — MAIL_PROVIDER=brevo)
 ├── AppController        (GET /)
 ├── AppService           (business logic)
 └── PrismaModule         (PrismaService provider)
@@ -335,21 +388,52 @@ AppModule
 ## Database Schema (Current)
 
 ```prisma
+enum PaymentStatus {
+  PENDING
+  CONFIRMED
+  REJECTED
+}
+
 model User {
+  id              String   @id @default(uuid())
+  firstName       String
+  lastName        String
+  email           String   @unique
+  password        String
+  avatarUrl       String?
+  emailVerifiedAt DateTime?
+  createdAt       DateTime @default(now())
+
+  members               GroupMember[]
+  expenses              Expense[]
+  expenseSplits         ExpenseSplit[]
+  paymentsSent          Payment[] @relation("SentPayments")
+  paymentsReceived      Payment[] @relation("ReceivedPayments")
+  refreshTokens         RefreshToken[]
+  emailVerificationTokens EmailVerificationToken[]
+  passwordResetTokens     PasswordResetToken[]
+}
+
+model PasswordResetToken {
   id        String   @id @default(uuid())
-  firstName String
-  lastName  String
-  email     String   @unique
-  password  String
-  avatarUrl String?
+  tokenHash String   @unique
+  userId    String
+  expiresAt DateTime
+  usedAt    DateTime?
   createdAt DateTime @default(now())
 
-  members           GroupMember[]
-  expenses          Expense[]
-  expenseSplits     ExpenseSplit[]
-  paymentsSent      Payment[] @relation("SentPayments")
-  paymentsReceived  Payment[] @relation("ReceivedPayments")
-  refreshTokens     RefreshToken[]
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model EmailVerificationToken {
+  id        String   @id @default(uuid())
+  tokenHash String   @unique
+  userId    String
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Group {
@@ -414,9 +498,11 @@ model ExpenseSplit {
 }
 
 model Payment {
-  id          String   @id @default(uuid())
-  amount      Decimal  @db.Decimal(12,2)
-  createdAt   DateTime @default(now())
+  id          String        @id @default(uuid())
+  amount      Decimal       @db.Decimal(12,2)
+  status      PaymentStatus @default(PENDING)
+  confirmedAt DateTime?
+  createdAt   DateTime      @default(now())
 
   fromUserId  String
   toUserId    String
