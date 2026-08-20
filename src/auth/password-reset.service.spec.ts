@@ -111,13 +111,11 @@ describe('PasswordResetService', () => {
         expiresAt: new Date(Date.now() + 60 * 60 * 1000),
         user: { id: 'user-uuid' },
       };
-      mockPrismaService.passwordResetToken.findUnique.mockResolvedValue(
+      mockPrismaService.passwordResetToken.findUnique.mockResolvedValue(record);
+
+      await expect(service.validateResetToken('valid-token')).resolves.toEqual(
         record,
       );
-
-      await expect(
-        service.validateResetToken('valid-token'),
-      ).resolves.toEqual(record);
     });
   });
 
@@ -127,9 +125,7 @@ describe('PasswordResetService', () => {
 
       await service.markUsed('reset-id');
 
-      expect(
-        mockPrismaService.passwordResetToken.update,
-      ).toHaveBeenCalledWith({
+      expect(mockPrismaService.passwordResetToken.update).toHaveBeenCalledWith({
         where: { id: 'reset-id' },
         data: { usedAt: expect.any(Date) },
       });

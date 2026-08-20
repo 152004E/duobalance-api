@@ -143,9 +143,8 @@ export class AuthService {
    * Restablece la contraseña usando un token de un solo uso.
    */
   async resetPassword(plainToken: string, newPassword: string) {
-    const record = await this.passwordResetService.validateResetToken(
-      plainToken,
-    );
+    const record =
+      await this.passwordResetService.validateResetToken(plainToken);
     if (!record) {
       throw new UnauthorizedException(
         'El enlace es inválido o ya expiró. Solicita uno nuevo.',

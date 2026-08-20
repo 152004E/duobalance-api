@@ -121,6 +121,7 @@ model Expense {
   id          String           @id @default(uuid())
   description String
   amount      Decimal          @db.Decimal(12,2)
+  receiptUrl  String?
 
   category    ExpenseCategory
   splitType   SplitType

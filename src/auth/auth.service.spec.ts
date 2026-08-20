@@ -98,9 +98,8 @@ describe('AuthService', () => {
     emailVerificationService = module.get<EmailVerificationService>(
       EmailVerificationService,
     );
-    passwordResetService = module.get<PasswordResetService>(
-      PasswordResetService,
-    );
+    passwordResetService =
+      module.get<PasswordResetService>(PasswordResetService);
     mailService = module.get<MailService>(MailService);
 
     (bcrypt.hash as jest.Mock).mockResolvedValue('hashedpassword');

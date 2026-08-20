@@ -3,6 +3,8 @@ import {
   BadRequestException,
   NotFoundException,
 } from '@nestjs/common';
+import { unlink } from 'fs/promises';
+import { join } from 'path';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateExpenseDto } from './dto/create-expense.dto';
 import { UpdateExpenseDto } from './dto/update-expense.dto';
@@ -251,5 +253,56 @@ export class ExpensesService {
         deletedAt: new Date(),
       },
     });
+  }
+
+  async setReceipt(userId: string, expenseId: string, receiptUrl: string) {
+    await this.findExpenseForUser(userId, expenseId);
+    return this.prisma.expense.update({
+      where: { id: expenseId },
+      data: { receiptUrl },
+    });
+  }
+
+  async clearReceipt(userId: string, expenseId: string) {
+    const expense = await this.findExpenseForUser(userId, expenseId);
+
+    if (expense.receiptUrl) {
+      const filePath = join(
+        process.cwd(),
+        expense.receiptUrl.replace(/^\/uploads\//, ''),
+      );
+      try {
+        await unlink(filePath);
+      } catch {
+        // Archivo inexistente — no bloquea la limpieza del campo
+      }
+    }
+
+    return this.prisma.expense.update({
+      where: { id: expenseId },
+      data: { receiptUrl: null },
+    });
+  }
+
+  private async findExpenseForUser(userId: string, expenseId: string) {
+    const userGroupIds = await this.getUserGroupIds(userId);
+
+    if (userGroupIds.length === 0) {
+      throw new NotFoundException('Expense not found');
+    }
+
+    const expense = await this.prisma.expense.findFirst({
+      where: {
+        id: expenseId,
+        groupId: { in: userGroupIds },
+        deletedAt: null,
+      },
+    });
+
+    if (!expense) {
+      throw new NotFoundException('Expense not found');
+    }
+
+    return expense;
   }
 }
