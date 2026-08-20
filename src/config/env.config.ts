@@ -17,4 +17,5 @@ export const envValidationSchema = Joi.object({
   }),
   MAIL_FROM: Joi.string().default('onboarding@resend.dev'),
   FRONTEND_URL: Joi.string().default('http://localhost:8081'),
+  CORS_ORIGINS: Joi.string().default('http://localhost:8081,http://localhost:8082'),
 });
