@@ -29,9 +29,9 @@
 |-------|-----------|-------|--------|
 | Backend + DB + Nginx | Oracle Cloud Always Free (VM Ampere A1) | **$0/mes*** | Por desplegar |
 | Storage (uploads) | Cloudflare R2 (object storage) — preferir buckets privados | **$0/mes*** | Por configurar |
-| Frontend web | Cloudflare Pages (estático) | **$0/mes** | Por desplegar |
+| Frontend web | Cloudflare Pages (estático) | **$0/mes** | ✅ Desplegado |
 | Dominio API | `api-duobalance.duckdns.org` (DuckDNS) o dominio propio gestionado por Cloudflare | **$0** | Por configurar |
-| Dominio frontend | `duobalance.pages.dev` (Cloudflare Pages) | **$0** | Por configurar |
+| Dominio frontend | `duobalance-app.pages.dev` (Cloudflare Pages) | **$0** | ✅ Configurado |
 | HTTPS API | Let's Encrypt + certbot (Nginx en host) — usar con Cloudflare SSL Mode `Full (strict)` | **$0** | Por configurar |
 | HTTPS frontend | Cloudflare (auto) | **$0** | Automático |
 
@@ -107,7 +107,7 @@ Una VM (Virtual Machine) se comporta como un servidor Linux remoto. Para DuoBala
 
 ### 2.3 Flujo de datos
 
-1. Usuario accede a `https://duobalance.pages.dev` (Cloudflare Pages + CDN).
+1. Usuario accede a `https://duobalance-app.pages.dev` (Cloudflare Pages + CDN).
 2. Frontend hace peticiones a `https://api-duobalance.<tu-dominio>`.
 3. Cloudflare resuelve DNS y pasa tráfico a la IP pública de Oracle (o lo proxiea según tu configuración).
 4. Nginx (host) recibe la petición y la proxy_pass a la API que corre dentro de Docker Compose.
@@ -342,9 +342,28 @@ Guardar credenciales R2 en `/opt/duobalance/.env` y usarlas sólo en el backend.
 
 ---
 
-### FASE 7 — Cloudflare Pages (frontend)
+### FASE 7 — Cloudflare Pages (frontend) ✅ COMPLETADO
 
-Configurar Pages con build command `pnpm install --frozen-lockfile && pnpm export:web` y `dist` como output.
+**Estado:** Frontend desplegado y funcionando.
+
+**URL:** `https://duobalance-app.pages.dev`
+
+**Configuración utilizada:**
+- Build command: `pnpm install --frozen-lockfile && pnpm export:web`
+- Build output directory: `dist`
+- Root directory: `/`
+- Branch: `main`
+
+**Variables de entorno configuradas:**
+- `EXPO_PUBLIC_API_URL=https://api-duobalance.duckdns.org`
+- `EXPO_PUBLIC_APP_NAME=DuoBalance`
+
+**Archivos creados para Cloudflare Pages:**
+- `public/_redirects` — SPA routing fallback (`/* /index.html 200`)
+- `public/_headers` — Headers de seguridad y caché
+- `public/404.html` — Página 404 personalizada
+
+**Fecha de despliegue:** Agosto 2026
 
 ---
 
